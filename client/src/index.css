@@ -1,0 +1,74 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: #0A2540;
+    --primary-light: #1E3A5F;
+    --secondary: #FF6B00;
+    --secondary-light: #FF8C3A;
+    --accent-green: #00C853;
+    --accent-gold: #FFD700;
+    --accent-purple: #7C3AED;
+    --bg-light: #F8FAFC;
+    --bg-card: #FFFFFF;
+    --text-primary: #0A2540;
+    --text-secondary: #64748B;
+    --border: #E2E8F0;
+  }
+
+  html.dark {
+    --bg-light: #0B1120;
+    --bg-card: #111827;
+    --text-primary: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --border: #1E293B;
+  }
+
+  body {
+    @apply bg-[var(--bg-light)] text-[var(--text-primary)] font-sans transition-colors duration-300;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading text-[var(--text-primary)];
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 font-medium rounded-custom transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+  }
+  
+  .btn-primary {
+    @apply bg-secondary hover:bg-secondary-light text-white shadow-custom hover:shadow-lg;
+  }
+  
+  .btn-outline {
+    @apply border-2 border-primary text-primary hover:bg-primary hover:text-white dark:border-white dark:text-white dark:hover:bg-white dark:hover:text-primary;
+  }
+
+  .card {
+    @apply bg-[var(--bg-card)] rounded-custom shadow-custom border border-[var(--border)] transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}

@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VidyaJaya — Victory Through Knowledge</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════
+   ROOT & RESET
+══════════════════════════════════════════════════ */
+:root{
+  --blue:#2563EB; --blue-d:#1D4ED8; --blue-l:#EFF6FF;
+  --green:#22C55E; --green-d:#16A34A; --green-l:#F0FDF4;
+  --orange:#F59E0B; --orange-d:#D97706; --orange-l:#FFFBEB;
+  --navy:#0A1628; --navy2:#0F2040;
+  --red:#EF4444; --purple:#7C3AED;
+  --bg:#F0F4FF; --card:#fff;
+  --text:#0F172A; --sub:#64748B; --muted:#94A3B8;
+  --border:#E2E8F0;
+  --r8:8px; --r12:12px; --r16:16px; --r20:20px; --r24:24px;
+  --shadow:0 2px 16px rgba(37,99,235,.1);
+  --shadow-lg:0 8px 40px rgba(37,99,235,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:'Sora',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;line-height:1.6}
+
+/* ══════════════════════════════════════════════════
+   SCREEN SYSTEM
+══════════════════════════════════════════════════ */
+.screen{display:none;min-height:100vh;animation:fadeIn .35s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideLeft{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
+@keyframes countUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fireFlicker{0%,100%{transform:scale(1) rotate(-2deg)}50%{transform:scale(1.15) rotate(2deg)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(37,99,235,.3)}50%{box-shadow:0 0 40px rgba(37,99,235,.6)}}
+@keyframes progressFill{from{width:0}to{width:var(--w)}}
+@keyframes timerPulse{0%,100%{color:var(--text)}50%{color:var(--red)}}
+@keyframes coinFloat{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-60px) scale(1.4)}}
+@keyframes streakPop{0%{transform:scale(1)}30%{transform:scale(1.4)}60%{transform:scale(.95)}100%{transform:scale(1.1)}}
+
+/* ══════════════════════════════════════════════════
+   UTILITY
+══════════════════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:var(--r12);font-size:15px;font-weight:700;cursor:pointer;border:none;transition:all .2s;font-family:'Sora',sans-serif;text-decoration:none}
+.btn:active{transform:scale(.96)}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.4)}
+.btn-primary:hover{background:var(--blue-d);box-shadow:0 6px 20px rgba(37,99,235,.5);transform:translateY(-1px)}
+.btn-secondary{background:#fff;color:var(--blue);border:2px solid var(--blue)}
+.btn-secondary:hover{background:var(--blue-l)}
+.btn-orange{background:var(--orange);color:#fff;box-shadow:0 4px 14px rgba(245,158,11,.4)}
+.btn-orange:hover{background:var(--orange-d);transform:translateY(-1px)}
+.btn-green{background:var(--green);color:#fff;box-shadow:0 4px 14px rgba(34,197,94,.4)}
+.btn-ghost{background:transparent;color:var(--sub);border:1.5px solid var(--border)}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.btn-lg{padding:16px 32px;font-size:17px;border-radius:var(--r16)}
+.btn-sm{padding:8px 18px;font-size:13px;border-radius:var(--r8)}
+.btn-full{width:100%}
+.card{background:var(--card);border-radius:var(--r20);padding:20px;border:1px solid var(--border);box-shadow:var(--shadow);transition:all .25s}
+.card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+.badge-blue{background:var(--blue-l);color:var(--blue)}
+.badge-green{background:var(--green-l);color:var(--green-d)}
+.badge-orange{background:var(--orange-l);color:var(--orange-d)}
+.badge-red{background:#FEE2E2;color:var(--red)}
+.tag{background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--sub);font-weight:600}
+.gradient-text{background:linear-gradient(135deg,var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.section-title{font-size:clamp(26px,5vw,44px);font-weight:900;color:var(--text);line-height:1.1}
+.section-sub{font-size:16px;color:var(--sub);margin-top:10px;line-height:1.7}
+.container{max-width:1100px;margin:0 auto;padding:0 20px}
+.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+.grid-4{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}
+.flex{display:flex;align-items:center;gap:12px}
+.flex-between{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.text-center{text-align:center}
+.mb-4{margin-bottom:16px}.mb-6{margin-bottom:24px}.mb-8{margin-bottom:32px}.mb-12{margin-bottom:48px}
+.mt-4{margin-top:16px}.mt-6{margin-top:24px}
+/* Reveal on scroll */
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:.1s}
+.reveal-delay-2{transition-delay:.2s}
+.reveal-delay-3{transition-delay:.3s}
+.reveal-delay-4{transition-delay:.4s}
+
+/* ══════════════════════════════════════════════════
+   NAVBAR
+══════════════════════════════════════════════════ */
+.navbar{position:fixed;top:0;left:0;right:0;z-index:1000;padding:14px 0;transition:all .3s;background:transparent}
+.navbar.scrolled{background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:10px 0}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;max-width:1100px;margin:0 auto;padding:0 20px}
+.nav-logo{display:flex;align-items:center;gap:10px;cursor:pointer}
+.nav-logo-mark{width:38px;height:38px;background:var(--blue);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.nav-logo-mark svg{width:20px;height:20px}
+.nav-brand{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--navy)}
+.nav-brand span{color:var(--blue)}
+.nav-links{display:flex;align-items:center;gap:8px}
+.nav-link{padding:8px 14px;border-radius:var(--r8);font-size:14px;font-weight:600;color:var(--sub);cursor:pointer;transition:all .2s;text-decoration:none;border:none;background:transparent}
+.nav-link:hover{color:var(--blue);background:var(--blue-l)}
+.nav-link.active{color:var(--blue);background:var(--blue-l)}
+.nav-actions{display:flex;align-items:center;gap:8px}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px}
+.hamburger span{width:24px;height:2px;background:var(--text);border-radius:2px;transition:all .3s}
+@media(max-width:768px){
+  .nav-links{display:none}.hamburger{display:flex}
+  .nav-mobile.open .nav-links{display:flex;flex-direction:column;position:absolute;top:100%;left:0;right:0;background:#fff;border-bottom:1px solid var(--border);padding:16px 20px;gap:4px}
+}
+
+/* ══════════════════════════════════════════════════
+   LANDING PAGE
+══════════════════════════════════════════════════ */
+#landing{background:#fff}
+
+/* Hero */
+.hero{padding:120px 20px 80px;background:var(--navy);position:relative;overflow:hidden;min-height:100vh;display:flex;align-items:center}
+.hero-bg{position:absolute;inset:0;pointer-events:none}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(80px);animation:float 6s ease-in-out infinite}
+.hero-orb-1{width:500px;height:500px;background:rgba(37,99,235,.25);top:-100px;right:-100px;animation-delay:0s}
+.hero-orb-2{width:400px;height:400px;background:rgba(124,58,237,.2);bottom:-80px;left:-80px;animation-delay:2s}
+.hero-orb-3{width:300px;height:300px;background:rgba(16,185,129,.15);top:50%;right:20%;animation-delay:4s}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);background-size:60px 60px}
+.hero-content{position:relative;z-index:2;max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.4);border-radius:30px;padding:7px 18px;font-size:12px;font-weight:700;color:#93C5FD;letter-spacing:1px;margin-bottom:24px;animation:slideUp .6s .1s both}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(38px,6vw,64px);font-weight:900;color:#fff;line-height:1.08;margin-bottom:18px;animation:slideUp .6s .2s both}
+.hero-title span{color:var(--orange)}
+.hero-subtitle{font-size:18px;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:36px;animation:slideUp .6s .3s both}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;animation:slideUp .6s .4s both}
+.hero-stats{display:flex;gap:28px;margin-top:40px;animation:slideUp .6s .5s both}
+.hero-stat{text-align:center}
+.hero-stat-n{font-size:28px;font-weight:900;color:#fff}
+.hero-stat-l{font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;font-weight:600}
+.hero-visual{position:relative;z-index:2;animation:slideLeft .7s .3s both}
+.hero-phone{background:#fff;border-radius:28px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.4),0 0 0 6px rgba(255,255,255,.1);padding:0;max-width:280px;margin:0 auto}
+.hp-header{background:var(--navy);padding:14px 16px 10px;border-radius:28px 28px 0 0}
+.hp-body{padding:14px;background:var(--bg)}
+.hp-card{background:#fff;border-radius:14px;padding:14px;margin-bottom:10px;border:1px solid var(--border)}
+.hp-streak{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.streak-badge{background:linear-gradient(135deg,#F59E0B,#EF4444);border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:800;color:#fff;animation:pulse 2s infinite}
+.hp-btn{background:var(--blue);color:#fff;border:none;border-radius:12px;padding:14px;width:100%;font-size:14px;font-weight:700;font-family:'Sora',sans-serif;cursor:pointer;position:relative;overflow:hidden}
+.hp-btn::after{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(transparent,rgba(255,255,255,.1),transparent);transform:rotate(45deg);animation:shimmer 2s infinite}
+.hp-mini-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.mini-stat{background:var(--bg);border-radius:10px;padding:9px 6px;text-align:center}
+.mini-stat-n{font-size:16px;font-weight:800;color:var(--text)}
+.mini-stat-l{font-size:9px;color:var(--muted);margin-top:1px}
+
+/* Floating particles */
+.particles{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.particle{position:absolute;border-radius:50%;animation:float 8s infinite ease-in-out}
+
+/* Features section */
+.features{padding:100px 20px;background:var(--bg)}
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:24px;margin-top:56px}
+.feat-card{background:#fff;border-radius:var(--r20);padding:28px;border:1px solid var(--border);transition:all .3s;position:relative;overflow:hidden}
+.feat-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(37,99,235,.03));opacity:0;transition:.3s}
+.feat-card:hover::before{opacity:1}
+.feat-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:rgba(37,99,235,.2)}
+.feat-icon{width:56px;height:56px;border-radius:var(--r16);display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:16px}
+.feat-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px}
+.feat-desc{font-size:14px;color:var(--sub);line-height:1.65}
+
+/* How it works */
+.how{padding:100px 20px;background:#fff;position:relative;overflow:hidden}
+.how-steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0;margin-top:56px;position:relative}
+.how-steps::before{content:'';position:absolute;top:52px;left:10%;right:10%;height:2px;background:linear-gradient(90deg,var(--blue),var(--green),var(--orange));border-radius:2px;z-index:0}
+.step-card{text-align:center;padding:28px 20px;position:relative;z-index:1;animation:slideUp .6s both}
+.step-num{width:56px;height:56px;border-radius:50%;background:var(--blue);color:#fff;font-size:20px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 6px 20px rgba(37,99,235,.4);transition:all .3s}
+.step-card:hover .step-num{transform:scale(1.15);box-shadow:0 10px 30px rgba(37,99,235,.5)}
+.step-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:8px}
+.step-desc{font-size:14px;color:var(--sub);line-height:1.65}
+
+/* Leaderboard Preview */
+.lb-preview{padding:100px 20px;background:var(--navy);position:relative;overflow:hidden}
+.lb-preview::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(37,99,235,.2),transparent 60%)}
+.lb-card{background:rgba(255,255,255,.06);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:var(--r20);overflow:hidden;max-width:600px;margin:40px auto 0}
+.lb-header{background:linear-gradient(135deg,var(--blue),var(--purple));padding:20px 24px;display:flex;align-items:center;justify-content:space-between}
+.lb-title{font-size:18px;font-weight:800;color:#fff}
+.lb-row{display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid rgba(255,255,255,.07);transition:.2s;cursor:pointer}
+.lb-row:hover{background:rgba(255,255,255,.04)}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{font-size:20px;min-width:36px;text-align:center}
+.lb-ava{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
+.lb-name{font-size:14px;font-weight:700;color:#fff;flex:1}
+.lb-meta{font-size:12px;color:rgba(255,255,255,.5);margin-top:1px}
+.lb-score{text-align:right}
+.lb-pts{font-size:16px;font-weight:800;color:var(--orange)}
+.lb-coins{font-size:12px;color:rgba(255,255,255,.5);margin-top:1px}
+
+/* Pricing */
+.pricing{padding:100px 20px;background:var(--bg)}
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;max-width:700px;margin:48px auto 0}
+.price-card{background:#fff;border-radius:var(--r24);padding:32px;border:2px solid var(--border);transition:all .3s;position:relative;overflow:hidden}
+.price-card.popular{border-color:var(--blue);box-shadow:0 0 0 4px rgba(37,99,235,.08),var(--shadow-lg)}
+.price-card.popular::before{content:'Most Popular';position:absolute;top:0;right:0;background:var(--blue);color:#fff;font-size:11px;font-weight:800;padding:6px 16px;border-radius:0 var(--r24) 0 var(--r12);letter-spacing:.5px}
+.price-card:hover{transform:translateY(-4px)}
+.price-name{font-size:14px;font-weight:700;color:var(--sub);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
+.price-amount{font-size:48px;font-weight:900;color:var(--text);line-height:1}
+.price-amount sup{font-size:20px;vertical-align:top;margin-top:10px;font-weight:700;color:var(--sub)}
+.price-amount span{font-size:16px;font-weight:500;color:var(--sub)}
+.price-desc{font-size:14px;color:var(--sub);margin:12px 0 24px;line-height:1.6}
+.price-features{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.price-feature{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text)}
+.price-feature .check{width:20px;height:20px;border-radius:50%;background:var(--green-l);color:var(--green-d);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.price-feature .cross{width:20px;height:20px;border-radius:50%;background:#FEE2E2;color:var(--red);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+
+/* CTA Section */
+.cta-section{padding:100px 20px;background:linear-gradient(135deg,var(--blue),var(--purple));text-align:center;position:relative;overflow:hidden}
+.cta-section::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at center,rgba(255,255,255,.06),transparent 50%);animation:spin 20s linear infinite}
+
+/* Founders */
+.founders{padding:100px 20px;background:#fff}
+.founders-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:28px;max-width:800px;margin:48px auto 0}
+.founder-card{background:var(--navy);border-radius:var(--r24);padding:32px;text-align:center;position:relative;overflow:hidden;transition:all .3s}
+.founder-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(37,99,235,.2),transparent 60%)}
+.founder-card:hover{transform:translateY(-6px);box-shadow:0 20px 60px rgba(10,22,40,.5)}
+.founder-ava{width:88px;height:88px;border-radius:50%;margin:0 auto 18px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;position:relative;z-index:1}
+.founder-name{font-size:22px;font-weight:900;color:#fff;position:relative;z-index:1;margin-bottom:4px}
+.founder-role{font-size:13px;color:var(--orange);font-weight:700;letter-spacing:1px;position:relative;z-index:1;margin-bottom:12px}
+.founder-handle{font-size:13px;color:rgba(255,255,255,.5);position:relative;z-index:1;margin-bottom:8px}
+.founder-quote{font-size:14px;color:rgba(255,255,255,.65);line-height:1.65;font-style:italic;position:relative;z-index:1}
+.founder-contact{display:flex;flex-direction:column;gap:4px;margin-top:16px;position:relative;z-index:1}
+.founder-contact-item{font-size:12px;color:rgba(255,255,255,.45)}
+.founder-contact-item span{color:rgba(255,255,255,.7);font-weight:600}
+
+/* Footer */
+.footer{background:var(--navy);padding:48px 20px 32px;border-top:1px solid rgba(255,255,255,.06)}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;max-width:1100px;margin:0 auto;margin-bottom:40px}
+.footer-brand-text{font-size:14px;color:rgba(255,255,255,.4);margin-top:12px;line-height:1.7}
+.footer-col-title{font-size:12px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px}
+.footer-link{display:block;font-size:14px;color:rgba(255,255,255,.55);margin-bottom:8px;cursor:pointer;transition:.2s;text-decoration:none}
+.footer-link:hover{color:#fff}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:24px;text-align:center;font-size:13px;color:rgba(255,255,255,.3);max-width:1100px;margin:0 auto}
+@media(max-width:640px){.footer-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:400px){.footer-grid{grid-template-columns:1fr}}
+@media(max-width:768px){.hero-content{grid-template-columns:1fr}.hero-visual{display:none}}
+
+/* ══════════════════════════════════════════════════
+   AUTH SCREEN
+══════════════════════════════════════════════════ */
+#auth{background:var(--navy);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;position:relative;overflow:hidden}
+#auth::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.2),transparent 70%);top:-200px;right:-200px;pointer-events:none}
+#auth::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.15),transparent 70%);bottom:-150px;left:-150px;pointer-events:none}
+.auth-card{background:#fff;border-radius:var(--r24);padding:40px;width:100%;max-width:420px;position:relative;z-index:1;animation:popIn .4s ease;box-shadow:0 30px 80px rgba(0,0,0,.3)}
+.auth-logo{text-align:center;margin-bottom:28px}
+.auth-tabs{display:flex;background:var(--bg);border-radius:var(--r12);padding:4px;gap:4px;margin-bottom:28px}
+.auth-tab{flex:1;padding:10px;text-align:center;border-radius:var(--r8);font-size:14px;font-weight:700;cursor:pointer;transition:.2s;color:var(--sub)}
+.auth-tab.active{background:#fff;color:var(--blue);box-shadow:0 2px 8px rgba(37,99,235,.15)}
+.form-group{margin-bottom:16px}
+.form-label{font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;display:block}
+.form-input{width:100%;height:48px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r12);padding:0 16px;font-size:15px;color:var(--text);outline:none;transition:.2s;font-family:'Sora',sans-serif}
+.form-input:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.form-input::placeholder{color:var(--muted)}
+.form-forgot{font-size:13px;color:var(--blue);font-weight:600;cursor:pointer;float:right;margin-top:-12px;margin-bottom:16px}
+.form-divider{text-align:center;font-size:13px;color:var(--muted);margin:20px 0;position:relative}
+.form-divider::before,.form-divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border)}
+.form-divider::before{left:0}.form-divider::after{right:0}
+.social-btns{display:flex;gap:10px;margin-bottom:20px}
+.social-btn{flex:1;height:44px;border-radius:var(--r12);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;transition:.2s;background:#fff}
+.social-btn:hover{background:var(--bg);border-color:var(--blue)}
+.exam-select{width:100%;height:48px;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r12);padding:0 16px;font-size:15px;color:var(--text);outline:none;font-family:'Sora',sans-serif;cursor:pointer}
+.exam-select:focus{border-color:var(--blue);background:#fff}
+
+/* ══════════════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════════════ */
+#dashboard{background:var(--bg);min-height:100vh;padding-bottom:80px}
+.dash-header{background:var(--navy);padding:52px 20px 20px;position:sticky;top:0;z-index:100}
+.dash-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;max-width:600px;margin-left:auto;margin-right:auto}
+.dash-greeting-hi{font-size:13px;color:rgba(255,255,255,.55);font-weight:500}
+.dash-greeting-name{font-size:20px;font-weight:800;color:#fff;margin-top:2px}
+.dash-right{display:flex;align-items:center;gap:10px}
+.coins-chip{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);border-radius:20px;padding:7px 14px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:800;color:var(--orange);cursor:pointer;transition:.2s}
+.coins-chip:hover{background:rgba(245,158,11,.25)}
+.notif-btn{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:.2s}
+.notif-btn:hover{background:rgba(255,255,255,.2)}
+.streak-hero{background:linear-gradient(135deg,#F59E0B,#EF4444);border-radius:var(--r16);padding:14px 18px;display:flex;align-items:center;justify-content:space-between;max-width:600px;margin:0 auto;cursor:pointer;transition:.2s}
+.streak-hero:hover{transform:scale(1.01)}
+.streak-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:1px;margin-bottom:2px}
+.streak-count{font-size:24px;font-weight:900;color:#fff}
+.streak-fire{font-size:36px;animation:fireFlicker 1.5s infinite}
+.streak-progress{height:4px;background:rgba(255,255,255,.3);border-radius:4px;overflow:hidden;margin-top:8px}
+.streak-fill{height:4px;background:#fff;border-radius:4px;animation:progressFill 1s .5s both;--w:70%}
+.dash-body{padding:16px 20px;max-width:600px;margin:0 auto}
+.main-test-card{background:var(--blue);border-radius:var(--r20);padding:22px;margin-bottom:16px;position:relative;overflow:hidden;cursor:pointer;transition:.2s}
+.main-test-card:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(37,99,235,.4)}
+.main-test-card::before{content:'';position:absolute;right:-30px;top:-30px;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,.08)}
+.main-test-card::after{content:'';position:absolute;right:10px;bottom:-40px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06)}
+.mtc-tag{font-size:10px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:2px;margin-bottom:6px;position:relative;z-index:1}
+.mtc-title{font-size:22px;font-weight:900;color:#fff;margin-bottom:4px;position:relative;z-index:1}
+.mtc-sub{font-size:13px;color:rgba(255,255,255,.65);margin-bottom:18px;position:relative;z-index:1}
+.mtc-btn{background:#fff;color:var(--blue);border:none;border-radius:var(--r12);padding:12px 24px;font-size:14px;font-weight:800;cursor:pointer;font-family:'Sora',sans-serif;display:flex;align-items:center;gap:8px;transition:.2s;position:relative;z-index:1}
+.mtc-btn:hover{background:var(--blue-l);transform:scale(1.03)}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.stat-card2{background:#fff;border-radius:var(--r16);padding:16px 12px;text-align:center;border:1px solid var(--border);transition:.2s}
+.stat-card2:hover{border-color:rgba(37,99,235,.3);transform:translateY(-2px);box-shadow:var(--shadow)}
+.stat-val{font-size:22px;font-weight:900;color:var(--text);line-height:1}
+.stat-lbl{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-hdr-title{font-size:16px;font-weight:800;color:var(--text)}
+.section-hdr-link{font-size:13px;font-weight:600;color:var(--blue);cursor:pointer}
+.activity-card{background:#fff;border-radius:var(--r16);padding:14px;border:1px solid var(--border);display:flex;align-items:center;gap:12px;margin-bottom:8px;transition:.2s;cursor:pointer}
+.activity-card:hover{border-color:rgba(37,99,235,.2);box-shadow:var(--shadow)}
+.act-ico{width:40px;height:40px;border-radius:var(--r12);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.act-name{font-size:13px;font-weight:700;color:var(--text)}
+.act-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.act-right{margin-left:auto;text-align:right}
+.act-score{font-size:15px;font-weight:800;color:var(--text)}
+.act-date{font-size:11px;color:var(--muted);margin-top:1px}
+/* bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;z-index:100;max-width:600px;left:50%;transform:translateX(-50%)}
+.bn-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0 14px;cursor:pointer;gap:3px;transition:.2s}
+.bn-item svg{width:22px;height:22px;transition:.2s}
+.bn-label{font-size:10px;font-weight:600;color:var(--muted)}
+.bn-item.active svg{stroke:var(--blue)}.bn-item.active .bn-label{color:var(--blue)}
+.bn-center{position:relative}
+.bn-center-btn{width:52px;height:52px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;margin-top:-20px;box-shadow:0 4px 16px rgba(37,99,235,.4);transition:.2s}
+.bn-center-btn:hover{transform:scale(1.1);box-shadow:0 6px 24px rgba(37,99,235,.5)}
+.bn-center-btn svg{width:24px;height:24px;stroke:#fff}
+
+/* ══════════════════════════════════════════════════
+   TEST SCREEN
+══════════════════════════════════════════════════ */
+#test{background:var(--bg);min-height:100vh}
+.test-header{background:#fff;padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.05);max-width:700px;margin:0 auto}
+.test-back{width:38px;height:38px;border-radius:var(--r12);background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;transition:.2s}
+.test-back:hover{background:var(--blue-l);border-color:var(--blue)}
+.test-info{text-align:center}
+.test-subject{font-size:12px;font-weight:700;color:var(--sub);letter-spacing:1px}
+.test-qnum{font-size:16px;font-weight:800;color:var(--text);margin-top:2px}
+.timer-wrap{display:flex;flex-direction:column;align-items:center;position:relative}
+.timer-circle{width:52px;height:52px;position:relative}
+.timer-circle svg{transform:rotate(-90deg)}
+.timer-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--text)}
+.timer-text.urgent{color:var(--red);animation:timerPulse 1s infinite}
+.test-progress{height:4px;background:var(--bg);overflow:hidden}
+.test-progress-fill{height:4px;background:linear-gradient(90deg,var(--blue),var(--purple));transition:width .4s}
+.test-body{padding:20px;max-width:700px;margin:0 auto}
+.question-card{background:#fff;border-radius:var(--r20);padding:28px;border:1px solid var(--border);box-shadow:var(--shadow);margin-bottom:20px;animation:slideUp .4s ease}
+.q-category{font-size:11px;font-weight:700;color:var(--blue);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px}
+.q-text{font-size:18px;font-weight:700;color:var(--text);line-height:1.55}
+.options-list{display:flex;flex-direction:column;gap:10px}
+.option-btn{width:100%;padding:16px 20px;background:#fff;border:2px solid var(--border);border-radius:var(--r16);display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .18s;text-align:left;font-family:'Sora',sans-serif}
+.option-btn:hover{border-color:var(--blue);background:var(--blue-l)}
+.option-btn.selected{border-color:var(--blue);background:var(--blue-l);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.option-btn.correct{border-color:var(--green);background:var(--green-l)}
+.option-btn.wrong{border-color:var(--red);background:#FEE2E2}
+.option-letter{width:32px;height:32px;border-radius:var(--r8);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--sub);flex-shrink:0;transition:.18s}
+.option-btn.selected .option-letter{background:var(--blue);color:#fff}
+.option-btn.correct .option-letter{background:var(--green);color:#fff}
+.option-btn.wrong .option-letter{background:var(--red);color:#fff}
+.option-text{font-size:15px;font-weight:500;color:var(--text)}
+.test-footer{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);padding:16px 20px;display:flex;gap:10px;max-width:700px;margin:0 auto;box-shadow:0 -4px 20px rgba(0,0,0,.06)}
+.question-dots{display:flex;flex-wrap:wrap;gap:6px;padding:12px 20px;max-width:700px;margin:0 auto}
+.q-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;transition:.15s}
+.q-dot.answered{background:var(--blue);border-color:var(--blue);color:#fff}
+.q-dot.current{border-color:var(--blue);color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.2)}
+
+/* ══════════════════════════════════════════════════
+   RESULT SCREEN
+══════════════════════════════════════════════════ */
+#result{background:var(--bg);min-height:100vh;padding-bottom:40px}
+.result-header{background:var(--navy);padding:60px 20px 80px;text-align:center;position:relative;overflow:hidden}
+.result-header::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 100%,rgba(37,99,235,.3),transparent 60%)}
+.result-tag{font-size:11px;font-weight:700;color:var(--orange);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;position:relative;z-index:1;animation:slideUp .5s both}
+.result-score-circle{width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.1);border:4px solid rgba(255,255,255,.2);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:0 auto 20px;position:relative;z-index:1;animation:popIn .6s .2s both;backdrop-filter:blur(10px)}
+.result-score-big{font-size:44px;font-weight:900;color:#fff;line-height:1}
+.result-score-total{font-size:16px;color:rgba(255,255,255,.55);margin-top:4px}
+.result-title{font-size:26px;font-weight:900;color:#fff;position:relative;z-index:1;animation:slideUp .5s .3s both}
+.result-sub{font-size:14px;color:rgba(255,255,255,.55);position:relative;z-index:1;animation:slideUp .5s .4s both;margin-top:4px}
+.result-body{background:var(--bg);border-radius:28px 28px 0 0;margin-top:-20px;padding:28px 20px;max-width:600px;margin-left:auto;margin-right:auto}
+.result-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px}
+.res-stat{background:#fff;border-radius:var(--r16);padding:18px 12px;text-align:center;border:1px solid var(--border);animation:slideUp .5s both}
+.rs-val{font-size:24px;font-weight:900}
+.rs-lbl{font-size:11px;color:var(--muted);margin-top:4px;font-weight:600}
+.result-chart{background:#fff;border-radius:var(--r20);padding:24px;border:1px solid var(--border);margin-bottom:20px}
+.chart-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:16px}
+.chart-bars{display:flex;align-items:flex-end;gap:16px;height:100px;justify-content:center}
+.chart-bar-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;flex:1}
+.chart-bar{width:100%;border-radius:var(--r8) var(--r8) 0 0;min-height:10px;transition:height 1s ease;animation:slideUp 1s ease}
+.chart-bar-lbl{font-size:12px;font-weight:700;color:var(--sub)}
+.chart-bar-val{font-size:15px;font-weight:800;color:var(--text)}
+.feedback-card{background:linear-gradient(135deg,var(--blue-l),var(--green-l));border-radius:var(--r16);padding:18px;border:1px solid rgba(37,99,235,.15);margin-bottom:20px;display:flex;align-items:flex-start;gap:12px}
+.feedback-icon{font-size:24px;flex-shrink:0}
+.feedback-text{font-size:14px;color:var(--text);line-height:1.6}
+.reward-popup{background:linear-gradient(135deg,#F59E0B,#EF4444);border-radius:var(--r20);padding:22px;text-align:center;margin-bottom:20px;animation:popIn .5s .5s both}
+.rp-title{font-size:20px;font-weight:900;color:#fff;margin-bottom:4px}
+.rp-coins{font-size:32px;font-weight:900;color:#fff}
+.rp-sub{font-size:13px;color:rgba(255,255,255,.75);margin-top:4px}
+
+/* ══════════════════════════════════════════════════
+   LEADERBOARD FULL SCREEN
+══════════════════════════════════════════════════ */
+#leaderboard-screen{background:var(--bg);min-height:100vh;padding-bottom:80px}
+.lb-full-header{background:var(--navy);padding:52px 20px 20px;position:sticky;top:0;z-index:100}
+.lb-tabs-row{display:flex;background:rgba(255,255,255,.08);border-radius:var(--r12);padding:4px;gap:4px;max-width:600px;margin:14px auto 0}
+.lb-tab{flex:1;padding:10px;text-align:center;border-radius:var(--r8);font-size:13px;font-weight:700;cursor:pointer;transition:.2s;color:rgba(255,255,255,.55)}
+.lb-tab.active{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.4)}
+.lb-podium{display:flex;align-items:flex-end;justify-content:center;gap:10px;padding:28px 20px 20px;max-width:600px;margin:0 auto}
+.pod-item{display:flex;flex-direction:column;align-items:center;gap:8px}
+.pod-ava{border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff}
+.pod-item.first .pod-ava{width:70px;height:70px;border:3px solid var(--orange);box-shadow:0 0 20px rgba(245,158,11,.4)}
+.pod-item.second .pod-ava,.pod-item.third .pod-ava{width:58px;height:58px;border:2.5px solid rgba(255,255,255,.3)}
+.pod-name{font-size:12px;font-weight:700;color:#fff;text-align:center}
+.pod-score{font-size:14px;font-weight:900;text-align:center}
+.pod-block{border-radius:12px 12px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:10px}
+.pod-item.first .pod-block{width:110px;height:80px;background:linear-gradient(180deg,rgba(245,158,11,.25),rgba(245,158,11,.08));border:1px solid rgba(245,158,11,.3)}
+.pod-item.second .pod-block{width:94px;height:60px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+.pod-item.third .pod-block{width:94px;height:44px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+.lb-full-body{padding:16px 20px;max-width:600px;margin:0 auto}
+.lb-full-row{background:#fff;border-radius:var(--r14,14px);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;border:1px solid var(--border);transition:.2s;cursor:pointer;animation:slideUp .4s both}
+.lb-full-row:hover{border-color:rgba(37,99,235,.2);box-shadow:var(--shadow);transform:translateX(4px)}
+.lb-full-row.you{background:var(--blue-l);border-color:rgba(37,99,235,.3);border-width:1.5px}
+.lbr-rank{font-size:13px;font-weight:800;color:var(--sub);min-width:30px}
+.lbr-ava{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
+.lbr-name{font-size:13px;font-weight:700;color:var(--text);flex:1}
+.lbr-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.lbr-coins{font-size:12px;color:var(--orange);font-weight:700}
+.lbr-score{font-size:15px;font-weight:900;color:var(--text)}
+
+/* ══════════════════════════════════════════════════
+   PRICING FULL SCREEN
+══════════════════════════════════════════════════ */
+#pricing-screen{background:var(--bg);min-height:100vh;padding:80px 20px 40px}
+
+/* ══════════════════════════════════════════════════
+   PROFILE SCREEN
+══════════════════════════════════════════════════ */
+#profile-screen{background:var(--bg);min-height:100vh;padding-bottom:80px}
+.profile-header{background:var(--navy);padding:52px 20px 24px;position:sticky;top:0;z-index:100}
+.profile-hero{background:var(--navy);padding:40px 20px;text-align:center;border-bottom:8px solid var(--bg)}
+.prof-ava{width:88px;height:88px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:#fff;border:3px solid rgba(255,255,255,.2);position:relative}
+.prof-ava::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(37,99,235,.4);animation:spin 4s linear infinite}
+.prof-name{font-size:24px;font-weight:900;color:#fff;margin-bottom:4px}
+.prof-exam{font-size:13px;color:var(--orange);font-weight:700;margin-bottom:8px}
+.prof-stats{display:flex;justify-content:center;gap:32px;margin-top:20px}
+.ps-item{text-align:center}
+.ps-val{font-size:22px;font-weight:900;color:#fff}
+.ps-lbl{font-size:11px;color:rgba(255,255,255,.5);font-weight:600;margin-top:2px}
+.profile-body{padding:20px;max-width:600px;margin:0 auto}
+.profile-section{background:#fff;border-radius:var(--r20);margin-bottom:14px;overflow:hidden;border:1px solid var(--border)}
+.ps-title{font-size:12px;font-weight:700;color:var(--muted);padding:14px 18px 8px;letter-spacing:1.5px;text-transform:uppercase}
+.ps-row{display:flex;align-items:center;gap:12px;padding:14px 18px;border-top:1px solid var(--border);cursor:pointer;transition:.15s}
+.ps-row:hover{background:var(--bg)}
+.ps-row-ico{width:36px;height:36px;border-radius:var(--r10,10px);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.ps-row-lbl{font-size:14px;font-weight:600;color:var(--text);flex:1}
+.ps-row-val{font-size:13px;color:var(--muted);font-weight:500}
+.ps-row-arr{color:var(--muted);font-size:20px;margin-left:4px}
+
+/* ══════════════════════════════════════════════════
+   POPUPS / MODALS
+══════════════════════════════════════════════════ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:var(--r24);padding:32px;width:100%;max-width:360px;text-align:center;animation:popIn .3s ease;position:relative}
+.modal-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:var(--bg);border:none;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.modal-close:hover{background:var(--border)}
+.streak-modal-fire{font-size:64px;animation:streakPop 1s ease both;display:block;margin-bottom:8px}
+.modal-title{font-size:24px;font-weight:900;color:var(--text);margin-bottom:6px}
+.modal-sub{font-size:15px;color:var(--sub);margin-bottom:20px;line-height:1.6}
+.modal-coins{font-size:36px;font-weight:900;color:var(--orange);margin:12px 0}
+.coin-float{position:fixed;pointer-events:none;z-index:600;font-size:28px;animation:coinFloat 1.2s ease forwards}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 1: LANDING PAGE
+══════════════════════════════════════════════════════════ -->
+<div class="screen active" id="landing">
+
+  <!-- NAVBAR -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-inner">
+      <div class="nav-logo" onclick="goTo('landing')">
+        <div class="nav-logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5l9 14L21 5"/></svg>
+        </div>
+        <span class="nav-brand">Vidya<span>Jaya</span></span>
+      </div>
+      <div class="nav-links" id="navLinks">
+        <a class="nav-link active" onclick="scrollTo2('features-section')">Features</a>
+        <a class="nav-link" onclick="scrollTo2('how-section')">How It Works</a>
+        <a class="nav-link" onclick="goTo('pricing-screen')">Pricing</a>
+        <a class="nav-link" onclick="goTo('leaderboard-screen')">Leaderboard</a>
+      </div>
+      <div class="nav-actions">
+        <button class="btn btn-ghost btn-sm" onclick="goTo('auth')">Login</button>
+        <button class="btn btn-primary btn-sm" onclick="goTo('auth')">Get Started</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="hero-grid"></div>
+      <div class="hero-orb hero-orb-1"></div>
+      <div class="hero-orb hero-orb-2"></div>
+      <div class="hero-orb hero-orb-3"></div>
+    </div>
+    <div class="hero-content">
+      <div>
+        <div class="hero-badge">🏆 India's #1 AI Exam Platform</div>
+        <h1 class="hero-title">Improve Your Rank Daily with <span>AI + Rewards</span></h1>
+        <p class="hero-subtitle">Build streaks, earn coins, and compete with lakhs of students across India. UPSC · SSC · RRB · Reasoning · Aptitude.</p>
+        <div class="hero-ctas">
+          <button class="btn btn-orange btn-lg" onclick="goTo('auth')">🚀 Start Free Test</button>
+          <button class="btn btn-secondary btn-lg" onclick="goTo('leaderboard-screen')">🏆 View Leaderboard</button>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat"><div class="hero-stat-n">2.5L+</div><div class="hero-stat-l">Students</div></div>
+          <div class="hero-stat"><div class="hero-stat-n">50K+</div><div class="hero-stat-l">Tests Daily</div></div>
+          <div class="hero-stat"><div class="hero-stat-n">98%</div><div class="hero-stat-l">Satisfaction</div></div>
+          <div class="hero-stat"><div class="hero-stat-n">AI</div><div class="hero-stat-l">Powered</div></div>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-phone">
+          <div class="hp-header">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div>
+                <div style="font-size:11px;color:rgba(255,255,255,.5)">Good morning 👋</div>
+                <div style="font-size:16px;font-weight:800;color:#fff">Dheeraj Royal</div>
+              </div>
+              <div style="background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.3);border-radius:20px;padding:5px 12px;font-size:13px;font-weight:800;color:#F59E0B">💰 340</div>
+            </div>
+            <div class="streak-badge" style="margin:0">🔥 12 Day Streak!</div>
+          </div>
+          <div class="hp-body">
+            <div class="hp-card">
+              <div style="font-size:10px;font-weight:700;color:#64748B;letter-spacing:1px;margin-bottom:6px">TODAY'S TEST</div>
+              <div style="font-size:15px;font-weight:800;color:#0F172A;margin-bottom:12px">Daily UPSC Mock Test</div>
+              <button class="hp-btn" onclick="goTo('test')">▶ Start Test — 25 Qs</button>
+            </div>
+            <div class="hp-mini-stats">
+              <div class="mini-stat"><div class="mini-stat-n" style="color:#2563EB">87%</div><div class="mini-stat-l">Accuracy</div></div>
+              <div class="mini-stat"><div class="mini-stat-n" style="color:#22C55E">48</div><div class="mini-stat-l">Tests</div></div>
+              <div class="mini-stat"><div class="mini-stat-n" style="color:#F59E0B">#3</div><div class="mini-stat-l">Rank</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features reveal" id="features-section">
+    <div class="container text-center">
+      <div class="badge badge-blue mb-4">✨ Features</div>
+      <h2 class="section-title">Everything you need to <span class="gradient-text">crack your exam</span></h2>
+      <p class="section-sub">Built for UPSC, SSC, RRB, Reasoning and Aptitude. The only platform that rewards you for studying daily.</p>
+      <div class="features-grid mt-8">
+        <div class="feat-card reveal reveal-delay-1">
+          <div class="feat-icon" style="background:#EFF6FF">📝</div>
+          <div class="feat-title">AI Daily Mock Tests</div>
+          <div class="feat-desc">Fresh questions generated by AI every single day. UPSC, SSC, RRB, Reasoning, Aptitude — all covered. Never the same question twice.</div>
+        </div>
+        <div class="feat-card reveal reveal-delay-2">
+          <div class="feat-icon" style="background:#FFFBEB">🔥</div>
+          <div class="feat-title">Streak System</div>
+          <div class="feat-desc">Build a daily habit. Maintain your streak and unlock bonus rewards. Miss a day and your streak resets — just like Duolingo but for exams.</div>
+        </div>
+        <div class="feat-card reveal reveal-delay-3">
+          <div class="feat-icon" style="background:#F0FDF4">🏆</div>
+          <div class="feat-title">Live Leaderboard</div>
+          <div class="feat-desc">Compete with students across India. Daily, Weekly, and Streak leaderboards. Top 3 win real rewards every Sunday.</div>
+        </div>
+        <div class="feat-card reveal reveal-delay-4">
+          <div class="feat-icon" style="background:#FFFBEB">💰</div>
+          <div class="feat-title">Coin Rewards</div>
+          <div class="feat-desc">Earn coins for every test, every streak milestone, every correct answer. Redeem coins for subscription discounts and special rewards.</div>
+        </div>
+        <div class="feat-card reveal reveal-delay-1">
+          <div class="feat-icon" style="background:#EDE9FE">📊</div>
+          <div class="feat-title">Instant Analysis</div>
+          <div class="feat-desc">Get detailed performance breakdown after every test. Know exactly where you need to improve. Topic-wise accuracy, speed analysis.</div>
+        </div>
+        <div class="feat-card reveal reveal-delay-2">
+          <div class="feat-icon" style="background:#FEE2E2">🎯</div>
+          <div class="feat-title">Adaptive Difficulty</div>
+          <div class="feat-desc">Questions get harder as you improve. The AI adapts to your level, ensuring you're always challenged but never overwhelmed.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how reveal" id="how-section">
+    <div class="container text-center">
+      <div class="badge badge-green mb-4">⚡ Simple Process</div>
+      <h2 class="section-title">How <span class="gradient-text">VidyaJaya</span> Works</h2>
+      <p class="section-sub">Three simple steps to transform your exam preparation into a daily rewarding habit.</p>
+      <div class="how-steps">
+        <div class="step-card reveal reveal-delay-1">
+          <div class="step-num">1</div>
+          <div class="step-title">Take Daily Test</div>
+          <div class="step-desc">Start with today's AI-generated mock test. 25 questions covering your exam syllabus. Takes just 30 minutes.</div>
+        </div>
+        <div class="step-card reveal reveal-delay-2">
+          <div class="step-num" style="background:var(--green)">2</div>
+          <div class="step-title">Get Instant Analysis</div>
+          <div class="step-desc">See your score, accuracy, time taken. Understand exactly what went wrong and how to improve. Detailed explanations for every question.</div>
+        </div>
+        <div class="step-card reveal reveal-delay-3">
+          <div class="step-num" style="background:var(--orange)">3</div>
+          <div class="step-title">Build Streak & Earn</div>
+          <div class="step-desc">Come back tomorrow. Build your streak. Earn coins. Climb the leaderboard. Top 3 weekly performers win real cash rewards.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEADERBOARD PREVIEW -->
+  <section class="lb-preview reveal">
+    <div class="container text-center">
+      <div class="badge" style="background:rgba(245,158,11,.2);color:var(--orange);border:1px solid rgba(245,158,11,.3)" class="mb-4">🏆 Live Rankings</div>
+      <h2 class="section-title" style="color:#fff;margin-top:12px">This Week's <span style="color:var(--orange)">Champions</span></h2>
+      <p class="section-sub" style="color:rgba(255,255,255,.5)">Compete with thousands of students. Top 3 win real rewards every Sunday.</p>
+      <div class="lb-card reveal">
+        <div class="lb-header">
+          <div class="lb-title">🏆 Weekly Leaderboard</div>
+          <div class="badge" style="background:rgba(255,255,255,.15);color:#fff">Live</div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-rank">🥇</div>
+          <div class="lb-ava" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">RK</div>
+          <div><div class="lb-name">Rahul Kumar</div><div class="lb-meta">UPSC · 🔥 28 streak</div></div>
+          <div class="lb-score"><div class="lb-pts">2,840 pts</div><div class="lb-coins">💰 420 coins</div></div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-rank">🥈</div>
+          <div class="lb-ava" style="background:linear-gradient(135deg,#2563EB,#7C3AED)">PS</div>
+          <div><div class="lb-name">Priya Sharma</div><div class="lb-meta">SSC · 🔥 21 streak</div></div>
+          <div class="lb-score"><div class="lb-pts">2,680 pts</div><div class="lb-coins">💰 380 coins</div></div>
+        </div>
+        <div class="lb-row">
+          <div class="lb-rank">🥉</div>
+          <div class="lb-ava" style="background:linear-gradient(135deg,#22C55E,#0891B2)">DR</div>
+          <div><div class="lb-name">Dheeraj Royal</div><div class="lb-meta">UPSC · 🔥 12 streak</div></div>
+          <div class="lb-score"><div class="lb-pts">2,540 pts</div><div class="lb-coins">💰 340 coins</div></div>
+        </div>
+      </div>
+      <button class="btn btn-orange mt-6" onclick="goTo('leaderboard-screen')" style="margin:24px auto 0">View Full Leaderboard →</button>
+    </div>
+  </section>
+
+  <!-- PRICING PREVIEW -->
+  <section class="pricing reveal">
+    <div class="container text-center">
+      <div class="badge badge-blue mb-4">💳 Pricing</div>
+      <h2 class="section-title">Simple, <span class="gradient-text">Transparent</span> Pricing</h2>
+      <p class="section-sub">Start free. Upgrade when you're ready. Cancel anytime.</p>
+      <div class="pricing-grid">
+        <div class="price-card reveal reveal-delay-1">
+          <div class="price-name">Free</div>
+          <div class="price-amount">₹0 <span>/ forever</span></div>
+          <div class="price-desc">Perfect to get started and build your habit.</div>
+          <div class="price-features">
+            <div class="price-feature"><div class="check">✓</div>5 tests per week</div>
+            <div class="price-feature"><div class="check">✓</div>Daily current affairs</div>
+            <div class="price-feature"><div class="check">✓</div>Basic analytics</div>
+            <div class="price-feature"><div class="cross">✗</div>Leaderboard rewards</div>
+            <div class="price-feature"><div class="cross">✗</div>AI adaptive tests</div>
+            <div class="price-feature"><div class="cross">✗</div>Coin earning</div>
+          </div>
+          <button class="btn btn-ghost btn-full" onclick="goTo('auth')">Start Free</button>
+        </div>
+        <div class="price-card popular reveal reveal-delay-2">
+          <div class="price-name" style="color:var(--blue)">Pro</div>
+          <div class="price-amount"><sup>₹</sup>99 <span>/ month</span></div>
+          <div class="price-desc">Everything you need to crack your exam.</div>
+          <div class="price-features">
+            <div class="price-feature"><div class="check">✓</div>Unlimited tests daily</div>
+            <div class="price-feature"><div class="check">✓</div>Full leaderboard access</div>
+            <div class="price-feature"><div class="check">✓</div>Weekly cash rewards</div>
+            <div class="price-feature"><div class="check">✓</div>AI adaptive difficulty</div>
+            <div class="price-feature"><div class="check">✓</div>Coin earning + rewards</div>
+            <div class="price-feature"><div class="check">✓</div>Detailed analysis</div>
+          </div>
+          <button class="btn btn-primary btn-full" onclick="showCoinPopup()">Upgrade Now →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA SECTION -->
+  <section class="cta-section reveal">
+    <div class="container" style="position:relative;z-index:1">
+      <div class="badge" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.2);margin-bottom:20px">🔥 Join 2.5 Lakh Students</div>
+      <h2 class="section-title" style="color:#fff;margin-bottom:16px">Start your streak <span style="color:var(--orange)">today</span></h2>
+      <p style="font-size:18px;color:rgba(255,255,255,.7);margin-bottom:36px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.7">Every day you delay is a day your competition gets ahead. Build the habit that builds your rank.</p>
+      <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-orange btn-lg" onclick="goTo('auth')">🚀 Start Free Test Now</button>
+        <button class="btn" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);padding:16px 32px;font-size:17px;border-radius:var(--r16)" onclick="goTo('test')">▶ Try Demo Test</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOUNDERS -->
+  <section class="founders reveal">
+    <div class="container text-center">
+      <div class="badge badge-blue mb-4">👥 The Team</div>
+      <h2 class="section-title">Built by <span class="gradient-text">Dreamers</span></h2>
+      <p class="section-sub">We started with a simple belief — knowledge deserves to be rewarded. Today we're building the platform that does exactly that.</p>
+      <div class="founders-grid">
+        <div class="founder-card reveal reveal-delay-1">
+          <div class="founder-ava" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">MD</div>
+          <div class="founder-name">Mallem Dheeraj Royal</div>
+          <div class="founder-role">Founder & CEO</div>
+          <div class="founder-handle">@mallemdheerajroyal</div>
+          <div class="founder-quote">"I built VidyaJaya because 2.5 crore Indians study every day and not one platform pays them for it. That ends now."</div>
+          <div class="founder-contact">
+            <div class="founder-contact-item">📧 <span>mallemdheerajroyal@gmail.com</span></div>
+            <div class="founder-contact-item">📱 <span>9059061099</span></div>
+            <div class="founder-contact-item">📍 <span>Kadiri, Sri Sathya Sai Dist, Andhra Pradesh</span></div>
+            <div class="founder-contact-item">🌐 <span>vidyajaya.in</span></div>
+          </div>
+        </div>
+        <div class="founder-card reveal reveal-delay-2">
+          <div class="founder-ava" style="background:linear-gradient(135deg,#2563EB,#7C3AED)">CTO</div>
+          <div class="founder-name">Co-Founder / CTO</div>
+          <div class="founder-role">Chief Technology Officer</div>
+          <div class="founder-handle">MERN Stack Expert</div>
+          <div class="founder-quote">"We are building the AI that makes every student unstoppable. The technology is ready. The mission is clear."</div>
+          <div class="founder-contact">
+            <div class="founder-contact-item">💼 <span>Equity Role — Open Position</span></div>
+            <div class="founder-contact-item">🛠 <span>React · Node.js · MongoDB · AI</span></div>
+            <div class="founder-contact-item">📧 <span>contact@vidyajaya.in</span></div>
+            <div class="founder-contact-item" style="margin-top:8px">
+              <span style="background:rgba(249,115,22,.2);border:1px solid rgba(249,115,22,.3);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:700;color:#F97316;cursor:pointer" onclick="showCoinPopup()">We're hiring — Apply Now</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-grid">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="width:36px;height:36px;background:var(--blue);border-radius:9px;display:flex;align-items:center;justify-content:center"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M3 5l9 14L21 5"/></svg></div>
+          <span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:#fff">Vidya<span style="color:var(--blue)">Jaya</span></span>
+        </div>
+        <div class="footer-brand-text">Victory Through Knowledge. India's first AI-powered daily knowledge competition platform. UPSC · SSC · RRB · Reasoning · Aptitude.</div>
+        <div style="margin-top:16px;font-size:12px;color:rgba(255,255,255,.3)">📍 Kadiri, Sri Sathya Sai Dist, AP · 📱 9059061099</div>
+      </div>
+      <div>
+        <div class="footer-col-title">Platform</div>
+        <a class="footer-link" onclick="goTo('test')">Daily Test</a>
+        <a class="footer-link" onclick="goTo('leaderboard-screen')">Leaderboard</a>
+        <a class="footer-link" onclick="goTo('pricing-screen')">Pricing</a>
+        <a class="footer-link" onclick="goTo('dashboard')">Dashboard</a>
+      </div>
+      <div>
+        <div class="footer-col-title">Exams</div>
+        <a class="footer-link">UPSC</a>
+        <a class="footer-link">SSC CGL</a>
+        <a class="footer-link">RRB NTPC</a>
+        <a class="footer-link">Reasoning</a>
+        <a class="footer-link">Aptitude</a>
+      </div>
+      <div>
+        <div class="footer-col-title">Company</div>
+        <a class="footer-link">About Us</a>
+        <a class="footer-link">Contact</a>
+        <a class="footer-link">Privacy Policy</a>
+        <a class="footer-link">Terms of Use</a>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 VidyaJaya Technologies Pvt Ltd · All rights reserved · Built with ❤️ from Kadiri, Andhra Pradesh</div>
+  </footer>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 2: AUTH
+══════════════════════════════════════════════════════════ -->
+<div class="screen" id="auth">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="width:42px;height:42px;background:var(--blue);border-radius:12px;display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M3 5l9 14L21 5"/></svg></div>
+        <span style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;color:var(--navy)">Vidya<span style="color:var(--blue)">Jaya</span></span>
+      </div>
+      <div style="font-size:14px;color:var(--sub)">Victory Through Knowledge</div>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" id="loginTab" onclick="switchAuthTab('login')">Login</div>
+      <div class="auth-tab" id="signupTab" onclick="switchAuthTab('signup')">Sign Up</div>
+    </div>
+    <div id="loginForm">
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" type="email" placeholder="dheeraj@example.com" id="loginEmail">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" placeholder="Enter your password" id="loginPass">
+      </div>
+      <div class="form-forgot">Forgot password?</div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="doLogin()" style="margin-bottom:16px">Login →</button>
+      <div class="form-divider">or continue with</div>
+      <div class="social-btns">
+        <div class="social-btn" onclick="doLogin()"><span>G</span> Google</div>
+        <div class="social-btn" onclick="doLogin()">📱 Phone OTP</div>
+      </div>
+    </div>
+    <div id="signupForm" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input class="form-input" type="text" placeholder="Dheeraj Royal" id="signName">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-input" type="email" placeholder="your@email.com" id="signEmail">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" placeholder="Create a strong password" id="signPass">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Exam Goal</label>
+        <select class="exam-select" id="signExam">
+          <option>UPSC Civil Services</option>
+          <option>SSC CGL</option>
+          <option>RRB NTPC</option>
+          <option>RRB Group D</option>
+          <option>Reasoning & Aptitude</option>
+          <option>State PSC</option>
+        </select>
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="doLogin()" style="margin-bottom:12px">Create Account 🚀</button>
+    </div>
+    <div style="text-align:center;margin-top:16px">
+      <button class="btn btn-ghost btn-sm" onclick="goTo('landing')" style="width:100%">← Back to Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 3: DASHBOARD
+══════════════════════════════════════════════════════════ -->
+<div class="screen" id="dashboard">
+  <div class="dash-header">
+    <div class="dash-top">
+      <div>
+        <div class="dash-greeting-hi">Good morning 👋</div>
+        <div class="dash-greeting-name">Dheeraj Royal</div>
+      </div>
+      <div class="dash-right">
+        <div class="coins-chip" onclick="showCoinPopup()">💰 <span id="coinBal">340</span></div>
+        <div class="notif-btn">🔔</div>
+        <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#EF4444);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#fff;cursor:pointer" onclick="goTo('profile-screen')">DR</div>
+      </div>
+    </div>
+    <div class="streak-hero" onclick="showStreakPopup()">
+      <div>
+        <div class="streak-label">CURRENT STREAK</div>
+        <div class="streak-count">🔥 12 Days Strong!</div>
+        <div class="streak-progress"><div class="streak-fill"></div></div>
+        <div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:4px">3 more days to unlock bonus!</div>
+      </div>
+      <div class="streak-fire">🔥</div>
+    </div>
+  </div>
+  <div class="dash-body">
+    <!-- Main test card -->
+    <div class="main-test-card" onclick="goTo('test')">
+      <div class="mtc-tag">TODAY'S CHALLENGE</div>
+      <div class="mtc-title">Daily UPSC Mock Test</div>
+      <div class="mtc-sub">25 questions · 30 minutes · AI-generated fresh</div>
+      <button class="mtc-btn">▶ Start Test <span style="font-size:18px">→</span></button>
+    </div>
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card2">
+        <div class="stat-val" style="color:var(--blue)">87%</div>
+        <div class="stat-lbl">Accuracy</div>
+      </div>
+      <div class="stat-card2">
+        <div class="stat-val" style="color:var(--green)">48</div>
+        <div class="stat-lbl">Tests Done</div>
+      </div>
+      <div class="stat-card2">
+        <div class="stat-val" style="color:var(--orange)">#3</div>
+        <div class="stat-lbl">Weekly Rank</div>
+      </div>
+    </div>
+    <!-- Leaderboard mini -->
+    <div class="section-hdr">
+      <div class="section-hdr-title">🏆 Leaderboard</div>
+      <div class="section-hdr-link" onclick="goTo('leaderboard-screen')">View All →</div>
+    </div>
+    <div class="lb-card" style="margin:0 0 16px;border-radius:var(--r16)">
+      <div style="background:linear-gradient(135deg,var(--blue),var(--purple));padding:14px 18px;border-radius:var(--r16) var(--r16) 0 0;display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:14px;font-weight:800;color:#fff">Weekly Top 3</div>
+        <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.7)">Resets Sunday</div>
+      </div>
+      <div class="lb-row"><div class="lb-rank">🥇</div><div class="lb-ava" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">RK</div><div><div class="lb-name">Rahul Kumar</div><div class="lb-meta">🔥 28 streak</div></div><div class="lb-score"><div class="lb-pts">2,840</div></div></div>
+      <div class="lb-row"><div class="lb-rank">🥈</div><div class="lb-ava" style="background:linear-gradient(135deg,#2563EB,#7C3AED)">PS</div><div><div class="lb-name">Priya Sharma</div><div class="lb-meta">🔥 21 streak</div></div><div class="lb-score"><div class="lb-pts">2,680</div></div></div>
+      <div class="lb-row" style="background:rgba(37,99,235,.05)"><div class="lb-rank" style="color:var(--blue);font-weight:900">#3</div><div class="lb-ava" style="background:linear-gradient(135deg,#22C55E,#0891B2)">DR</div><div><div class="lb-name" style="color:var(--blue)">You (Dheeraj)</div><div class="lb-meta">🔥 12 streak</div></div><div class="lb-score"><div class="lb-pts" style="color:var(--blue)">2,540</div></div></div>
+    </div>
+    <!-- Recent activity -->
+    <div class="section-hdr">
+      <div class="section-hdr-title">📋 Recent Activity</div>
+    </div>
+    <div class="activity-card"><div class="act-ico" style="background:var(--blue-l)">📝</div><div><div class="act-name">UPSC Mock Test</div><div class="act-sub">Today · 25 questions</div></div><div class="act-right"><div class="act-score">22/25</div><div class="act-date">+15 coins</div></div></div>
+    <div class="activity-card"><div class="act-ico" style="background:var(--green-l)">🧠</div><div><div class="act-name">Reasoning Practice</div><div class="act-sub">Yesterday · 20 questions</div></div><div class="act-right"><div class="act-score">18/20</div><div class="act-date">+12 coins</div></div></div>
+    <div class="activity-card"><div class="act-ico" style="background:var(--orange-l)">📊</div><div><div class="act-name">Aptitude Test</div><div class="act-sub">2 days ago · 30 questions</div></div><div class="act-right"><div class="act-score">26/30</div><div class="act-date">+18 coins</div></div></div>
+  </div>
+  <nav class="bottom-nav">
+    <div class="bn-item active" onclick="goTo('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="bn-label">Home</span></div>
+    <div class="bn-item" onclick="goTo('test')"><svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg><span class="bn-label">Test</span></div>
+    <div class="bn-center" onclick="goTo('test')"><div class="bn-center-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div></div>
+    <div class="bn-item" onclick="goTo('leaderboard-screen')"><svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg><span class="bn-label">Ranks</span></div>
+    <div class="bn-item" onclick="goTo('profile-screen')"><svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="bn-label">Profile</span></div>
+  </nav>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 4: TEST
+══════════════════════════════════════════════════════════ -->
+<div class="screen" id="test">
+  <div style="max-width:700px;margin:0 auto">
+    <div class="test-header">
+      <div class="test-back" onclick="goBack()">←</div>
+      <div class="test-info">
+        <div class="test-subject" id="testSubject">UPSC POLITY</div>
+        <div class="test-qnum" id="testQNum">Question 1 of 10</div>
+      </div>
+      <div class="timer-wrap">
+        <svg class="timer-circle" width="52" height="52" viewBox="0 0 52 52">
+          <circle cx="26" cy="26" r="22" fill="none" stroke="#E2E8F0" stroke-width="3"/>
+          <circle cx="26" cy="26" r="22" fill="none" stroke="#2563EB" stroke-width="3" stroke-dasharray="138.2" stroke-dashoffset="0" id="timerCircle" stroke-linecap="round"/>
+        </svg>
+        <div class="timer-text" id="timerDisplay">30</div>
+      </div>
+    </div>
+    <div class="test-progress"><div class="test-progress-fill" id="testProgressBar" style="width:10%"></div></div>
+    <!-- Question dots -->
+    <div class="question-dots" id="questionDots"></div>
+    <div class="test-body">
+      <div class="question-card">
+        <div class="q-category" id="qCategory">POLITY & CONSTITUTION</div>
+        <div class="q-text" id="qText">Which article of the Indian Constitution guarantees the Right to Constitutional Remedies?</div>
+      </div>
+      <div class="options-list" id="optionsList"></div>
+    </div>
+    <div class="test-footer">
+      <button class="btn btn-ghost" style="flex:1" id="prevBtn" onclick="prevQuestion()">← Prev</button>
+      <button class="btn btn-primary" style="flex:2" id="nextBtn" onclick="nextQuestion()">Next →</button>
+      <button class="btn btn-orange" style="flex:1" id="submitBtn" onclick="submitTest()" style="display:none">Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 5: RESULT
+══════════════════════════════════════════════════════════ -->
+<div class="screen" id="result">
+  <div class="result-header">
+    <div class="result-tag" id="resultTag">TEST COMPLETE</div>
+    <div class="result-score-circle">
+      <div class="result-score-big" id="resultScore">22</div>
+      <div class="result-score-total" id="resultTotal">/ 25</div>
+    </div>
+    <div class="result-title" id="resultTitle">Excellent! 🎉</div>
+    <div class="result-sub" id="resultSub">You're in the top 15% today</div>
+  </div>
+  <div class="result-body">
+    <div class="result-stats">
+      <div class="res-stat reveal reveal-delay-1"><div class="rs-val" id="rsAccuracy" style="color:var(--blue)">88%</div><div class="rs-lbl">Accuracy</div></div>
+      <div class="res-stat reveal reveal-delay-2"><div class="rs-val" id="rsTime" style="color:var(--orange)">24m</div><div class="rs-lbl">Time Taken</div></div>
+      <div class="res-stat reveal reveal-delay-3"><div class="rs-val" id="rsRank" style="color:var(--green)">#42</div><div class="rs-lbl">Rank Today</div></div>
+    </div>
+    <div class="result-chart">
+      <div class="chart-title">Performance Breakdown</div>
+      <div class="chart-bars">
+        <div class="chart-bar-wrap">
+          <div class="chart-bar-val" id="cbCorrect">22</div>
+          <div class="chart-bar" id="barCorrect" style="background:var(--green);height:80px"></div>
+          <div class="chart-bar-lbl">✓ Correct</div>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar-val" id="cbWrong">3</div>
+          <div class="chart-bar" id="barWrong" style="background:var(--red);height:12px"></div>
+          <div class="chart-bar-lbl">✗ Wrong</div>
+        </div>
+        <div class="chart-bar-wrap">
+          <div class="chart-bar-val" id="cbSkip">0</div>
+          <div class="chart-bar" style="background:var(--muted);height:4px"></div>
+          <div class="chart-bar-lbl">— Skipped</div>
+        </div>
+      </div>
+    </div>
+    <div class="reward-popup reveal">
+      <div class="rp-title">🎉 Rewards Earned!</div>
+      <div class="rp-coins">💰 +15 Coins</div>
+      <div class="rp-sub">🔥 Streak maintained! Total: 12 days</div>
+    </div>
+    <div class="feedback-card reveal">
+      <div class="feedback-icon">💡</div>
+      <div class="feedback-text">Strong performance! Focus on <strong>Indian Economy</strong> and <strong>Geography</strong> — you got 2 out of 3 wrong answers from these topics. Practice 5 more economy questions tomorrow.</div>
+    </div>
+    <div style="display:flex;gap:12px">
+      <button class="btn btn-secondary" style="flex:1" onclick="goTo('test')">Try Again 🔄</button>
+      <button class="btn btn-primary" style="flex:1" onclick="goTo('leaderboard-screen')">🏆 Leaderboard</button>
+    </div>
+    <button class="btn btn-ghost btn-full mt-4" onclick="goTo('dashboard')">← Back to Dashboard</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 6: LEADERBOARD
+══════════════════════════════════════════════════════════ -->
+<div class="screen" id="leaderboard-screen">
+  <div class="lb-full-header">
+    <div style="display:flex;align-items:center;justify-content:space-between;max-width:600px;margin:0 auto">
+      <div><div style="font-size:18px;font-weight:800;color:#fff">🏆 Leaderboard</div><div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px">Live rankings · updated every hour</div></div>
+      <div class="btn btn-ghost btn-sm" onclick="goBack()" style="color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.2)">← Back</div>
+    </div>
+    <div class="lb-tabs-row">
+      <div class="lb-tab active" onclick="setLbTab(this,'daily')">Daily</div>
+      <div class="lb-tab" onclick="setLbTab(this,'weekly')">Weekly</div>
+      <div class="lb-tab" onclick="setLbTab(this,'streak')">🔥 Streaks</div>
+    </div>
+  </div>
+  <!-- Podium -->
+  <div style="background:var(--navy)">
+    <div class="lb-podium">
+      <div class="pod-item second">
+        <div class="pod-ava" style="background:linear-gradient(135deg,#2563EB,#7C3AED)">PS</div>
+        <div class="pod-name">Priya S.</div>
+        <div class="pod-score" style="color:#94A3B8">2,680 pts</div>
+        <div class="pod-block"><div style="font-size:28px">🥈</div></div>
+      </div>
+      <div class="pod-item first">
+        <div class="pod-ava" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">RK</div>
+        <div class="pod-name">Rahul K.</div>
+        <div class="pod-score" style="color:var(--orange)">2,840 pts</div>
+        <div class="pod-block"><div style="font-size:36px">🥇</div></div>
+      </div>
+      <div class="pod-item third">
+        <div class="pod-ava" style="background:linear-gradient(135deg,#22C55E,#0891B2)">DR</div>
+        <div class="pod-name">Dheeraj R.</div>
+        <div class="pod-score" style="color:#CD7F32">2,540 pts</div>
+        <div class="pod-block"><div style="font-size:24px">🥉</div></div>
+      </div>
+    </div>
+  </div>
+  <!-- Reward pool -->
+  <div style="background:linear-gradient(135deg,var(--orange),#EF4444);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;max-width:600px;margin:0 auto">
+    <div><div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8)">WEEKLY REWARD POOL</div><div style="font-size:11px;color:rgba(255,255,255,.6);margin-top:1px">Top 3 win · Paid every Sunday</div></div>
+    <div style="font-size:22px;font-weight:900;color:#fff">₹19,600</div>
+  </div>
+  <div class="lb-full-body" id="lbList">
+    <div class="lb-full-row" style="animation-delay:.05s"><div class="lbr-rank">#4</div><div class="lbr-ava" style="background:linear-gradient(135deg,#7C3AED,#2563EB)">AK</div><div><div class="lbr-name">Amit Kumar</div><div class="lbr-sub">UPSC · 🔥 19 streak</div></div><div style="text-align:right"><div class="lbr-score">2,480</div><div class="lbr-coins">💰 360</div></div></div>
+    <div class="lb-full-row" style="animation-delay:.1s"><div class="lbr-rank">#5</div><div class="lbr-ava" style="background:linear-gradient(135deg,#F59E0B,#22C55E)">SM</div><div><div class="lbr-name">Sneha Misra</div><div class="lbr-sub">SSC · 🔥 14 streak</div></div><div style="text-align:right"><div class="lbr-score">2,390</div><div class="lbr-coins">💰 320</div></div></div>
+    <div class="lb-full-row" style="animation-delay:.15s"><div class="lbr-rank">#6</div><div class="lbr-ava" style="background:linear-gradient(135deg,#EF4444,#F59E0B)">VR</div><div><div class="lbr-name">Vijay Rao</div><div class="lbr-sub">RRB · 🔥 11 streak</div></div><div style="text-align:right"><div class="lbr-score">2,280</div><div class="lbr-coins">💰 290</div></div></div>
+    <div class="lb-full-row you" style="animation-delay:.2s"><div class="lbr-rank" style="color:var(--blue);font-weight:900">#3</div><div class="lbr-ava" style="background:var(--blue)">DR</div><div><div class="lbr-name" style="color:var(--blue)">You — Dheeraj Royal</div><div class="lbr-sub">UPSC · 🔥 12 streak</div></div><div style="text-align:right"><div class="lbr-score" style="color:var(--blue)">2,540</div><div class="lbr-coins">💰 340</div></div></div>
+    <div class="lb-full-row" style="animation-delay:.25s"><div class="lbr-rank">#8</div><div class="lbr-ava" style="background:linear-gradient(135deg,#0891B2,#22C55E)">NK</div><div><div class="lbr-name">Neha Kapoor</div><div class="lbr-sub">UPSC · 🔥 9 streak</div></div><div style="text-align:right"><div class="lbr-score">2,180</div><div class="lbr-coins">💰 260</div></div></div>
+  </div>
+  <div style="padding:0 20px 80px;max-width:600px;margin:0 auto">
+    <button class="btn btn-ghost btn-full" onclick="goTo('dashboard')">← Back to Dashboard</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 7: PRICING
+══════════════════════════════════════════════════════════ -->
+<div class="screen" id="pricing-screen">
+  <div style="padding:60px 20px 40px;max-width:700px;margin:0 auto">
+    <button class="btn btn-ghost btn-sm" onclick="goBack()" style="margin-bottom:28px">← Back</button>
+    <div class="text-center mb-8">
+      <div class="badge badge-blue mb-4">💳 Transparent Pricing</div>
+      <h2 class="section-title">Choose your <span class="gradient-text">plan</span></h2>
+      <p class="section-sub">No hidden fees. Cancel anytime. Built for students.</p>
+    </div>
+    <div class="pricing-grid" style="max-width:100%;margin:0">
+      <div class="price-card reveal">
+        <div class="price-name">Free Forever</div>
+        <div class="price-amount">₹0 <span>/ forever</span></div>
+        <div class="price-desc">Start your journey. Build the habit.</div>
+        <div class="price-features">
+          <div class="price-feature"><div class="check">✓</div>5 tests per week</div>
+          <div class="price-feature"><div class="check">✓</div>Daily current affairs (10 Qs)</div>
+          <div class="price-feature"><div class="check">✓</div>Basic performance analytics</div>
+          <div class="price-feature"><div class="check">✓</div>View-only leaderboard</div>
+          <div class="price-feature"><div class="cross">✗</div>Leaderboard reward eligibility</div>
+          <div class="price-feature"><div class="cross">✗</div>Coin earning & rewards</div>
+          <div class="price-feature"><div class="cross">✗</div>AI adaptive difficulty</div>
+          <div class="price-feature"><div class="cross">✗</div>Detailed topic analysis</div>
+        </div>
+        <button class="btn btn-ghost btn-full" onclick="goTo('auth')">Start Free →</button>
+      </div>
+      <div class="price-card popular reveal reveal-delay-1">
+        <div class="price-name" style="color:var(--blue)">Pro — Most Popular</div>
+        <div class="price-amount"><sup>₹</sup>99 <span>/ month</span></div>
+        <div class="price-desc">Everything you need. No compromises.</div>
+        <div class="price-features">
+          <div class="price-feature"><div class="check">✓</div>Unlimited tests — all subjects</div>
+          <div class="price-feature"><div class="check">✓</div>Full leaderboard + reward access</div>
+          <div class="price-feature"><div class="check">✓</div>Weekly top 3 cash rewards</div>
+          <div class="price-feature"><div class="check">✓</div>AI adaptive difficulty</div>
+          <div class="price-feature"><div class="check">✓</div>Earn coins for every test</div>
+          <div class="price-feature"><div class="check">✓</div>Detailed topic-wise analysis</div>
+          <div class="price-feature"><div class="check">✓</div>Streak freeze (1/month)</div>
+          <div class="price-feature"><div class="check">✓</div>Priority support</div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="showCoinPopup()">Upgrade Now — ₹99 →</button>
+      </div>
+    </div>
+    <div class="card mt-6 text-center" style="background:var(--navy)">
+      <div style="font-size:22px;font-weight:900;color:#fff;margin-bottom:8px">🎓 Student Offer</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.6);margin-bottom:16px">Refer 3 friends and get 1 month Pro absolutely FREE. No credit card needed.</div>
+      <button class="btn btn-orange" onclick="showStreakPopup()">Share Referral Link 🔗</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCREEN 8: PROFILE
+══════════════════════════════════════════════════════════ -->
+<div class="screen" id="profile-screen">
+  <div class="profile-hero">
+    <div class="prof-ava" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">DR</div>
+    <div class="prof-name">Dheeraj Royal</div>
+    <div class="prof-exam">UPSC Civil Services Aspirant</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.5)">mallemdheerajroyal@gmail.com</div>
+    <div class="prof-stats">
+      <div class="ps-item"><div class="ps-val">🔥 12</div><div class="ps-lbl">Day Streak</div></div>
+      <div class="ps-item"><div class="ps-val">💰 340</div><div class="ps-lbl">Coins</div></div>
+      <div class="ps-item"><div class="ps-val">#3</div><div class="ps-lbl">Weekly Rank</div></div>
+      <div class="ps-item"><div class="ps-val">48</div><div class="ps-lbl">Tests Done</div></div>
+    </div>
+  </div>
+  <div class="profile-body">
+    <div class="profile-section">
+      <div class="ps-title">Account</div>
+      <div class="ps-row"><div class="ps-row-ico" style="background:var(--blue-l)">👤</div><div class="ps-row-lbl">Full Name</div><div class="ps-row-val">Dheeraj Royal</div><div class="ps-row-arr">›</div></div>
+      <div class="ps-row"><div class="ps-row-ico" style="background:var(--orange-l)">📧</div><div class="ps-row-lbl">Email</div><div class="ps-row-val">mallemdheeraj...</div><div class="ps-row-arr">›</div></div>
+      <div class="ps-row"><div class="ps-row-ico" style="background:var(--green-l)">🎯</div><div class="ps-row-lbl">Exam Goal</div><div class="ps-row-val">UPSC Civil Services</div><div class="ps-row-arr">›</div></div>
+    </div>
+    <div class="profile-section">
+      <div class="ps-title">Subscription</div>
+      <div class="ps-row"><div class="ps-row-ico" style="background:var(--blue-l)">⭐</div><div class="ps-row-lbl">Current Plan</div><div class="ps-row-val"><span class="badge badge-blue">Free Tier</span></div><div class="ps-row-arr">›</div></div>
+      <div class="ps-row" onclick="goTo('pricing-screen')"><div class="ps-row-ico" style="background:var(--orange-l)">🚀</div><div class="ps-row-lbl" style="color:var(--orange)">Upgrade to Pro</div><div class="ps-row-val">₹99/month</div><div class="ps-row-arr">›</div></div>
+    </div>
+    <div class="profile-section">
+      <div class="ps-title">Rewards</div>
+      <div class="ps-row" onclick="showCoinPopup()"><div class="ps-row-ico" style="background:var(--orange-l)">💰</div><div class="ps-row-lbl">Coins Balance</div><div class="ps-row-val">340 coins</div><div class="ps-row-arr">›</div></div>
+      <div class="ps-row"><div class="ps-row-ico" style="background:#FFFBEB">🔥</div><div class="ps-row-lbl">Current Streak</div><div class="ps-row-val">12 days</div><div class="ps-row-arr">›</div></div>
+      <div class="ps-row" onclick="goTo('leaderboard-screen')"><div class="ps-row-ico" style="background:var(--green-l)">🏆</div><div class="ps-row-lbl">Weekly Rank</div><div class="ps-row-val">#3 of 4,821</div><div class="ps-row-arr">›</div></div>
+    </div>
+    <button class="btn btn-ghost btn-full" onclick="goTo('landing')" style="margin-bottom:12px;color:var(--red);border-color:#FEE2E2">Log Out</button>
+    <button class="btn btn-ghost btn-full" onclick="goTo('dashboard')" style="margin-bottom:80px">← Dashboard</button>
+  </div>
+  <nav class="bottom-nav">
+    <div class="bn-item" onclick="goTo('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span class="bn-label">Home</span></div>
+    <div class="bn-item" onclick="goTo('test')"><svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8"/></svg><span class="bn-label">Test</span></div>
+    <div class="bn-center" onclick="goTo('test')"><div class="bn-center-btn"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div></div>
+    <div class="bn-item" onclick="goTo('leaderboard-screen')"><svg viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg><span class="bn-label">Ranks</span></div>
+    <div class="bn-item active" onclick="goTo('profile-screen')"><svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="bn-label" style="color:var(--blue)">Profile</span></div>
+  </nav>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════════════ -->
+<!-- Streak popup -->
+<div class="overlay" id="streakOverlay" onclick="closeOverlay('streakOverlay')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeOverlay('streakOverlay')">✕</button>
+    <span class="streak-modal-fire">🔥</span>
+    <div class="modal-title">Streak Maintained!</div>
+    <div class="modal-sub">You're on a <strong>12-day streak!</strong><br>Keep going to unlock the 15-day badge 🏅</div>
+    <div class="modal-coins">💰 +15 Coins</div>
+    <div style="background:var(--orange-l);border-radius:var(--r12);padding:12px;font-size:13px;color:var(--orange-d);margin-bottom:20px">3 more days to unlock <strong>Streak Master</strong> badge!</div>
+    <button class="btn btn-orange btn-full" onclick="closeOverlay('streakOverlay');goTo('test')">Start Today's Test →</button>
+  </div>
+</div>
+
+<!-- Coin popup -->
+<div class="overlay" id="coinOverlay" onclick="closeOverlay('coinOverlay')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeOverlay('coinOverlay')">✕</button>
+    <div style="font-size:56px;margin-bottom:8px">💰</div>
+    <div class="modal-title">Coin Balance</div>
+    <div class="modal-coins" id="modalCoinBal">340 Coins</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;text-align:left">
+      <div style="background:var(--green-l);border-radius:var(--r12);padding:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--green-d);margin-bottom:2px">EARNED</div>
+        <div style="font-size:20px;font-weight:900;color:var(--green)">+420</div>
+        <div style="font-size:11px;color:var(--muted)">this month</div>
+      </div>
+      <div style="background:#FEE2E2;border-radius:var(--r12);padding:12px">
+        <div style="font-size:12px;font-weight:700;color:var(--red);margin-bottom:2px">SPENT</div>
+        <div style="font-size:20px;font-weight:900;color:var(--red)">-80</div>
+        <div style="font-size:11px;color:var(--muted)">this month</div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="closeOverlay('coinOverlay');goTo('pricing-screen')">Redeem / Upgrade →</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  NAVIGATION
+// ══════════════════════════════════════════════════
+let history2 = ['landing'];
+
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const next = document.getElementById(id);
+  if (next) { next.classList.add('active'); next.scrollTop = 0; }
+  history2.push(id);
+  window.scrollTo(0, 0);
+  // Trigger reveal
+  setTimeout(initReveal, 100);
+}
+
+function goBack() {
+  if (history2.length > 1) { history2.pop(); goTo(history2[history2.length - 1]); }
+}
+
+function scrollTo2(id) {
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ══════════════════════════════════════════════════
+//  SCROLL EFFECTS
+// ══════════════════════════════════════════════════
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('navbar');
+  if (nav) nav.classList.toggle('scrolled', window.scrollY > 50);
+  initReveal();
+});
+
+function initReveal() {
+  document.querySelectorAll('.reveal').forEach(el => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight - 60) el.classList.add('visible');
+  });
+}
+
+setTimeout(initReveal, 200);
+
+// ══════════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════════
+function switchAuthTab(tab) {
+  document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+  document.getElementById('signupTab').classList.toggle('active', tab === 'signup');
+  document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
+}
+
+function doLogin() {
+  showStreakPopup();
+  setTimeout(() => { goTo('dashboard'); }, 200);
+}
+
+// ══════════════════════════════════════════════════
+//  QUIZ ENGINE
+// ══════════════════════════════════════════════════
+const QUESTIONS = [
+  { cat:'POLITY', q:'Which article guarantees Right to Constitutional Remedies?', opts:['Article 14','Article 19','Article 32','Article 44'], ans:2 },
+  { cat:'HISTORY', q:'The Battle of Plassey was fought in which year?', opts:['1757','1764','1775','1803'], ans:0 },
+  { cat:'GEOGRAPHY', q:'Which river forms the boundary between India and Bangladesh for the longest stretch?', opts:['Brahmaputra','Ganga','Padma','Barak'], ans:2 },
+  { cat:'ECONOMY', q:'Which organisation is called the "Banker of Banks" in India?', opts:['SBI','HDFC','Reserve Bank of India','NABARD'], ans:2 },
+  { cat:'SCIENCE', q:'What is the chemical symbol for Gold?', opts:['Go','Gl','Gd','Au'], ans:3 },
+  { cat:'POLITY', q:'Which part of the Constitution deals with Fundamental Rights?', opts:['Part II','Part III','Part IV','Part V'], ans:1 },
+  { cat:'CURRENT AFFAIRS', q:'India\'s Chandrayaan-3 landed near which pole of the Moon?', opts:['North Pole','South Pole','Equatorial','Far Side'], ans:1 },
+  { cat:'REASONING', q:'If APPLE = 50, MANGO = 52, then BANANA = ?', opts:['42','44','46','48'], ans:2 },
+  { cat:'APTITUDE', q:'A train 120m long passes a pole in 12 seconds. Speed is?', opts:['8 m/s','10 m/s','12 m/s','15 m/s'], ans:1 },
+  { cat:'ECONOMY', q:'GST in India was implemented from which date?', opts:['April 1, 2017','July 1, 2017','Jan 1, 2018','Oct 1, 2017'], ans:1 },
+];
+
+let curQ = 0, selected = [], timerVal = 30, timerInterval2 = null;
+const LETTERS = ['A','B','C','D'];
+
+function initTest() {
+  curQ = 0;
+  selected = new Array(QUESTIONS.length).fill(-1);
+  // Build dots
+  const dots = document.getElementById('questionDots');
+  dots.innerHTML = QUESTIONS.map((_, i) => `<div class="q-dot${i===0?' current':''}" id="dot${i}" onclick="jumpQ(${i})">${i+1}</div>`).join('');
+  renderQuestion();
+  startTimer();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[curQ];
+  document.getElementById('testSubject').textContent = q.cat;
+  document.getElementById('testQNum').textContent = `Question ${curQ+1} of ${QUESTIONS.length}`;
+  document.getElementById('qCategory').textContent = q.cat;
+  document.getElementById('qText').textContent = q.q;
+  document.getElementById('testProgressBar').style.width = ((curQ+1)/QUESTIONS.length*100)+'%';
+  // Dots
+  QUESTIONS.forEach((_,i)=>{
+    const d=document.getElementById('dot'+i);
+    if(d){d.className='q-dot'+(selected[i]>=0?' answered':'')+(i===curQ?' current':'');};
+  });
+  // Options
+  const ol = document.getElementById('optionsList');
+  ol.innerHTML = q.opts.map((opt, i) => `
+    <button class="option-btn${selected[curQ]===i?' selected':''}" onclick="selectOpt(${i})">
+      <div class="option-letter">${LETTERS[i]}</div>
+      <span class="option-text">${opt}</span>
+    </button>`).join('');
+  // Buttons
+  document.getElementById('prevBtn').style.opacity = curQ===0?'0.4':'1';
+  document.getElementById('nextBtn').style.display = curQ<QUESTIONS.length-1?'flex':'none';
+  document.getElementById('submitBtn').style.display = curQ===QUESTIONS.length-1?'flex':'none';
+  // Reset timer
+  clearInterval(timerInterval2);
+  timerVal = 30;
+  updateTimerDisplay();
+  startTimer();
+}
+
+function selectOpt(idx) {
+  selected[curQ] = idx;
+  renderQuestion();
+}
+
+function prevQuestion() { if(curQ>0){curQ--;renderQuestion();} }
+function nextQuestion() { if(curQ<QUESTIONS.length-1){curQ++;renderQuestion();} }
+function jumpQ(i) { curQ=i; renderQuestion(); }
+
+function startTimer() {
+  timerInterval2 = setInterval(() => {
+    timerVal--;
+    updateTimerDisplay();
+    if (timerVal <= 0) { clearInterval(timerInterval2); if(curQ<QUESTIONS.length-1)nextQuestion(); else submitTest(); }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const d = document.getElementById('timerDisplay');
+  const c = document.getElementById('timerCircle');
+  if (!d) return;
+  d.textContent = timerVal;
+  d.className = 'timer-text' + (timerVal<=10?' urgent':'');
+  const full = 138.2;
+  c.style.strokeDashoffset = full - (full * timerVal / 30);
+  c.style.stroke = timerVal <= 10 ? '#EF4444' : timerVal <= 20 ? '#F59E0B' : '#2563EB';
+}
+
+function submitTest() {
+  clearInterval(timerInterval2);
+  const correct = selected.filter((s, i) => s === QUESTIONS[i].ans).length;
+  const total = QUESTIONS.length;
+  const pct = Math.round(correct/total*100);
+  const wrong = selected.filter((s,i)=>s>=0&&s!==QUESTIONS[i].ans).length;
+  document.getElementById('resultScore').textContent = correct;
+  document.getElementById('resultTotal').textContent = '/ '+total;
+  document.getElementById('rsAccuracy').textContent = pct+'%';
+  document.getElementById('cbCorrect').textContent = correct;
+  document.getElementById('cbWrong').textContent = wrong;
+  document.getElementById('cbSkip').textContent = total-correct-wrong;
+  document.getElementById('barCorrect').style.height = Math.max(10,correct*4)+'px';
+  document.getElementById('barWrong').style.height = Math.max(4,wrong*4)+'px';
+  const msgs = pct>=90?['Exceptional! 🏆','You\'re in top 5% today']:pct>=70?['Excellent! 🎉','You\'re in top 15% today']:pct>=50?['Good job! 👍','Keep practising!']:['Keep going! 💪','Review weak areas'];
+  document.getElementById('resultTitle').textContent = msgs[0];
+  document.getElementById('resultSub').textContent = msgs[1];
+  const coins = Math.max(5, Math.round(pct/10)*2);
+  // Show coin float animation
+  spawnCoins();
+  showStreakPopup2();
+  goTo('result');
+  setTimeout(initReveal,200);
+}
+
+function spawnCoins() {
+  for(let i=0;i<5;i++){
+    const el=document.createElement('div');
+    el.className='coin-float';
+    el.textContent='💰';
+    el.style.left=Math.random()*80+10+'vw';
+    el.style.top='60vh';
+    el.style.animationDelay=(i*0.15)+'s';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),2000);
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  MODALS
+// ══════════════════════════════════════════════════
+function showStreakPopup() { document.getElementById('streakOverlay').classList.add('open'); }
+function showStreakPopup2() { setTimeout(()=>document.getElementById('streakOverlay').classList.add('open'),600); }
+function showCoinPopup() { document.getElementById('coinOverlay').classList.add('open'); }
+function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
+
+// ══════════════════════════════════════════════════
+//  LEADERBOARD TABS
+// ══════════════════════════════════════════════════
+function setLbTab(el, type) {
+  document.querySelectorAll('.lb-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const pool = {daily:'₹2,940',weekly:'₹19,600',streak:'₹8,200'}[type];
+  document.querySelector('.lb-full-header + div + div .rpb-val, [style*="₹"]') && null;
+}
+
+// ══════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  initTest();
+  initReveal();
+  // Re-init test when navigating to test screen
+  document.querySelectorAll('[onclick*="goTo(\'test\')"]').forEach(btn=>{
+    btn.addEventListener('click',()=>setTimeout(initTest,100));
+  });
+});
+
+// Re-init when test screen becomes active
+const testObs = new MutationObserver((muts) => {
+  muts.forEach(m => {
+    if(m.target.id==='test' && m.target.classList.contains('active')) { initTest(); }
+  });
+});
+const testEl = document.getElementById('test');
+if(testEl) testObs.observe(testEl, { attributes: true, attributeFilter: ['class'] });
+</script>
+</body>
+</html>
