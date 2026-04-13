@@ -18,8 +18,9 @@ const io = new Server(server, {
 });
 
 app.use(express.json());
+// Force allow all origins to prevent Render from blocking Vercel
 app.use(cors({
-  origin: process.env.CLIENT_URL || '*'
+  origin: '*'
 }));
 
 // Basic Rate Limiting
