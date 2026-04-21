@@ -517,7 +517,7 @@ export default function Landing() {
             </div>
             <blockquote className="founder-quote">"I built VidyaJaya because 2.5 crore students in India study every single day and not one platform was rewarding their consistency. They wake up at 5 AM, they read the newspaper, they practice mock tests — and at the end of the day they have nothing to show for it except hope. VidyaJaya changes that. Every test you take, every streak you maintain, every question you answer correctly — it counts. It rewards you. It brings you one step closer to the rank you deserve."</blockquote>
             <div className="founder-contacts">
-              <div className="fc"><span className="fc-icon">📧</span><span className="fc-val">mallemdheerajroyal@gmail.com</span></div>
+              <div className="fc"><span className="fc-icon">📧</span><span className="fc-val">hello@vidyajaya.in</span></div>
               <div className="fc"><span className="fc-icon">📱</span><span className="fc-val">9059061099</span></div>
               <div className="fc"><span className="fc-icon">📸</span><span className="fc-val">@mallemdheerajroyal</span></div>
               <div className="fc"><span className="fc-icon">🌐</span><span className="fc-val">vidyajaya.in</span></div>
@@ -574,7 +574,7 @@ export default function Landing() {
               <a href="https://www.instagram.com/vidyajaya.in?igsh=cGNzZGkxYTFiODgx" target="_blank" rel="noopener noreferrer" className="social-btn" title="Instagram">📸</a>
               <a href="https://t.me/vidyajayaa" target="_blank" rel="noopener noreferrer" className="social-btn" title="Telegram">✈️</a>
               <div className="social-btn" title="YouTube">▶</div>
-              <div className="social-btn" title="LinkedIn">in</div>
+              <a href="https://www.linkedin.com/in/vidyajaya-where-knowledge-pays-off-0480a0405?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer" className="social-btn" title="LinkedIn">in</a>
             </div>
           </div>
         </div>
