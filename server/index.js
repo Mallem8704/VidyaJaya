@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const rateLimit = require('express-rate-limit');
+const morgan = require('morgan');
+const logger = require('./utils/logger');
 const http = require('http');
 const { Server } = require('socket.io');
 
@@ -22,6 +24,9 @@ app.use(express.json());
 app.use(cors({
   origin: '*'
 }));
+
+// Route HTTP logs through Winston
+app.use(morgan('combined', { stream: logger.stream }));
 
 // Basic Rate Limiting
 const limiter = rateLimit({
@@ -87,5 +92,5 @@ if (process.env.MONGO_URI && process.env.MONGO_URI !== 'mongodb://localhost:2701
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  logger.info(`Server running heavily on port ${PORT}`);
 });

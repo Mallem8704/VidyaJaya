@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const Submission = require('../models/Submission');
 const { protect } = require('../middleware/authMiddleware');
+const logger = require('../utils/logger');
 
 router.get('/', protect, async (req, res) => {
   try {
@@ -150,7 +151,7 @@ router.get('/', protect, async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Dashboard Error:", err);
+    logger.error("Dashboard Fetch Error: %O", err);
     res.status(500).json({ error: "Server error" });
   }
 });
