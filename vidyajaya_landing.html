@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="VidyaJaya — India's AI-powered mock test platform. Build streaks, earn rewards, crack UPSC, SSC, RRB. Free to start.">
+<meta name="keywords" content="UPSC mock test, SSC test, RRB exam, AI learning, VidyaJaya, competitive exam India">
+<meta property="og:title" content="VidyaJaya — Where Knowledge Turns Victory">
+<meta property="og:description" content="AI-powered daily mock tests. Build streaks. Earn real rewards. Crack UPSC, SSC, RRB.">
+<meta property="og:url" content="https://vidyajaya.in">
+<title>VidyaJaya — Where Knowledge Turns Victory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ── */
+:root {
+  --navy:   #0A2540;
+  --navy2:  #0D3060;
+  --orange: #FF6B00;
+  --orange2:#FF8C3A;
+  --green:  #00C853;
+  --gold:   #FFD700;
+  --purple: #7C3AED;
+  --bg:     #F8FAFC;
+  --white:  #FFFFFF;
+  --gray1:  #F1F5F9;
+  --gray2:  #E2E8F0;
+  --gray3:  #94A3B8;
+  --gray4:  #64748B;
+  --text:   #0A2540;
+  --r8:     8px;
+  --r12:    12px;
+  --r16:    16px;
+  --r20:    20px;
+  --r24:    24px;
+  --r32:    32px;
+  --shadow: 0 4px 24px rgba(10,37,64,.10);
+  --shadow-lg: 0 12px 48px rgba(10,37,64,.15);
+}
+[data-theme="dark"] {
+  --bg:    #060e1a;
+  --white: #0d1b2e;
+  --gray1: #111f35;
+  --gray2: #1a2f4a;
+  --gray3: #4a6a90;
+  --gray4: #6a8aaa;
+  --text:  #e8f0fe;
+  --shadow: 0 4px 24px rgba(0,0,0,.4);
+  --shadow-lg: 0 12px 48px rgba(0,0,0,.5);
+}
+
+/* ── RESET ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:16px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;transition:background .3s,color .3s}
+a{text-decoration:none;color:inherit}
+img,svg{display:block;max-width:100%}
+button{cursor:pointer;font-family:'Inter',sans-serif;border:none;outline:none}
+
+/* ── TYPOGRAPHY ── */
+h1,h2,h3,h4{font-family:'Plus Jakarta Sans',sans-serif;line-height:1.1}
+h1{font-size:clamp(38px,5.5vw,68px);font-weight:900}
+h2{font-size:clamp(28px,4vw,48px);font-weight:800}
+h3{font-size:clamp(18px,2.5vw,24px);font-weight:700}
+p{line-height:1.7;color:var(--gray4)}
+
+/* ── LAYOUT ── */
+.container{max-width:1140px;margin:0 auto;padding:0 24px}
+.section{padding:96px 0}
+.text-center{text-align:center}
+.flex{display:flex;align-items:center}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:var(--r12);font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:16px;transition:all .2s;cursor:pointer;border:2px solid transparent}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--orange);color:#fff;box-shadow:0 4px 20px rgba(255,107,0,.35)}
+.btn-primary:hover{background:#e55f00;transform:translateY(-2px);box-shadow:0 8px 28px rgba(255,107,0,.45)}
+.btn-ghost{background:transparent;color:var(--navy);border-color:var(--gray2)}
+[data-theme="dark"] .btn-ghost{color:#e8f0fe;border-color:var(--gray2)}
+.btn-ghost:hover{border-color:var(--orange);color:var(--orange)}
+.btn-lg{padding:18px 36px;font-size:18px;border-radius:var(--r16)}
+.btn-sm{padding:8px 18px;font-size:14px;border-radius:var(--r8)}
+.btn-white{background:#fff;color:var(--navy);font-weight:700}
+.btn-white:hover{background:var(--gray1);transform:translateY(-2px)}
+.pulse-glow{animation:pulseGlow 2.5s ease-in-out infinite}
+@keyframes pulseGlow{0%,100%{box-shadow:0 4px 20px rgba(255,107,0,.35)}50%{box-shadow:0 6px 36px rgba(255,107,0,.6),0 0 0 6px rgba(255,107,0,.1)}}
+
+/* ── CARDS ── */
+.card{background:var(--white);border-radius:var(--r20);padding:28px;border:1.5px solid var(--gray2);box-shadow:var(--shadow);transition:all .3s}
+.card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg);border-color:rgba(255,107,0,.25)}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:30px;font-size:13px;font-weight:700;letter-spacing:.3px}
+.badge-orange{background:rgba(255,107,0,.12);color:var(--orange);border:1px solid rgba(255,107,0,.25)}
+.badge-green{background:rgba(0,200,83,.12);color:#00a844;border:1px solid rgba(0,200,83,.25)}
+.badge-blue{background:rgba(59,130,246,.12);color:#2563eb;border:1px solid rgba(59,130,246,.2)}
+.badge-navy{background:rgba(10,37,64,.08);color:var(--navy);border:1px solid rgba(10,37,64,.12)}
+[data-theme="dark"] .badge-navy{background:rgba(255,255,255,.06);color:#93c5fd;border-color:rgba(255,255,255,.1)}
+
+/* ── SECTION TITLE ── */
+.section-tag{font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--orange);margin-bottom:12px}
+.section-title{font-size:clamp(28px,3.5vw,44px);font-weight:900;color:var(--navy);margin-bottom:16px;line-height:1.15}
+[data-theme="dark"] .section-title{color:#e8f0fe}
+.section-sub{font-size:18px;color:var(--gray4);max-width:580px;margin:0 auto;line-height:1.7}
+
+/* ── NAVBAR ── */
+.navbar{position:fixed;top:0;left:0;right:0;z-index:1000;padding:16px 0;transition:all .3s;background:transparent}
+.navbar.scrolled{background:rgba(248,250,252,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--gray2);padding:10px 0}
+[data-theme="dark"] .navbar.scrolled{background:rgba(6,14,26,.92);border-color:var(--gray2)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;max-width:1140px;margin:0 auto;padding:0 24px}
+.nav-logo{display:flex;align-items:center;gap:10px}
+.nav-logo-icon{width:38px;height:38px;background:var(--orange);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.nav-logo-icon svg{width:22px;height:22px}
+.nav-brand{font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:900;color:var(--navy)}
+[data-theme="dark"] .nav-brand{color:#e8f0fe}
+.nav-brand span{color:var(--orange)}
+.nav-links{display:flex;align-items:center;gap:4px}
+.nav-link{padding:8px 14px;border-radius:var(--r8);font-size:14px;font-weight:600;color:var(--gray4);transition:all .2s;cursor:pointer;background:transparent;border:none}
+.nav-link:hover{color:var(--navy);background:var(--gray1)}
+[data-theme="dark"] .nav-link:hover{color:#e8f0fe;background:var(--gray2)}
+.nav-right{display:flex;align-items:center;gap:10px}
+.theme-btn{width:38px;height:38px;border-radius:var(--r8);background:var(--gray1);border:1px solid var(--gray2);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;color:var(--gray4)}
+.theme-btn:hover{background:var(--gray2)}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;border-radius:var(--r8);background:transparent;border:none}
+.hamburger span{width:22px;height:2px;background:var(--text);border-radius:2px;transition:all .3s;display:block}
+.mobile-menu{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--white);z-index:999;padding:80px 24px 24px;flex-direction:column;gap:8px}
+.mobile-menu.open{display:flex}
+.mobile-link{padding:14px 16px;border-radius:var(--r12);font-size:16px;font-weight:600;color:var(--text);cursor:pointer;transition:all .2s}
+.mobile-link:hover{background:var(--gray1);color:var(--orange)}
+
+/* ── TICKER ── */
+.ticker{background:var(--navy);color:#fff;padding:10px 0;overflow:hidden;position:relative;z-index:999}
+.ticker-inner{display:flex;animation:ticker 28s linear infinite;white-space:nowrap;width:max-content}
+.ticker-inner:hover{animation-play-state:paused}
+.ticker-item{padding:0 48px;font-size:13px;font-weight:600;opacity:.85}
+.ticker-item span{color:var(--orange)}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;align-items:center;background:var(--navy);position:relative;overflow:hidden;padding-top:80px}
+.hero-bg{position:absolute;inset:0;pointer-events:none}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:56px 56px}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(80px)}
+.hero-orb-1{width:520px;height:520px;background:rgba(255,107,0,.18);top:-120px;right:-80px}
+.hero-orb-2{width:400px;height:400px;background:rgba(124,58,237,.12);bottom:-100px;left:-80px}
+.hero-content{position:relative;z-index:2;max-width:1140px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:1.1fr .9fr;gap:64px;align-items:center;width:100%}
+.hero-badge-row{display:flex;align-items:center;gap:10px;margin-bottom:24px;flex-wrap:wrap}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:30px;font-size:12px;font-weight:700;letter-spacing:.5px;background:rgba(255,107,0,.15);border:1px solid rgba(255,107,0,.35);color:#ff9350}
+.hero-title{font-size:clamp(40px,5vw,68px);font-weight:900;color:#fff;line-height:1.05;margin-bottom:20px}
+.hero-title .accent{color:var(--orange)}
+.hero-title .underline-orange{display:inline;position:relative}
+.hero-title .underline-orange::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--orange),var(--orange2));border-radius:2px}
+.hero-sub{font-size:18px;color:rgba(255,255,255,.65);line-height:1.7;margin-bottom:28px;max-width:500px}
+.hero-pills{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px}
+.hero-pill{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:30px;font-size:13px;font-weight:600;color:rgba(255,255,255,.85)}
+.hero-pill .dot{width:7px;height:7px;border-radius:50%}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:36px}
+.hero-trust{font-size:13px;color:rgba(255,255,255,.4);display:flex;align-items:center;gap:8px}
+.stars{color:#ffd700;font-size:16px}
+.hero-stats{display:flex;gap:32px;margin-top:8px;flex-wrap:wrap}
+.hero-stat-n{font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:900;color:#fff}
+.hero-stat-l{font-size:12px;color:rgba(255,255,255,.45);font-weight:600;letter-spacing:.5px;margin-top:2px}
+
+/* ── DASHBOARD MOCKUP ── */
+.mockup-wrap{position:relative;z-index:2}
+.mockup-card{background:var(--white);border-radius:24px;box-shadow:0 32px 80px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.08);overflow:hidden;max-width:340px;margin:0 auto;animation:floatCard 4s ease-in-out infinite}
+@keyframes floatCard{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-14px) rotate(.5deg)}}
+.mockup-header{background:var(--navy);padding:14px 18px}
+.mockup-greeting{font-size:11px;color:rgba(255,255,255,.5);margin-bottom:2px}
+.mockup-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:17px;font-weight:800;color:#fff}
+.mockup-streak{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#FF6B00,#FF3D00);border-radius:12px;padding:12px 14px;margin-top:12px}
+.streak-txt{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;color:#fff}
+.streak-fire{font-size:28px;animation:fireFlicker 1.2s ease-in-out infinite}
+@keyframes fireFlicker{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.2) rotate(3deg)}}
+.mockup-body{padding:14px 18px;background:var(--bg)}
+.mockup-test-card{background:linear-gradient(135deg,#0A2540,#1E3A5F);border-radius:14px;padding:14px;margin-bottom:12px}
+.mct-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1.5px;margin-bottom:5px}
+.mct-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;color:#fff;margin-bottom:10px}
+.mct-btn{background:#fff;border-radius:9px;padding:9px 16px;font-size:13px;font-weight:700;color:var(--navy);cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none}
+.mockup-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ms{background:var(--white);border-radius:10px;padding:10px 8px;text-align:center;border:1px solid var(--gray2)}
+.ms-n{font-family:'Plus Jakarta Sans',sans-serif;font-size:17px;font-weight:900}
+.ms-l{font-size:10px;color:var(--gray3);margin-top:2px}
+
+/* Floating badges */
+.float-badge{position:absolute;background:var(--white);border-radius:14px;padding:8px 14px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 32px rgba(0,0,0,.25),0 0 0 1px rgba(255,255,255,.05);white-space:nowrap}
+.float-badge-1{top:12%;right:-18%;animation:floatBadge1 3s ease-in-out infinite}
+.float-badge-2{bottom:20%;left:-22%;animation:floatBadge2 3.5s ease-in-out infinite}
+@keyframes floatBadge1{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes floatBadge2{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+.fb-icon{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.fb-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:var(--navy)}
+.fb-sub{font-size:11px;color:var(--gray4)}
+
+/* ── FEATURES ── */
+.features{background:var(--white);padding:96px 0}
+[data-theme="dark"] .features{background:var(--white)}
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px}
+.feat-card{background:var(--white);border-radius:var(--r20);padding:28px;border:1.5px solid var(--gray2);transition:all .3s;position:relative;overflow:hidden;cursor:default}
+.feat-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px;transition:opacity .3s;opacity:0}
+.feat-card:hover::before{opacity:1}
+.feat-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-lg)}
+.feat-card-1::before{background:#FF6B00}.feat-card-2::before{background:#00C853}.feat-card-3::before{background:#7C3AED}.feat-card-4::before{background:#0EA5E9}.feat-card-5::before{background:#F59E0B}.feat-card-6::before{background:#EF4444}
+.feat-icon{width:52px;height:52px;border-radius:var(--r12);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:18px;transition:transform .3s}
+.feat-card:hover .feat-icon{transform:scale(1.1)}
+.feat-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:10px}
+[data-theme="dark"] .feat-title{color:#e8f0fe}
+.feat-desc{font-size:14px;color:var(--gray4);line-height:1.65}
+
+/* ── HOW IT WORKS ── */
+.how{padding:96px 0;background:var(--bg)}
+.steps-row{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:56px;position:relative}
+.steps-row::before{content:'';position:absolute;top:36px;left:16.5%;right:16.5%;height:2px;background:linear-gradient(90deg,var(--orange),var(--green),var(--purple));z-index:0}
+.step{text-align:center;padding:0 20px;position:relative;z-index:1}
+.step-num{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:900;color:#fff;margin:0 auto 20px;transition:transform .3s,box-shadow .3s}
+.step:hover .step-num{transform:scale(1.1)}
+.step-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:10px}
+[data-theme="dark"] .step-title{color:#e8f0fe}
+.step-desc{font-size:14px;color:var(--gray4);line-height:1.65}
+
+/* ── STATS ── */
+.stats-section{background:var(--navy);padding:80px 0}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+.stat-item{text-align:center;padding:32px 20px;border-right:1px solid rgba(255,255,255,.08)}
+.stat-item:last-child{border-right:none}
+.stat-num{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(32px,4vw,52px);font-weight:900;color:var(--orange);margin-bottom:8px}
+.stat-lbl{font-size:15px;color:rgba(255,255,255,.55);font-weight:500}
+
+/* ── LEADERBOARD ── */
+.leaderboard-section{padding:96px 0;background:var(--white)}
+.lb-card{background:var(--navy);border-radius:var(--r24);overflow:hidden;max-width:600px;margin:40px auto 0;box-shadow:0 24px 60px rgba(10,37,64,.3)}
+.lb-head{background:linear-gradient(135deg,#0d3060,#7C3AED);padding:20px 24px;display:flex;justify-content:space-between;align-items:center}
+.lb-head-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:17px;font-weight:800;color:#fff}
+.lb-row{display:flex;align-items:center;gap:14px;padding:14px 24px;border-top:1px solid rgba(255,255,255,.06);transition:background .2s;cursor:default}
+.lb-row:hover{background:rgba(255,255,255,.04)}
+.lb-row.you{background:rgba(255,107,0,.1);border-top:1px solid rgba(255,107,0,.2)}
+.lb-medal{font-size:22px;min-width:30px;text-align:center}
+.lb-ava{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
+.lb-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;color:#fff;flex:1}
+.lb-exam{font-size:12px;color:rgba(255,255,255,.45);margin-top:1px}
+.lb-pts{font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:900;color:var(--orange)}
+.lb-streak{font-size:12px;color:rgba(255,255,255,.4);margin-top:1px;text-align:right}
+
+/* ── TESTIMONIALS ── */
+.testimonials{padding:96px 0;background:var(--bg)}
+.testi-scroll{display:flex;gap:24px;margin-top:48px;overflow:hidden}
+.testi-track{display:flex;gap:24px;animation:scrollTesti 32s linear infinite;width:max-content}
+.testi-track:hover{animation-play-state:paused}
+.testi-card{background:var(--white);border-radius:var(--r20);padding:28px;border:1.5px solid var(--gray2);min-width:320px;max-width:320px;flex-shrink:0}
+.testi-stars{color:#ffd700;font-size:14px;margin-bottom:14px}
+.testi-quote{font-size:15px;color:var(--gray4);line-height:1.7;margin-bottom:20px;font-style:italic}
+.testi-author{display:flex;align-items:center;gap:12px}
+.testi-ava{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:800;color:#fff}
+.testi-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;color:var(--navy)}
+[data-theme="dark"] .testi-name{color:#e8f0fe}
+.testi-exam{font-size:12px;color:var(--orange);font-weight:600}
+@keyframes scrollTesti{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ── PRICING ── */
+.pricing{padding:96px 0;background:var(--white)}
+.pricing-toggle{display:flex;align-items:center;justify-content:center;gap:12px;margin:24px auto 48px}
+.toggle-track{width:52px;height:28px;background:var(--gray2);border-radius:14px;cursor:pointer;position:relative;transition:background .3s}
+.toggle-track.on{background:var(--orange)}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2);transition:transform .3s}
+.toggle-track.on .toggle-thumb{transform:translateX(24px)}
+.toggle-lbl{font-size:15px;font-weight:600;color:var(--gray4)}
+.toggle-lbl.active{color:var(--navy);font-weight:700}
+[data-theme="dark"] .toggle-lbl.active{color:#e8f0fe}
+.save-badge{background:rgba(0,200,83,.15);color:#00a844;border:1px solid rgba(0,200,83,.3);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:940px;margin:0 auto}
+.price-card{background:var(--white);border-radius:var(--r24);padding:36px;border:2px solid var(--gray2);position:relative;overflow:hidden;transition:all .3s}
+.price-card.popular{border-color:var(--orange);box-shadow:0 0 0 4px rgba(255,107,0,.08),var(--shadow-lg);transform:scale(1.04)}
+.price-card:hover{transform:scale(1.02)}
+.price-card.popular:hover{transform:scale(1.06)}
+.popular-badge{position:absolute;top:0;right:0;background:var(--orange);color:#fff;font-size:11px;font-weight:800;padding:6px 16px;border-radius:0 var(--r20) 0 var(--r12);letter-spacing:.5px}
+.price-name{font-size:13px;font-weight:700;color:var(--gray4);letter-spacing:2px;text-transform:uppercase;margin-bottom:14px}
+.price-amount{font-family:'Plus Jakarta Sans',sans-serif;font-size:48px;font-weight:900;color:var(--navy);line-height:1;margin-bottom:6px}
+[data-theme="dark"] .price-amount{color:#e8f0fe}
+.price-amount sup{font-size:22px;vertical-align:super;font-weight:700;margin-top:8px;display:inline-block}
+.price-amount span{font-size:16px;font-weight:500;color:var(--gray3)}
+.price-desc{font-size:14px;color:var(--gray4);margin-bottom:24px;line-height:1.6}
+.price-features{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.pf{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--text)}
+.pf-check{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:1px}
+.pf.yes .pf-check{background:rgba(0,200,83,.15);color:#00a844}
+.pf.no .pf-check{background:rgba(148,163,184,.15);color:var(--gray3)}
+.pf.no span{color:var(--gray3);text-decoration:line-through}
+
+/* ── FOUNDER ── */
+.founder{padding:96px 0;background:var(--navy);position:relative;overflow:hidden}
+.founder::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,0,.12),transparent 70%);top:-200px;right:-200px;pointer-events:none}
+.founder-card{max-width:760px;margin:0 auto;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:var(--r24);padding:48px;position:relative;z-index:1}
+.founder-top{display:flex;align-items:flex-start;gap:28px;margin-bottom:32px}
+.founder-ava{width:100px;height:100px;border-radius:50%;background:linear-gradient(135deg,var(--orange),#ff3d00);display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:32px;font-weight:900;color:#fff;flex-shrink:0;border:3px solid rgba(255,107,0,.4);box-shadow:0 0 40px rgba(255,107,0,.3)}
+.founder-info{}
+.founder-name{font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:900;color:#fff;margin-bottom:4px}
+.founder-role{font-size:15px;color:var(--orange);font-weight:600;margin-bottom:6px}
+.founder-loc{font-size:14px;color:rgba(255,255,255,.45)}
+.founder-quote{font-size:18px;color:rgba(255,255,255,.82);line-height:1.75;font-style:italic;border-left:4px solid var(--orange);padding-left:24px;margin-bottom:32px}
+.founder-contacts{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.fc{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:var(--r12);padding:12px 16px}
+.fc-icon{font-size:18px}
+.fc-val{font-size:14px;color:rgba(255,255,255,.75);font-weight:500}
+
+/* ── CTA BAND ── */
+.cta-band{background:linear-gradient(135deg,var(--orange),#FF3D00);padding:80px 0;text-align:center;position:relative;overflow:hidden}
+.cta-band::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.06),transparent 60%)}
+.cta-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(28px,4vw,48px);font-weight:900;color:#fff;margin-bottom:16px;position:relative;z-index:1}
+.cta-sub{font-size:18px;color:rgba(255,255,255,.75);margin-bottom:36px;position:relative;z-index:1}
+.cta-btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+
+/* ── FOOTER ── */
+.footer{background:var(--navy);padding:64px 0 32px}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
+.footer-brand{}
+.footer-logo{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.footer-desc{font-size:14px;color:rgba(255,255,255,.4);line-height:1.7;margin-bottom:16px}
+.footer-contact-mini{font-size:13px;color:rgba(255,255,255,.35);line-height:1.9}
+.footer-col-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:2px;text-transform:uppercase;margin-bottom:18px}
+.footer-link{display:block;font-size:14px;color:rgba(255,255,255,.5);margin-bottom:10px;transition:color .2s;cursor:pointer}
+.footer-link:hover{color:#fff}
+.footer-bottom{border-top:1px solid rgba(255,255,255,.06);padding-top:28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:gap}
+.footer-copy{font-size:13px;color:rgba(255,255,255,.3)}
+.social-row{display:flex;gap:10px}
+.social-btn{width:36px;height:36px;border-radius:var(--r8);background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;color:rgba(255,255,255,.5);font-size:14px}
+.social-btn:hover{background:var(--orange);color:#fff;border-color:var(--orange)}
+
+/* ── ANIMATIONS ── */
+.reveal{opacity:0;transform:translateY(32px);transition:opacity .65s ease,transform .65s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:.1s}
+.reveal-delay-2{transition-delay:.2s}
+.reveal-delay-3{transition-delay:.3s}
+.reveal-delay-4{transition-delay:.4s}
+.reveal-delay-5{transition-delay:.5s}
+.count-up{display:inline-block}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px){
+  .hero-content{grid-template-columns:1fr;text-align:center;gap:48px}
+  .hero-badge-row{justify-content:center}
+  .hero-pills{justify-content:center}
+  .hero-ctas{justify-content:center}
+  .hero-trust{justify-content:center}
+  .hero-stats{justify-content:center}
+  .hero-sub{margin-left:auto;margin-right:auto}
+  .hero-right{display:none}
+  .features-grid{grid-template-columns:repeat(2,1fr)}
+  .footer-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:768px){
+  .nav-links,.nav-right .btn-ghost{display:none}
+  .hamburger{display:flex}
+  .features-grid,.grid-3,.pricing-grid,.stats-grid{grid-template-columns:1fr}
+  .steps-row{grid-template-columns:1fr;gap:32px}
+  .steps-row::before{display:none}
+  .founder-top{flex-direction:column;align-items:center;text-align:center}
+  .founder-contacts{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr}
+  .grid-2{grid-template-columns:1fr}
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .section{padding:64px 0}
+  .hero{padding-top:60px}
+  .price-card.popular{transform:none}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .stat-item{border-right:none;border-bottom:1px solid rgba(255,255,255,.08)}
+  .stat-item:last-child{border-bottom:none}
+}
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner" id="ticker-inner">
+    <span class="ticker-item">🔥 <span>Priya from Delhi</span> scored 94% in UPSC Mock #47</span>
+    <span class="ticker-item">🏆 <span>Rahul from Mumbai</span> unlocked Gold Badge — 30 day streak!</span>
+    <span class="ticker-item">💰 <span>SSC student</span> earned ₹500 in weekly reward pool</span>
+    <span class="ticker-item">🚀 <span>12,483 students</span> active on VidyaJaya right now</span>
+    <span class="ticker-item">⭐ <span>Sneha from Hyderabad</span> cleared SBI PO with 99 marks</span>
+    <span class="ticker-item">🎯 <span>VidyaJaya AI</span> generated 180 fresh questions today</span>
+    <span class="ticker-item">🔥 <span>Priya from Delhi</span> scored 94% in UPSC Mock #47</span>
+    <span class="ticker-item">🏆 <span>Rahul from Mumbai</span> unlocked Gold Badge — 30 day streak!</span>
+    <span class="ticker-item">💰 <span>SSC student</span> earned ₹500 in weekly reward pool</span>
+    <span class="ticker-item">🚀 <span>12,483 students</span> active on VidyaJaya right now</span>
+    <span class="ticker-item">⭐ <span>Sneha from Hyderabad</span> cleared SBI PO with 99 marks</span>
+    <span class="ticker-item">🎯 <span>VidyaJaya AI</span> generated 180 fresh questions today</span>
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+  <div class="nav-inner">
+    <div class="nav-logo">
+      <div class="nav-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M4 5l8 14L20 5"/></svg>
+      </div>
+      <span class="nav-brand">Vidya<span>Jaya</span></span>
+    </div>
+    <div class="nav-links">
+      <button class="nav-link" onclick="scrollTo2('features')">Features</button>
+      <button class="nav-link" onclick="scrollTo2('how')">How It Works</button>
+      <button class="nav-link" onclick="scrollTo2('pricing')">Pricing</button>
+      <button class="nav-link" onclick="scrollTo2('leaderboard-section')">Leaderboard</button>
+    </div>
+    <div class="nav-right">
+      <button class="theme-btn" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode">
+        <svg id="theme-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
+      <a href="#" class="btn btn-ghost btn-sm">Log In</a>
+      <a href="#" class="btn btn-primary btn-sm pulse-glow">Get Started</a>
+    </div>
+    <button class="hamburger" onclick="toggleMenu()" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobile-menu">
+  <button style="position:absolute;top:20px;right:20px;background:none;border:none;font-size:28px;cursor:pointer;color:var(--text)" onclick="toggleMenu()">✕</button>
+  <button class="mobile-link" onclick="scrollTo2('features');toggleMenu()">Features</button>
+  <button class="mobile-link" onclick="scrollTo2('how');toggleMenu()">How It Works</button>
+  <button class="mobile-link" onclick="scrollTo2('pricing');toggleMenu()">Pricing</button>
+  <button class="mobile-link" onclick="scrollTo2('leaderboard-section');toggleMenu()">Leaderboard</button>
+  <a href="#" class="btn btn-primary btn-lg" style="margin-top:16px;justify-content:center">Get Started Free →</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg">
+    <div class="hero-grid"></div>
+    <div class="hero-orb hero-orb-1"></div>
+    <div class="hero-orb hero-orb-2"></div>
+  </div>
+  <div class="hero-content">
+    <!-- LEFT -->
+    <div class="hero-left">
+      <div class="hero-badge-row">
+        <div class="hero-badge">⭐ India's #1 AI Exam Platform</div>
+        <div class="hero-badge">🚀 Free to Start</div>
+      </div>
+      <h1 class="hero-title">
+        Study Smarter.<br>
+        <span class="underline-orange">Rank Higher.</span><br>
+        <span class="accent">Earn Rewards.</span>
+      </h1>
+      <p class="hero-sub">India's most intelligent exam preparation platform. AI-powered daily tests, real-time leaderboard, and a streak system that rewards your consistency.</p>
+      <div class="hero-pills">
+        <div class="hero-pill"><div class="dot" style="background:#FF6B00"></div>Daily AI Mock Tests</div>
+        <div class="hero-pill"><div class="dot" style="background:#FFD700"></div>Earn Real Rewards</div>
+        <div class="hero-pill"><div class="dot" style="background:#00C853"></div>Live Leaderboard</div>
+      </div>
+      <div class="hero-ctas">
+        <a href="#" class="btn btn-primary btn-lg pulse-glow">Start for Free →</a>
+        <button class="btn btn-ghost btn-lg" onclick="scrollTo2('how')">▶ How It Works</button>
+      </div>
+      <div class="hero-trust">
+        <span class="stars">★★★★★</span>
+        <span>Trusted by 2.5L+ students across India</span>
+      </div>
+      <div class="hero-stats">
+        <div><div class="hero-stat-n" data-target="250000" data-suffix="L+">2.5L+</div><div class="hero-stat-l">STUDENTS</div></div>
+        <div><div class="hero-stat-n" data-target="50000" data-suffix="K+">50K+</div><div class="hero-stat-l">DAILY TESTS</div></div>
+        <div><div class="hero-stat-n">94%</div><div class="hero-stat-l">SUCCESS RATE</div></div>
+        <div><div class="hero-stat-n">₹0</div><div class="hero-stat-l">TO START</div></div>
+      </div>
+    </div>
+    <!-- RIGHT: MOCKUP -->
+    <div class="hero-right mockup-wrap">
+      <div class="float-badge float-badge-1">
+        <div class="fb-icon" style="background:rgba(255,215,0,.15)">💰</div>
+        <div><div class="fb-title">+25 Coins Earned!</div><div class="fb-sub">Just now</div></div>
+      </div>
+      <div class="float-badge float-badge-2">
+        <div class="fb-icon" style="background:rgba(0,200,83,.15)">🏆</div>
+        <div><div class="fb-title">New Badge Unlocked!</div><div class="fb-sub">Week Warrior</div></div>
+      </div>
+      <div class="mockup-card">
+        <div class="mockup-header">
+          <div class="mockup-greeting">Good morning 👋</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="mockup-name">Dheeraj Royal</div>
+            <div style="background:rgba(255,107,0,.2);border:1px solid rgba(255,107,0,.3);border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700;color:#ff9350">💰 340</div>
+          </div>
+          <div class="mockup-streak">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:1px;margin-bottom:2px">STREAK</div>
+              <div class="streak-txt">🔥 12 Day Streak!</div>
+            </div>
+            <div class="streak-fire">🔥</div>
+          </div>
+        </div>
+        <div class="mockup-body">
+          <div class="mockup-test-card">
+            <div class="mct-label">TODAY'S CHALLENGE</div>
+            <div class="mct-title">UPSC Daily Mock Test</div>
+            <button class="mct-btn">▶ Start — 30 Qs</button>
+          </div>
+          <div class="mockup-stats">
+            <div class="ms"><div class="ms-n" style="color:#3B82F6">87%</div><div class="ms-l">Accuracy</div></div>
+            <div class="ms"><div class="ms-n" style="color:#00C853">48</div><div class="ms-l">Tests</div></div>
+            <div class="ms"><div class="ms-n" style="color:#FF6B00">#3</div><div class="ms-l">Rank</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="container text-center">
+    <div class="section-tag reveal">✦ Platform Features</div>
+    <h2 class="section-title reveal reveal-delay-1">Everything you need to<br><span style="color:var(--orange)">crack your exam</span></h2>
+    <p class="section-sub reveal reveal-delay-2">Built for UPSC, SSC, RRB, Banking, Reasoning and Aptitude. The only platform that rewards you for studying daily.</p>
+    <div class="features-grid" style="margin-top:56px">
+      <div class="card feat-card feat-card-1 reveal">
+        <div class="feat-icon" style="background:rgba(255,107,0,.12)">🤖</div>
+        <div class="feat-title">AI Daily Questions</div>
+        <div class="feat-desc">GPT-4o generates 180 fresh questions every midnight across 6 exam categories. Never the same question twice. Always current, always challenging.</div>
+      </div>
+      <div class="card feat-card feat-card-2 reveal reveal-delay-1">
+        <div class="feat-icon" style="background:rgba(0,200,83,.12)">🔥</div>
+        <div class="feat-title">Daily Streak System</div>
+        <div class="feat-desc">Build a daily habit and get rewarded for it. Miss one day and your streak resets. Milestones at 7, 30, 100 and 365 days unlock badges and real rewards.</div>
+      </div>
+      <div class="card feat-card feat-card-3 reveal reveal-delay-2">
+        <div class="feat-icon" style="background:rgba(124,58,237,.12)">🏆</div>
+        <div class="feat-title">Live Leaderboard</div>
+        <div class="feat-desc">Compete with 2.5L+ students across India in real-time. Weekly top 3 win real cash every Sunday. Your rank updates live without a page refresh.</div>
+      </div>
+      <div class="card feat-card feat-card-4 reveal">
+        <div class="feat-icon" style="background:rgba(14,165,233,.12)">📊</div>
+        <div class="feat-title">AI Performance Analysis</div>
+        <div class="feat-desc">After every test, GPT-4o analyses your weak areas and gives a personalised 7-day study plan. No generic advice — specific chapters, specific books.</div>
+      </div>
+      <div class="card feat-card feat-card-5 reveal reveal-delay-1">
+        <div class="feat-icon" style="background:rgba(245,158,11,.12)">❓</div>
+        <div class="feat-title">AI Doubt Solver</div>
+        <div class="feat-desc">Upload any question as image or text. Get a step-by-step explanation within seconds. Available 24/7. No waiting for a teacher to respond.</div>
+      </div>
+      <div class="card feat-card feat-card-6 reveal reveal-delay-2">
+        <div class="feat-icon" style="background:rgba(239,68,68,.12)">💰</div>
+        <div class="feat-title">Coin Rewards System</div>
+        <div class="feat-desc">Earn coins for every test, every streak milestone, every referral. Redeem coins for streak freezes, premium access, or weekly cash payouts.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="container text-center">
+    <div class="section-tag reveal">⚡ Simple Process</div>
+    <h2 class="section-title reveal reveal-delay-1">Three steps to <span style="color:var(--orange)">transform your prep</span></h2>
+    <p class="section-sub reveal reveal-delay-2">No complicated setup. No credit card. Start your first test in under 2 minutes.</p>
+    <div class="steps-row">
+      <div class="step reveal">
+        <div class="step-num" style="background:#FF6B00;box-shadow:0 8px 24px rgba(255,107,0,.4)">01</div>
+        <h3 class="step-title">Create Free Account</h3>
+        <p class="step-desc">Sign up with email in 30 seconds. Pick your exam goal — UPSC, SSC, RRB, Banking, Reasoning or Aptitude. No credit card needed ever.</p>
+      </div>
+      <div class="step reveal reveal-delay-2">
+        <div class="step-num" style="background:#00C853;box-shadow:0 8px 24px rgba(0,200,83,.4)">02</div>
+        <h3 class="step-title">Take Daily AI Tests</h3>
+        <p class="step-desc">Every day at 9 AM, fresh AI-generated questions are waiting for you. Complete the test, see your rank, get instant AI feedback on your weak areas.</p>
+      </div>
+      <div class="step reveal reveal-delay-4">
+        <div class="step-num" style="background:#7C3AED;box-shadow:0 8px 24px rgba(124,58,237,.4)">03</div>
+        <h3 class="step-title">Build Streak and Earn</h3>
+        <p class="step-desc">Come back tomorrow. Build your streak. Climb the leaderboard. Top 3 weekly performers win real cash every Sunday. Your consistency is finally being rewarded.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-section reveal">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-item"><div class="stat-num count-up" data-to="250000" data-format="lakhs">2.5L+</div><div class="stat-lbl">Students Registered</div></div>
+      <div class="stat-item"><div class="stat-num count-up" data-to="500000" data-format="lakhs">5L+</div><div class="stat-lbl">Tests Completed</div></div>
+      <div class="stat-item"><div class="stat-num">94%</div><div class="stat-lbl">Report Improved Scores</div></div>
+      <div class="stat-item"><div class="stat-num">150+</div><div class="stat-lbl">Test Categories</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- LEADERBOARD -->
+<section class="leaderboard-section" id="leaderboard-section">
+  <div class="container text-center">
+    <div class="section-tag reveal">🏆 Live Rankings</div>
+    <h2 class="section-title reveal reveal-delay-1">This Week's <span style="color:var(--orange)">Champions</span></h2>
+    <p class="section-sub reveal reveal-delay-2">Top 3 win ₹500, ₹250 and ₹100 every Sunday midnight. Your rank updates in real-time.</p>
+    <div class="lb-card reveal">
+      <div class="lb-head">
+        <div class="lb-head-title">🏆 Weekly Leaderboard</div>
+        <div class="badge badge-green" style="font-size:11px">● Live</div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-medal">🥇</div>
+        <div class="lb-ava" style="background:linear-gradient(135deg,#FF6B00,#FF3D00)">RK</div>
+        <div><div class="lb-name">Rahul Kumar</div><div class="lb-exam">UPSC · 🔥 28 streak</div></div>
+        <div><div class="lb-pts">2,840</div><div class="lb-streak">+₹500 this Sunday</div></div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-medal">🥈</div>
+        <div class="lb-ava" style="background:linear-gradient(135deg,#3B82F6,#7C3AED)">PS</div>
+        <div><div class="lb-name">Priya Sharma</div><div class="lb-exam">SSC · 🔥 21 streak</div></div>
+        <div><div class="lb-pts">2,680</div><div class="lb-streak">+₹250 this Sunday</div></div>
+      </div>
+      <div class="lb-row">
+        <div class="lb-medal">🥉</div>
+        <div class="lb-ava" style="background:linear-gradient(135deg,#00C853,#0891B2)">SM</div>
+        <div><div class="lb-name">Sneha Misra</div><div class="lb-exam">Banking · 🔥 19 streak</div></div>
+        <div><div class="lb-pts">2,540</div><div class="lb-streak">+₹100 this Sunday</div></div>
+      </div>
+      <div class="lb-row you">
+        <div class="lb-medal" style="font-size:14px;font-weight:700;color:var(--orange)">#342</div>
+        <div class="lb-ava" style="background:var(--orange)">DR</div>
+        <div><div class="lb-name" style="color:var(--orange)">You — Dheeraj Royal</div><div class="lb-exam">UPSC · 🔥 12 streak</div></div>
+        <div><div class="lb-pts" style="color:#fff">1,940</div><div class="lb-streak">45 pts to reach #341</div></div>
+      </div>
+      <div style="padding:16px 24px;text-align:center;border-top:1px solid rgba(255,255,255,.06)">
+        <a href="#" class="btn btn-primary btn-sm">Join and Compete →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div class="container text-center">
+    <div class="section-tag reveal">💬 Student Stories</div>
+    <h2 class="section-title reveal reveal-delay-1">Real students. <span style="color:var(--orange)">Real results.</span></h2>
+  </div>
+  <div class="testi-scroll" style="margin-top:48px">
+    <div class="testi-track" id="testi-track">
+      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-quote">"VidyaJaya's AI analysis told me exactly which Polity chapters I was weak in. Focused on those for 2 weeks and cleared UPSC Prelims in my first attempt. This platform is a game changer."</p><div class="testi-author"><div class="testi-ava" style="background:linear-gradient(135deg,#FF6B00,#FF3D00)">PS</div><div><div class="testi-name">Priya Sharma</div><div class="testi-exam">UPSC 2024 — Cleared</div></div></div></div>
+      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-quote">"The daily streak kept me consistent for 180 days straight. I scored 99 marks in SSC CGL Tier-1. The leaderboard competition motivated me to study even on days I wanted to skip."</p><div class="testi-author"><div class="testi-ava" style="background:linear-gradient(135deg,#3B82F6,#7C3AED)">RK</div><div><div class="testi-name">Rahul Kumar</div><div class="testi-exam">SSC CGL — 99 Marks</div></div></div></div>
+      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-quote">"I was failing Banking exams repeatedly. VidyaJaya showed me my accuracy in Quant was only 42%. Practiced specific weak chapters for 3 weeks. Got selected in SBI PO."</p><div class="testi-author"><div class="testi-ava" style="background:linear-gradient(135deg,#00C853,#0891B2)">SP</div><div><div class="testi-name">Sneha Patel</div><div class="testi-exam">SBI PO — Selected</div></div></div></div>
+      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-quote">"Worth every rupee. The AI doubt solver saved me hours every day. I used to waste time searching YouTube for explanations. Now I upload the question and get a clear step-by-step answer."</p><div class="testi-author"><div class="testi-ava" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">AK</div><div><div class="testi-name">Amit Kumar</div><div class="testi-exam">RRB NTPC — AIR 234</div></div></div></div>
+      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-quote">"The coin rewards make studying feel like a game. I earned ₹500 in my first month just by maintaining my streak and finishing top 3 in the weekly leaderboard. Unbelievable platform."</p><div class="testi-author"><div class="testi-ava" style="background:linear-gradient(135deg,#7C3AED,#3B82F6)">NM</div><div><div class="testi-name">Neha Misra</div><div class="testi-exam">UPSC Aspirant — Rank #3</div></div></div></div>
+      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-quote">"The questions are genuinely fresh every day. I have been using it for 3 months and never seen a repeat question. The AI clearly understands what is relevant for each exam."</p><div class="testi-author"><div class="testi-ava" style="background:linear-gradient(135deg,#0891B2,#00C853)">VR</div><div><div class="testi-name">Vijay Rao</div><div class="testi-exam">State PSC — Cleared</div></div></div></div>
+      <!-- duplicate for infinite scroll -->
+      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-quote">"VidyaJaya's AI analysis told me exactly which Polity chapters I was weak in. Focused on those for 2 weeks and cleared UPSC Prelims in my first attempt. This platform is a game changer."</p><div class="testi-author"><div class="testi-ava" style="background:linear-gradient(135deg,#FF6B00,#FF3D00)">PS</div><div><div class="testi-name">Priya Sharma</div><div class="testi-exam">UPSC 2024 — Cleared</div></div></div></div>
+      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-quote">"The daily streak kept me consistent for 180 days straight. I scored 99 marks in SSC CGL Tier-1. The leaderboard competition motivated me to study even on days I wanted to skip."</p><div class="testi-author"><div class="testi-ava" style="background:linear-gradient(135deg,#3B82F6,#7C3AED)">RK</div><div><div class="testi-name">Rahul Kumar</div><div class="testi-exam">SSC CGL — 99 Marks</div></div></div></div>
+      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-quote">"I was failing Banking exams repeatedly. VidyaJaya showed me my accuracy in Quant was only 42%. Practiced specific weak chapters for 3 weeks. Got selected in SBI PO."</p><div class="testi-author"><div class="testi-ava" style="background:linear-gradient(135deg,#00C853,#0891B2)">SP</div><div><div class="testi-name">Sneha Patel</div><div class="testi-exam">SBI PO — Selected</div></div></div></div>
+      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-quote">"Worth every rupee. The AI doubt solver saved me hours every day. I used to waste time searching YouTube for explanations. Now I upload the question and get a clear step-by-step answer."</p><div class="testi-author"><div class="testi-ava" style="background:linear-gradient(135deg,#F59E0B,#EF4444)">AK</div><div><div class="testi-name">Amit Kumar</div><div class="testi-exam">RRB NTPC — AIR 234</div></div></div></div>
+      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-quote">"The coin rewards make studying feel like a game. I earned ₹500 in my first month just by maintaining my streak and finishing top 3 in the weekly leaderboard. Unbelievable platform."</p><div class="testi-author"><div class="testi-ava" style="background:linear-gradient(135deg,#7C3AED,#3B82F6)">NM</div><div><div class="testi-name">Neha Misra</div><div class="testi-exam">UPSC Aspirant — Rank #3</div></div></div></div>
+      <div class="testi-card"><div class="testi-stars">★★★★★</div><p class="testi-quote">"The questions are genuinely fresh every day. I have been using it for 3 months and never seen a repeat question. The AI clearly understands what is relevant for each exam."</p><div class="testi-author"><div class="testi-ava" style="background:linear-gradient(135deg,#0891B2,#00C853)">VR</div><div><div class="testi-name">Vijay Rao</div><div class="testi-exam">State PSC — Cleared</div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="container text-center">
+    <div class="section-tag reveal">💳 Simple Pricing</div>
+    <h2 class="section-title reveal reveal-delay-1">Start free. <span style="color:var(--orange)">Upgrade when ready.</span></h2>
+    <p class="section-sub reveal reveal-delay-2">No hidden fees. Cancel anytime. Students on free plan can still build streaks and view the leaderboard.</p>
+    <div class="pricing-toggle reveal reveal-delay-3">
+      <span class="toggle-lbl active" id="lbl-monthly">Monthly</span>
+      <div class="toggle-track" id="annual-toggle" onclick="toggleAnnual()"><div class="toggle-thumb"></div></div>
+      <span class="toggle-lbl" id="lbl-annual">Annual</span>
+      <span class="save-badge" id="save-badge" style="opacity:0">Save 30%!</span>
+    </div>
+    <div class="pricing-grid reveal">
+      <div class="price-card">
+        <div class="price-name">Free</div>
+        <div class="price-amount">₹0 <span>/ forever</span></div>
+        <div class="price-desc">Perfect to start and build your daily habit.</div>
+        <div class="price-features">
+          <div class="pf yes"><div class="pf-check">✓</div><span>5 tests per week</span></div>
+          <div class="pf yes"><div class="pf-check">✓</div><span>Daily current affairs (10 Qs)</span></div>
+          <div class="pf yes"><div class="pf-check">✓</div><span>Daily streak tracking</span></div>
+          <div class="pf yes"><div class="pf-check">✓</div><span>View-only leaderboard</span></div>
+          <div class="pf no"><div class="pf-check">✗</div><span>AI performance analysis</span></div>
+          <div class="pf no"><div class="pf-check">✗</div><span>Coin earning & rewards</span></div>
+        </div>
+        <a href="#" class="btn btn-ghost" style="width:100%;justify-content:center">Start Free — No Card</a>
+      </div>
+      <div class="price-card popular">
+        <div class="popular-badge">MOST POPULAR</div>
+        <div class="price-name" style="color:var(--orange)">Pro</div>
+        <div class="price-amount" id="pro-price"><sup>₹</sup>99 <span id="pro-per">/ month</span></div>
+        <div class="price-desc">Everything you need. No compromises whatsoever.</div>
+        <div class="price-features">
+          <div class="pf yes"><div class="pf-check">✓</div><span>Unlimited daily tests</span></div>
+          <div class="pf yes"><div class="pf-check">✓</div><span>All 6 exam sectors</span></div>
+          <div class="pf yes"><div class="pf-check">✓</div><span>Weekly cash rewards (Top 3)</span></div>
+          <div class="pf yes"><div class="pf-check">✓</div><span>AI performance analysis + study plan</span></div>
+          <div class="pf yes"><div class="pf-check">✓</div><span>Unlimited AI doubt solving</span></div>
+          <div class="pf yes"><div class="pf-check">✓</div><span>Coin earning + streak freeze</span></div>
+        </div>
+        <a href="#" class="btn btn-primary pulse-glow" style="width:100%;justify-content:center">Upgrade to Pro →</a>
+      </div>
+      <div class="price-card">
+        <div class="price-name">Pro+</div>
+        <div class="price-amount" id="proplus-price"><sup>₹</sup>199 <span id="proplus-per">/ month</span></div>
+        <div class="price-desc">For serious aspirants who want maximum support.</div>
+        <div class="price-features">
+          <div class="pf yes"><div class="pf-check">✓</div><span>Everything in Pro</span></div>
+          <div class="pf yes"><div class="pf-check">✓</div><span>1:1 AI personalised study plan</span></div>
+          <div class="pf yes"><div class="pf-check">✓</div><span>Download test certificates</span></div>
+          <div class="pf yes"><div class="pf-check">✓</div><span>Priority support response</span></div>
+          <div class="pf yes"><div class="pf-check">✓</div><span>Early access to new features</span></div>
+        </div>
+        <a href="#" class="btn btn-ghost" style="width:100%;justify-content:center">Get Pro+ →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOUNDER -->
+<section class="founder reveal">
+  <div class="container">
+    <div class="text-center" style="margin-bottom:48px">
+      <div class="section-tag" style="color:rgba(255,107,0,.8)">👤 The Founder</div>
+      <h2 style="color:#fff;margin-bottom:0">The person <span style="color:var(--orange)">behind VidyaJaya</span></h2>
+    </div>
+    <div class="founder-card">
+      <div class="founder-top">
+        <div class="founder-ava">MD</div>
+        <div class="founder-info">
+          <div class="founder-name">Mallem Dheeraj Royal</div>
+          <div class="founder-role">Founder & CEO — VidyaJaya Technologies Pvt Ltd</div>
+          <div class="founder-loc">📍 Kadiri, Sri Sathya Sai District, Andhra Pradesh, India</div>
+        </div>
+      </div>
+      <blockquote class="founder-quote">"I built VidyaJaya because 2.5 crore students in India study every single day and not one platform was rewarding their consistency. They wake up at 5 AM, they read the newspaper, they practice mock tests — and at the end of the day they have nothing to show for it except hope. VidyaJaya changes that. Every test you take, every streak you maintain, every question you answer correctly — it counts. It rewards you. It brings you one step closer to the rank you deserve."</blockquote>
+      <div class="founder-contacts">
+        <div class="fc"><span class="fc-icon">📧</span><span class="fc-val">mallemdheerajroyal@gmail.com</span></div>
+        <div class="fc"><span class="fc-icon">📱</span><span class="fc-val">9059061099</span></div>
+        <div class="fc"><span class="fc-icon">📸</span><span class="fc-val">@mallemdheerajroyal</span></div>
+        <div class="fc"><span class="fc-icon">🌐</span><span class="fc-val">vidyajaya.in</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BAND -->
+<section class="cta-band">
+  <div class="container">
+    <h2 class="cta-title">Start your streak today 🔥</h2>
+    <p class="cta-sub">Join 2.5 lakh students who study smarter, rank higher, and earn real rewards. Free forever to start.</p>
+    <div class="cta-btns">
+      <a href="#" class="btn btn-white btn-lg">Start Free — No Card Needed →</a>
+      <a href="#" class="btn btn-lg" style="background:rgba(255,255,255,.15);color:#fff;border-color:rgba(255,255,255,.3)">▶ Watch Demo</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <div class="nav-logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M4 5l8 14L20 5"/></svg></div>
+          <span style="font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:900;color:#fff">Vidya<span style="color:var(--orange)">Jaya</span></span>
+        </div>
+        <p class="footer-desc">India's AI-powered daily mock test platform. UPSC · SSC · RRB · Banking · Reasoning · Aptitude. Build streaks, earn coins, win real rewards.</p>
+        <div class="footer-contact-mini">
+          📧 mallemdheerajroyal@gmail.com<br>
+          📱 9059061099<br>
+          📍 Kadiri, Andhra Pradesh
+        </div>
+      </div>
+      <div>
+        <div class="footer-col-title">Platform</div>
+        <a class="footer-link" href="#">Dashboard</a>
+        <a class="footer-link" href="#">Daily Tests</a>
+        <a class="footer-link" href="#">Leaderboard</a>
+        <a class="footer-link" href="#">AI Analysis</a>
+        <a class="footer-link" href="#">Pricing</a>
+      </div>
+      <div>
+        <div class="footer-col-title">Exams</div>
+        <a class="footer-link" href="#">UPSC Civil Services</a>
+        <a class="footer-link" href="#">SSC CGL / CHSL</a>
+        <a class="footer-link" href="#">RRB NTPC / Group D</a>
+        <a class="footer-link" href="#">Banking (IBPS/SBI)</a>
+        <a class="footer-link" href="#">Reasoning & Aptitude</a>
+      </div>
+      <div>
+        <div class="footer-col-title">Company</div>
+        <a class="footer-link" href="#">About Us</a>
+        <a class="footer-link" href="#">Contact</a>
+        <a class="footer-link" href="#">Privacy Policy</a>
+        <a class="footer-link" href="#">Terms of Use</a>
+        <a class="footer-link" href="#">Refund Policy</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div class="footer-copy">© 2026 VidyaJaya Technologies Pvt Ltd · All rights reserved · Built from Kadiri, Andhra Pradesh</div>
+      <div class="social-row">
+        <div class="social-btn" title="Instagram">📸</div>
+        <div class="social-btn" title="Telegram">✈️</div>
+        <div class="social-btn" title="YouTube">▶</div>
+        <div class="social-btn" title="LinkedIn">in</div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── NAVBAR SCROLL ──────────────────────────────────────────────────────
+window.addEventListener('scroll',()=>{
+  document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>50);
+});
+
+// ── THEME TOGGLE ──────────────────────────────────────────────────────
+const savedTheme=localStorage.getItem('vj-theme')||'light';
+document.documentElement.setAttribute('data-theme',savedTheme);
+updateThemeIcon();
+function toggleTheme(){
+  const cur=document.documentElement.getAttribute('data-theme');
+  const next=cur==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',next);
+  localStorage.setItem('vj-theme',next);
+  updateThemeIcon();
+}
+function updateThemeIcon(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.getElementById('theme-icon').innerHTML=isDark
+    ?'<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" stroke-linecap="round" stroke-linejoin="round"/>'
+    :'<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>';
+}
+
+// ── MOBILE MENU ───────────────────────────────────────────────────────
+function toggleMenu(){document.getElementById('mobile-menu').classList.toggle('open');}
+
+// ── SMOOTH SCROLL ─────────────────────────────────────────────────────
+function scrollTo2(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});}
+
+// ── ANNUAL TOGGLE ─────────────────────────────────────────────────────
+let isAnnual=false;
+function toggleAnnual(){
+  isAnnual=!isAnnual;
+  document.getElementById('annual-toggle').classList.toggle('on',isAnnual);
+  document.getElementById('lbl-monthly').classList.toggle('active',!isAnnual);
+  document.getElementById('lbl-annual').classList.toggle('active',isAnnual);
+  document.getElementById('save-badge').style.opacity=isAnnual?'1':'0';
+  document.getElementById('pro-price').innerHTML=isAnnual?'<sup>₹</sup>69 <span id="pro-per">/ month</span>':'<sup>₹</sup>99 <span id="pro-per">/ month</span>';
+  document.getElementById('proplus-price').innerHTML=isAnnual?'<sup>₹</sup>139 <span>/ month</span>':'<sup>₹</sup>199 <span>/ month</span>';
+}
+
+// ── SCROLL REVEAL ─────────────────────────────────────────────────────
+const revealObs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');revealObs.unobserve(e.target);}});
+},{threshold:.1,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>revealObs.observe(el));
+
+// ── TYPEWRITER HERO ───────────────────────────────────────────────────
+// Already handled by static text — add cursor blink to underline
+const lines=['Crack UPSC 2026','Score 99 in SSC CGL','Ace RRB NTPC','Beat 2.5L Students'];
+let li=0,ci=0,deleting=false;
+const underEl=document.querySelector('.hero-title .underline-orange');
+if(underEl){
+  underEl.textContent=lines[0];
+  function typeWriter(){
+    const full=lines[li];
+    if(!deleting){
+      underEl.textContent=full.slice(0,ci+1);
+      ci++;
+      if(ci===full.length){deleting=true;setTimeout(typeWriter,1600);return;}
+    } else {
+      underEl.textContent=full.slice(0,ci-1);
+      ci--;
+      if(ci===0){deleting=false;li=(li+1)%lines.length;setTimeout(typeWriter,400);return;}
+    }
+    setTimeout(typeWriter,deleting?42:72);
+  }
+  setTimeout(typeWriter,1200);
+}
+</script>
+</body>
+</html>
