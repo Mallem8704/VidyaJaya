@@ -33,8 +33,13 @@ export const useAuthStore = create(
       register: async (userData) => {
         set({ isloading: true, error: null });
         try {
-          await axios.post('/api/auth/register', userData);
-          set({ isloading: false });
+          const response = await axios.post('/api/auth/register', userData);
+          set({ 
+            user: response.data.user, 
+            token: response.data.token, 
+            isAuthenticated: true,
+            isloading: false 
+          });
         } catch (error) {
           set({ 
             error: error.response?.data?.message || 'Registration failed',

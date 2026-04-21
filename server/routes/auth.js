@@ -48,12 +48,20 @@ router.post('/register', async (req, res) => {
 
     await user.save();
     
-    // Send OTP via email (mocked in utils)
-    await sendEmailOTP(email, otp);
-
+    // Bypass OTP for soft login - auto authenticate them
     res.status(201).json({
-      message: 'User registered successfully. Please verify OTP.',
-      email: user.email
+      message: 'User registered successfully.',
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        examGoal: user.examGoal,
+        plan: user.plan,
+        avatar: user.avatar,
+        streak: user.streak,
+        coins: user.coins
+      },
+      token: generateToken(user._id)
     });
   } catch (error) {
     console.error('Registration Error:', error);
@@ -108,23 +116,6 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // --- HARDCODED DEMO LOGIN BYPASS ---
-    if (email === 'demo@vidyajaya.in' && password === 'Demo@123') {
-      return res.json({
-        user: {
-          _id: "demo_id_123",
-          name: "Rahul Demo",
-          email: "demo@vidyajaya.in",
-          examGoal: "UPSC",
-          plan: "pro",
-          streak: { current: 12, max: 47, freezesRemaining: 2 },
-          coins: 340,
-          globalRank: 342
-        },
-        token: generateToken("demo_id_123")
-      });
-    }
-    // -----------------------------------
 
     // Check for user email
     const user = await User.findOne({ email });

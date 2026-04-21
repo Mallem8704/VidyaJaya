@@ -65,8 +65,8 @@ const Auth = ({ type }) => {
         navigate('/dashboard');
       } else if (type === 'Signup') {
         await register(formData);
-        toast.success('Registration successful. Please verify OTP.');
-        navigate('/verify-otp', { state: { email: formData.email } });
+        toast.success('Registration successful. Welcome to VidyaJaya!');
+        navigate('/dashboard');
       } else if (type === 'Verify OTP') {
         const otpString = otp.join('');
         if (otpString.length !== 6) {
