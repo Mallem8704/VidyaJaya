@@ -26,20 +26,42 @@ const mockTests = [
 const Dashboard = () => {
   const { user, updateUser } = useAuthStore();
   const [isFreezing, setIsFreezing] = useState(false);
-  const [dashboard, setDashboard] = useState({
-    accuracy: 0,
-    testsTaken: 0,
-    streak: 0,
-    coins: user?.coins || 0,
-    rank: user?.globalRank || 0,
-    performance: "New"
-  });
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   React.useEffect(() => {
     axios.get('/api/dashboard')
-      .then(res => setDashboard(res.data))
-      .catch(err => console.error("Failed to load dashboard:", err));
+      .then(res => {
+         setDashboard(res.data);
+         setLoading(false);
+      })
+      .catch(err => {
+         console.error("Failed to load dashboard:", err);
+         setError(true);
+         setLoading(false);
+      });
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="w-12 h-12 border-4 border-primary border-t-white rounded-full animate-spin"></div>
+        <p className="text-secondary font-bold font-heading animate-pulse">Loading Your Insights...</p>
+      </div>
+    );
+  }
+
+  if (error || !dashboard) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 text-center">
+        <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-3xl">⚠️</div>
+        <h2 className="text-xl font-bold">Failed to load statistics</h2>
+        <p className="text-gray-400 max-w-sm">We couldn't connect to the analytics server. Please refresh or try again later.</p>
+        <button onClick={() => window.location.reload()} className="btn bg-primary text-white mt-4">Retry Connection</button>
+      </div>
+    );
+  }
 
   const streakAmount = dashboard.streak;
   const coinsAmount = dashboard.coins;
@@ -94,6 +116,9 @@ const Dashboard = () => {
                 </div>
                 <span className="text-xs font-semibold text-accent-gold">💰 {coinsAmount} coins</span>
               </div>
+              <p className="text-[10px] text-white opacity-40 mt-3 flex items-center gap-1">
+                <CalendarIcon size={10} /> Updated just now: {new Date(dashboard.lastUpdated).toLocaleTimeString()}
+              </p>
             </div>
           </div>
           
@@ -130,7 +155,7 @@ const Dashboard = () => {
               { label: 'Accuracy', value: `${dashboard.accuracy}%`, icon: Target, color: 'text-secondary', change: 'Computed from all tests' },
               { label: 'Tests Taken', value: dashboard.testsTaken, icon: CheckCircle, color: 'text-accent-green', change: 'Total submissions' },
               { label: 'Global Rank', value: `#${dashboard.rank}`, icon: Trophy, color: 'text-accent-gold', change: 'Live ranking' },
-              { label: 'Performance', value: dashboard.performance, icon: TrendingUp, color: 'text-accent-purple', change: 'Based on accuracy' },
+              { label: 'Performance', value: dashboard.performance, icon: TrendingUp, color: 'text-accent-purple', change: dashboard.improvementMessage },
             ].map((stat, i) => (
               <motion.div 
                 key={i}

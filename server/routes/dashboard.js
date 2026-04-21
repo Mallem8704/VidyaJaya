@@ -14,7 +14,11 @@ router.get('/', protect, async (req, res) => {
     }
 
     // Must read from User and Submission (Test results)
-    const submissions = await Submission.find({ userId }).sort({ submittedAt: -1 });
+    // Optimization: explicitly selecting only the fields we need to reduce memory footprint
+    const submissions = await Submission.find({ userId })
+      .select('correctCount wrongCount skippedCount submittedAt')
+      .sort({ submittedAt: -1 })
+      .lean();
 
     // 1. Total Tests
     const totalTests = submissions.length;
@@ -24,7 +28,7 @@ router.get('/', protect, async (req, res) => {
     const total = submissions.reduce((sum, sub) => sum + (sub.correctCount || 0) + (sub.wrongCount || 0) + (sub.skippedCount || 0), 0);
     const accuracy = total === 0 ? 0 : Math.round((correct / total) * 100);
 
-    // Update User's base accuracy to keep our rank computation honest across the board
+    // Update User's base accuracy to keep our rank computation honest and fast
     if (user.accuracy !== accuracy) {
        user.accuracy = accuracy;
        user.totalTests = totalTests;
@@ -34,29 +38,30 @@ router.get('/', protect, async (req, res) => {
     // 3. Coins
     const coins = user.coins || totalTests * 10;
 
-    // 4. Streak
+    // 4. Streak (Properly handling 'Yesterday' missing logic)
     const dates = [...new Set(submissions.map(sub => new Date(sub.submittedAt).toDateString()))];
     let streak = 0;
-    let current = new Date();
     
-    // Check if the user already did a test today; if not, we should also check if they did one yesterday to keep the streak alive.
-    // However, following the STRICT SPEC exactly:
+    // allow streak to start from today OR yesterday
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(today.getDate() - 1);
+    
     let checkDate = new Date();
+    if (!dates.includes(today.toDateString()) && dates.includes(yesterday.toDateString())) {
+        checkDate = yesterday;
+    }
+
     for (let d of dates) {
-      if (new Date(d).toDateString() === checkDate.toDateString()) {
+      const dString = new Date(d).toDateString();
+      if (dString === checkDate.toDateString()) {
         streak++;
         checkDate.setDate(checkDate.getDate() - 1);
+      } else if (new Date(d) > checkDate) {
+        // Skip ahead
+        continue;
       } else {
-        // If they haven't submitted TODAY, but they submitted YESTERDAY, the streak isn't visibly broken yet.
-        if (streak === 0 && checkDate.toDateString() === new Date().toDateString()) {
-             checkDate.setDate(checkDate.getDate() - 1);
-             if (new Date(d).toDateString() === checkDate.toDateString()) {
-                 streak++;
-                 checkDate.setDate(checkDate.getDate() - 1);
-                 continue;
-             }
-        }
-        break;
+        break; // streak broke
       }
     }
 
@@ -66,7 +71,32 @@ router.get('/', protect, async (req, res) => {
     });
     const rank = betterUsers + 1;
 
-    // 6. Performance Tag
+    // 6. Insight Metric: Weekly Progress
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    
+    const weeklySubmissions = submissions.filter(sub => new Date(sub.submittedAt) >= oneWeekAgo);
+    let improvementMessage = "Take more tests to see insights!";
+    
+    if (weeklySubmissions.length > 0) {
+       const weeklyC = weeklySubmissions.reduce((sum, sub) => sum + (sub.correctCount || 0), 0);
+       const weeklyT = weeklySubmissions.reduce((sum, sub) => sum + (sub.correctCount || 0) + (sub.wrongCount || 0) + (sub.skippedCount || 0), 0);
+       const weeklyAccuracy = weeklyT === 0 ? 0 : Math.round((weeklyC / weeklyT) * 100);
+       
+       const improvement = weeklyAccuracy - accuracy;
+       
+       if (totalTests === 0) {
+         improvementMessage = "Finish your first test!";
+       } else if (improvement > 0) {
+           improvementMessage = `🔥 You improved +${improvement}% recently`;
+       } else if (improvement < 0) {
+           improvementMessage = `Keep practicing to bounce back!`;
+       } else {
+           improvementMessage = `Consistent performance this week!`;
+       }
+    }
+
+    // 7. Performance Tag
     let performance = "Average";
     if (accuracy >= 80) performance = "Excellent";
     else if (accuracy >= 60) performance = "Good";
@@ -78,7 +108,9 @@ router.get('/', protect, async (req, res) => {
       streak,
       coins,
       rank,
-      performance
+      performance,
+      improvementMessage,
+      lastUpdated: new Date().toISOString()
     });
 
   } catch (err) {
