@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 const mockPerformanceData = [
   { date: '1 Apr', score: 65 },
@@ -25,10 +26,24 @@ const mockTests = [
 const Dashboard = () => {
   const { user, updateUser } = useAuthStore();
   const [isFreezing, setIsFreezing] = useState(false);
+  const [dashboard, setDashboard] = useState({
+    accuracy: 0,
+    testsTaken: 0,
+    streak: 0,
+    coins: user?.coins || 0,
+    rank: user?.globalRank || 0,
+    performance: "New"
+  });
 
-  const streakAmount = user?.streak?.current || 12; // fallback for design demo
-  const coinsAmount = user?.coins || 340;
-  const rankAmount = user?.globalRank || 342;
+  React.useEffect(() => {
+    axios.get('/api/dashboard')
+      .then(res => setDashboard(res.data))
+      .catch(err => console.error("Failed to load dashboard:", err));
+  }, []);
+
+  const streakAmount = dashboard.streak;
+  const coinsAmount = dashboard.coins;
+  const rankAmount = dashboard.rank;
   const freezeCount = user?.streak?.freezesRemaining || 0;
 
   const handleFreeze = () => {
@@ -112,10 +127,10 @@ const Dashboard = () => {
           {/* Performance Summary Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Accuracy', value: '87%', icon: Target, color: 'text-secondary', change: '+3% this week' },
-              { label: 'Tests Taken', value: '48', icon: CheckCircle, color: 'text-accent-green', change: '5 this week' },
-              { label: 'Global Rank', value: `#${rankAmount}`, icon: Trophy, color: 'text-accent-gold', change: 'Top 5%' },
-              { label: 'Performance', value: 'Excellent', icon: TrendingUp, color: 'text-accent-purple', change: 'Rising' },
+              { label: 'Accuracy', value: `${dashboard.accuracy}%`, icon: Target, color: 'text-secondary', change: 'Computed from all tests' },
+              { label: 'Tests Taken', value: dashboard.testsTaken, icon: CheckCircle, color: 'text-accent-green', change: 'Total submissions' },
+              { label: 'Global Rank', value: `#${dashboard.rank}`, icon: Trophy, color: 'text-accent-gold', change: 'Live ranking' },
+              { label: 'Performance', value: dashboard.performance, icon: TrendingUp, color: 'text-accent-purple', change: 'Based on accuracy' },
             ].map((stat, i) => (
               <motion.div 
                 key={i}

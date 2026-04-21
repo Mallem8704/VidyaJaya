@@ -39,6 +39,7 @@ const leaderboardRoutes = require('./routes/leaderboard');
 const doubtRoutes = require('./routes/doubts');
 const rewardRoutes = require('./routes/rewards');
 const streakRoutes = require('./routes/streak');
+const dashboardRoutes = require('./routes/dashboard');
 
 // Import Cron Jobs
 const startStreakResetJob = require('./jobs/streakReset');
@@ -59,6 +60,7 @@ app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/doubts', doubtRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/streak', streakRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Placeholder routes
 app.get('/health', (req, res) => {
