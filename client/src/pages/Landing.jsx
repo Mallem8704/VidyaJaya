@@ -1,297 +1,584 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, Award, Trophy, Users, FileText, CheckCircle, Play, Star } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAppStore } from '../store/appStore';
+import './Landing.css';
 
-// Custom Hook for Scroll
-const useScrollPosition = () => {
-  const [scrollPosition, setScrollPosition] = useState(0);
+export default function Landing() {
+  const navigate = useNavigate();
+  const { theme, toggleTheme } = useAppStore();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAnnual, setIsAnnual] = useState(false);
+  const [openFaq, setOpenFaq] = useState(null);
+  const [typeWriterText, setTypeWriterText] = useState('Crack UPSC 2026');
+
+  // Scroll Listener hook
   useEffect(() => {
-    const updatePosition = () => setScrollPosition(window.pageYOffset);
-    window.addEventListener('scroll', updatePosition);
-    return () => window.removeEventListener('scroll', updatePosition);
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-  return scrollPosition;
-};
 
-// Typewriter Component
-const TypewriterText = () => {
-  const words = ["Crack UPSC 2026", "Score 99 in SSC CGL", "Ace RRB NTPC", "Beat 2.5 Lakh Students"];
-  const [index, setIndex] = useState(0);
-  const [subIndex, setSubIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-
+  // Intersection Observer hook
   useEffect(() => {
-    if (subIndex === words[index].length + 1 && !isDeleting) {
-      setTimeout(() => setIsDeleting(true), 1500);
-      return;
-    }
-    if (subIndex === 0 && isDeleting) {
-      setIsDeleting(false);
-      setIndex((prev) => (prev + 1) % words.length);
-      return;
-    }
-    const timeout = setTimeout(() => {
-      setSubIndex((prev) => prev + (isDeleting ? -1 : 1));
-    }, Math.max(isDeleting ? 50 : 100, parseInt(Math.random() * 150)));
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          revealObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+    return () => revealObs.disconnect();
+  }, []);
 
-    return () => clearTimeout(timeout);
-  }, [subIndex, index, isDeleting, words]);
-
-  return (
-    <span className="text-2xl md:text-3xl font-medium text-[var(--text-secondary)] mt-4 block h-10">
-      {words[index].substring(0, subIndex)}
-      <span className="animate-pulse border-r-2 border-[var(--text-secondary)] ml-1"></span>
-    </span>
-  );
-};
-
-// Counter Component
-const AnimatedCounter = ({ end, duration = 2000, prefix = "", suffix = "" }) => {
-  const [count, setCount] = useState(0);
-
+  // Typewriter hook
   useEffect(() => {
-    let startTimestamp = null;
-    const step = (timestamp) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      setCount(Math.floor(progress * end));
-      if (progress < 1) window.requestAnimationFrame(step);
+    const lines = ['Crack UPSC 2026', 'Score 99 in SSC CGL', 'Ace RRB NTPC', 'Beat 2.5L Students'];
+    let li = 0;
+    let ci = 0;
+    let deleting = false;
+    let timeout;
+    
+    const typeWriter = () => {
+      const full = lines[li];
+      if (!deleting) {
+        setTypeWriterText(full.slice(0, ci + 1));
+        ci++;
+        if (ci === full.length) {
+          deleting = true;
+          timeout = setTimeout(typeWriter, 1600);
+          return;
+        }
+      } else {
+        setTypeWriterText(full.slice(0, ci - 1));
+        ci--;
+        if (ci === 0) {
+          deleting = false;
+          li = (li + 1) % lines.length;
+          timeout = setTimeout(typeWriter, 400);
+          return;
+        }
+      }
+      timeout = setTimeout(typeWriter, deleting ? 42 : 72);
     };
-    window.requestAnimationFrame(step);
-  }, [end, duration]);
+    timeout = setTimeout(typeWriter, 1200);
+    return () => clearTimeout(timeout);
+  }, []);
 
-  // Format with commas if over 1000
-  const formattedCount = count > 999 ? count.toLocaleString('en-IN') : count;
-  return <span className="font-heading font-black text-3xl">{prefix}{formattedCount}{suffix}</span>;
-};
+  const scrollToSection = (id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setIsMobileMenuOpen(false);
+  };
 
-const Landing = () => {
-  const scrollPos = useScrollPosition();
-  const isScrolled = scrollPos > 50;
+  const handleCtaClick = () => {
+    navigate('/signup');
+  };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-[#F8FAFF]">
-      
-      {/* Background Decorators */}
-      <div 
-        className="absolute inset-0 pointer-events-none z-0"
-        style={{
-          backgroundImage: 'radial-gradient(circle, #0A2540 1px, transparent 1px)',
-          backgroundSize: '32px 32px',
-          opacity: 0.06
-        }}
-      ></div>
-      <div className="absolute -top-40 -right-20 w-[400px] h-[400px] rounded-full bg-[rgba(255,107,0,0.08)] blur-3xl pointer-events-none z-0"></div>
-      <div className="absolute -bottom-20 -left-20 w-[350px] h-[350px] rounded-full bg-[rgba(10,37,64,0.06)] blur-3xl pointer-events-none z-0"></div>
+    <div className="landing-page">
+      {/* TICKER */}
+      <div className="ticker">
+        <div className="ticker-inner">
+          <span className="ticker-item">🔥 <span>Priya from Delhi</span> scored 94% in UPSC Mock #47</span>
+          <span className="ticker-item">🏆 <span>Rahul from Mumbai</span> unlocked Gold Badge — 30 day streak!</span>
+          <span className="ticker-item">💰 <span>SSC student</span> earned ₹500 in weekly reward pool</span>
+          <span className="ticker-item">🚀 <span>12,483 students</span> active on VidyaJaya right now</span>
+          <span className="ticker-item">⭐ <span>Sneha from Hyderabad</span> cleared SBI PO with 99 marks</span>
+          <span className="ticker-item">🎯 <span>VidyaJaya AI</span> generated 180 fresh questions today</span>
+          <span className="ticker-item">🔥 <span>Priya from Delhi</span> scored 94% in UPSC Mock #47</span>
+          <span className="ticker-item">🏆 <span>Rahul from Mumbai</span> unlocked Gold Badge — 30 day streak!</span>
+          <span className="ticker-item">💰 <span>SSC student</span> earned ₹500 in weekly reward pool</span>
+          <span className="ticker-item">🚀 <span>12,483 students</span> active on VidyaJaya right now</span>
+          <span className="ticker-item">⭐ <span>Sneha from Hyderabad</span> cleared SBI PO with 99 marks</span>
+          <span className="ticker-item">🎯 <span>VidyaJaya AI</span> generated 180 fresh questions today</span>
+        </div>
+      </div>
 
-      {/* Navbar */}
-      <nav className={`fixed w-full top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-white/85 backdrop-blur-md border-b border-gray-200 shadow-sm py-4' : 'bg-transparent py-6'}`}>
-        <div className="container mx-auto px-6 lg:px-12 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-secondary rounded-lg flex items-center justify-center font-bold text-white text-2xl shadow-lg">V</div>
-            <span className="font-heading font-black text-2xl text-primary tracking-tight">VidyaJaya</span>
-            <span className="ml-2 hidden md:flex items-center gap-1 text-[10px] font-bold bg-[#FFF4ED] text-orange-700 px-2 py-1 rounded-full border border-orange-200">
-              <Star size={10} className="fill-orange-500 text-orange-500" /> #1 UPSC Platform
-            </span>
+      {/* NAVBAR */}
+      <nav className={`navbar ${isScrolled ? 'scrolled' : ''}`} id="navbar">
+        <div className="nav-inner">
+          <div className="nav-logo">
+            <div className="nav-logo-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><path d="M4 5l8 14L20 5"/></svg>
+            </div>
+            <span className="nav-brand">Vidya<span>Jaya</span></span>
           </div>
-          <div className="flex items-center gap-6">
-            <Link to="/login" className="font-bold text-primary hover:underline underline-offset-4 decoration-2 transition-all">Log in</Link>
-            <Link to="/signup" className="bg-secondary text-white font-bold px-5 py-2.5 rounded-lg hover:scale-105 hover:bg-[#E56000] transition-transform shadow-md">Get Started</Link>
+          <div className="nav-links">
+            <button className="nav-link" onClick={() => scrollToSection('features')}>Features</button>
+            <button className="nav-link" onClick={() => scrollToSection('how')}>How It Works</button>
+            <button className="nav-link" onClick={() => scrollToSection('pricing')}>Pricing</button>
+            <button className="nav-link" onClick={() => scrollToSection('leaderboard-section')}>Leaderboard</button>
           </div>
+          <div className="nav-right">
+            <button className="theme-btn" onClick={toggleTheme} title="Toggle dark mode" aria-label="Toggle dark mode">
+              {theme === 'dark' ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                </svg>
+              )}
+            </button>
+            <Link to="/login" className="btn btn-ghost btn-sm">Log In</Link>
+            <button onClick={handleCtaClick} className="btn btn-primary btn-sm pulse-glow">Get Early Access</button>
+          </div>
+          <button className="hamburger" onClick={() => setIsMobileMenuOpen(true)} aria-label="Open menu">
+            <span /><span /><span />
+          </button>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <main className="container mx-auto px-6 lg:px-12 pt-36 md:pt-44 pb-20 relative z-10 flex flex-col md:flex-row items-center">
-        
-        {/* Left Side Content */}
-        <div className="w-full md:w-[55%] flex flex-col justify-center text-center md:text-left">
-          
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0, duration: 0.7 }}>
-            <h1 className="text-[48px] md:text-[72px] font-heading font-black text-primary leading-[1.1] mb-2 tracking-tight">
-              Study Smarter.
-            </h1>
-            <h1 className="text-[48px] md:text-[72px] font-heading font-black leading-[1.1] mb-4 tracking-tight">
-              <span className="relative inline-block text-primary">
-                Rank Higher.
-                <svg className="absolute w-full h-[18px] md:h-[24px] -bottom-2 md:-bottom-4 left-0 text-secondary opacity-90" viewBox="0 0 300 24" preserveAspectRatio="none">
-                  <path d="M2.083 18.062c35.636-6.142 121.2-13.414 294.61-4.733-52.023-4.5-121.841-8.598-175.76-8.243-74.966.494-118.826 3.16-120.932 3.32-7.585.578 37.892.42 66.868.42" fill="none" stroke="currentColor" strokeWidth="6" strokeLinecap="round"></path>
-                </svg>
-              </span>
-            </h1>
-            <TypewriterText />
-          </motion.div>
+      {/* MOBILE MENU */}
+      <div className={`mobile-menu ${isMobileMenuOpen ? 'open' : ''}`}>
+        <button style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', fontSize: '28px', cursor: 'pointer', color: 'var(--text)' }} onClick={() => setIsMobileMenuOpen(false)}>✕</button>
+        <button className="mobile-link" onClick={() => scrollToSection('features')}>Features</button>
+        <button className="mobile-link" onClick={() => scrollToSection('how')}>How It Works</button>
+        <button className="mobile-link" onClick={() => scrollToSection('pricing')}>Pricing</button>
+        <button className="mobile-link" onClick={() => scrollToSection('leaderboard-section')}>Leaderboard</button>
+        <button onClick={() => { setIsMobileMenuOpen(false); handleCtaClick(); }} className="btn btn-primary btn-lg" style={{ marginTop: '16px', justifyContent: 'center' }}>🔥 Start for Free</button>
+      </div>
 
-          {/* Subtext Pill Badges */}
-          <motion.div 
-            initial="hidden" animate="visible"
-            variants={{ visible: { transition: { staggerChildren: 0.1, delayChildren: 0.6 } } }}
-            className="flex flex-wrap justify-center md:justify-start gap-3 mt-10 mb-12"
-          >
-            {[
-              { icon: <Flame size={16} className="text-secondary"/>, text: "Daily AI Mock Tests" },
-              { icon: <Award size={16} className="text-secondary"/>, text: "Earn Real Rewards" },
-              { icon: <Trophy size={16} className="text-secondary"/>, text: "Live Leaderboard" }
-            ].map((pill, i) => (
-              <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }} key={i} className="flex items-center gap-2 bg-[#FFF4ED] text-primary font-bold text-sm px-4 py-2 rounded-full border border-orange-100">
-                {pill.icon} {pill.text}
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* CTA Buttons */}
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.8 }} className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4 mb-6">
-            <Link to="/signup" className="w-full sm:w-auto bg-[#FF6B00] text-white font-bold text-[18px] px-[36px] py-[18px] rounded-[14px] shadow-[0_0_0_rgba(255,107,0,0)] animate-[pulse-glow_2s_infinite] flex items-center justify-center gap-2 group transition-all hover:bg-[#E56000]">
-              Start for Free — No Card Needed
-              <span className="group-hover:translate-x-1 transition-transform">→</span>
-            </Link>
-            
-            <button className="w-full sm:w-auto group border-2 border-primary text-primary hover:bg-primary hover:text-white font-bold text-[16px] px-[24px] py-[16px] rounded-[14px] flex items-center justify-center gap-2 transition-colors">
-              <Play size={18} className="fill-[transparent] group-hover:fill-white text-primary group-hover:text-white transition-colors" /> Watch How It Works
-            </button>
-          </motion.div>
-          
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }} className="text-sm text-gray-500 font-medium text-center md:text-left flex items-center justify-center md:justify-start gap-1">
-             <span className="text-yellow-400">⭐⭐⭐⭐⭐</span> Trusted by 2.5L+ students across India — Join Free Today
-          </motion.p>
-          
-          {/* Trust Bar Custom CSS */}
-          <style>{`
-            @keyframes pulse-glow {
-              0% { box-shadow: 0 0 0 0 rgba(255,107,0, 0.4); }
-              70% { box-shadow: 0 0 0 15px rgba(255,107,0, 0); }
-              100% { box-shadow: 0 0 0 0 rgba(255,107,0, 0); }
-            }
-            .floating-card { animation: float-card 3s infinite ease-in-out; }
-            @keyframes float-card {
-              0%, 100% { transform: translateY(0); }
-              50% { transform: translateY(-12px); }
-            }
-          `}</style>
-          
-          {/* Trust Bar Counters */}
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="mt-16 pt-8 border-t border-gray-200">
-            <div className="grid grid-cols-2 md:flex items-center gap-y-6 md:gap-y-0 justify-between">
-              
-              <div className="flex flex-col">
-                <AnimatedCounter end={250000} suffix="+" />
-                <span className="text-gray-500 text-sm font-medium uppercase tracking-wider flex items-center gap-1 mt-1"><Users size={14}/> Students</span>
-              </div>
-              <div className="hidden md:block w-px h-12 bg-gray-200"></div>
-              
-              <div className="flex flex-col">
-                <AnimatedCounter end={50000} suffix="+" />
-                <span className="text-gray-500 text-sm font-medium uppercase tracking-wider flex items-center gap-1 mt-1"><FileText size={14}/> Tests Daily</span>
-              </div>
-              <div className="hidden md:block w-px h-12 bg-gray-200"></div>
-              
-              <div className="flex flex-col">
-                <AnimatedCounter end={94} suffix="%" />
-                <span className="text-gray-500 text-sm font-medium uppercase tracking-wider flex items-center gap-1 mt-1"><CheckCircle size={14}/> Success Rate</span>
-              </div>
-              <div className="hidden md:block w-px h-12 bg-gray-200"></div>
-              
-              <div className="flex flex-col">
-                <span className="font-heading font-black text-3xl">₹0</span>
-                <span className="text-gray-500 text-sm font-medium uppercase tracking-wider flex items-center gap-1 mt-1">To Start</span>
-              </div>
-
+      {/* HERO */}
+      <section className="hero">
+        <div className="hero-bg">
+          <div className="hero-grid-bg"></div>
+          <div className="hero-orb hero-orb-1"></div>
+          <div className="hero-orb hero-orb-2"></div>
+        </div>
+        <div className="hero-content">
+          <div className="hero-left">
+            <div className="hero-badge-row">
+              <div className="hero-badge">⭐ India's #1 AI Exam Platform</div>
+              <div className="hero-badge">🚀 Free to Start</div>
             </div>
-          </motion.div>
-
-        </div>
-
-        {/* Right Side Responsive Mockup */}
-        <div className="hidden md:block w-[45%] relative pl-12">
-           <motion.div 
-             initial={{ x: 60, opacity: 0 }} 
-             animate={{ x: 0, opacity: 1 }} 
-             transition={{ delay: 0.5, type: 'spring', stiffness: 50 }}
-             className="relative z-10 floating-card"
-           >
-             
-             {/* Center Shadow Glow */}
-             <div className="absolute inset-0 bg-blue-400 blur-[80px] opacity-10 rounded-full scale-150 -z-10"></div>
-             
-             {/* Main Dashboard Card */}
-             <div className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(10,37,64,0.08)] border border-gray-100 p-8 transform -rotate-[3deg] hover:rotate-0 transition-transform duration-500 w-full relative">
-                
-                {/* Header */}
-                <div className="flex justify-between items-center mb-8 border-b border-gray-100 pb-4">
-                   <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 text-primary font-bold flex items-center justify-center border-2 border-white shadow">R</div>
-                      <div>
-                         <h4 className="font-bold text-gray-800 text-lg leading-none">Welcome back, Rahul <span className="text-xl">👋</span></h4>
-                         <span className="text-xs text-gray-400">Target: UPSC Civil Services</span>
-                      </div>
-                   </div>
-                   <div className="bg-[#FFF4ED] border border-orange-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm">
-                      <Flame size={14} className="text-secondary fill-secondary" />
-                      <span className="text-orange-700 font-bold text-sm">12 Day Streak!</span>
-                   </div>
+            <h1 className="hero-title">
+              Study Smarter.<br />
+              <span className="underline-orange">{typeWriterText}</span><br />
+              <span className="accent">Earn Rewards.</span>
+            </h1>
+            <p className="hero-sub">India's most intelligent exam preparation platform. AI-powered daily tests, real-time leaderboard, and a streak system that rewards your consistency.</p>
+            <div className="hero-pills">
+              <div className="hero-pill"><div className="dot" style={{ background: '#FF6B00' }}></div>Daily AI Mock Tests</div>
+              <div className="hero-pill"><div className="dot" style={{ background: '#FFD700' }}></div>Earn Real Rewards</div>
+              <div className="hero-pill"><div className="dot" style={{ background: '#00C853' }}></div>Live Leaderboard</div>
+            </div>
+            <div className="hero-ctas">
+              <button onClick={handleCtaClick} className="btn btn-primary btn-lg pulse-glow">🔥 Start Free — No Card</button>
+              <button className="btn btn-ghost btn-lg" onClick={() => scrollToSection('how')}>▶ How It Works</button>
+            </div>
+            <div className="hero-trust">
+              <span className="stars">★★★★★</span>
+              <span>Trusted by 2.5L+ students across India</span>
+            </div>
+            <div className="hero-stats">
+              <div><div className="hero-stat-n">2.5L+</div><div className="hero-stat-l">STUDENTS</div></div>
+              <div><div className="hero-stat-n">50K+</div><div className="hero-stat-l">DAILY TESTS</div></div>
+              <div><div className="hero-stat-n">94%</div><div className="hero-stat-l">SUCCESS RATE</div></div>
+              <div><div className="hero-stat-n">₹0</div><div className="hero-stat-l">TO START</div></div>
+            </div>
+          </div>
+          <div className="hero-right mockup-wrap">
+            <div className="float-badge float-badge-1">
+              <div className="fb-icon" style={{ background: 'rgba(255,215,0,.15)' }}>💰</div>
+              <div><div className="fb-title">+25 Coins Earned!</div><div className="fb-sub">Just now</div></div>
+            </div>
+            <div className="float-badge float-badge-2">
+              <div className="fb-icon" style={{ background: 'rgba(0,200,83,.15)' }}>🏆</div>
+              <div><div className="fb-title">New Badge Unlocked!</div><div className="fb-sub">Week Warrior</div></div>
+            </div>
+            <div className="mockup-card">
+              <div className="mockup-header">
+                <div className="mockup-greeting">Good morning 👋</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div className="mockup-name">Dheeraj Royal</div>
+                  <div style={{ background: 'rgba(255,107,0,.2)', border: '1px solid rgba(255,107,0,.3)', borderRadius: '20px', padding: '4px 10px', fontSize: '12px', fontWeight: 700, color: '#ff9350' }}>💰 340</div>
                 </div>
-
-                {/* Body Metrics */}
-                <div className="space-y-6">
-                   <div>
-                     <div className="flex justify-between items-end mb-2">
-                        <span className="font-bold text-gray-700 text-sm">Today's Score: General Studies</span>
-                        <span className="font-heading font-black text-2xl text-secondary">87%</span>
-                     </div>
-                     <div className="w-full bg-gray-100 rounded-full h-3">
-                        <motion.div initial={{ width: 0 }} animate={{ width: '87%' }} transition={{ delay: 1, duration: 1.5 }} className="bg-gradient-to-r from-orange-400 to-secondary h-3 rounded-full shadow-[0_0_10px_rgba(255,107,0,0.4)]"></motion.div>
-                     </div>
-                   </div>
-
-                   <div className="bg-[#F8FAFF] p-4 rounded-xl border border-gray-100">
-                      <div className="flex justify-between items-center mb-3">
-                         <span className="font-bold text-gray-800 flex items-center gap-1.5"><Trophy size={16} className="text-yellow-500"/> Global Rank</span>
-                         <span className="font-heading font-bold text-primary">#342 of 45,230</span>
-                      </div>
-                      
-                      <div className="space-y-2 mt-4 text-sm">
-                         <div className="flex justify-between items-center p-2 rounded hover:bg-white transition-colors">
-                            <span className="font-bold text-gray-500">1. Kiran R.</span>
-                            <span className="font-bold">2450</span>
-                         </div>
-                         <div className="flex justify-between items-center p-2 bg-white rounded shadow-sm border border-gray-100 border-l-2 border-l-secondary">
-                            <span className="font-bold text-primary">342. Rahul (You)</span>
-                            <span className="font-bold text-secondary">1920</span>
-                         </div>
-                         <div className="flex justify-between items-center p-2 rounded hover:bg-white transition-colors">
-                            <span className="font-bold text-gray-500">343. Sneha P.</span>
-                            <span className="font-bold">1910</span>
-                         </div>
-                      </div>
-                   </div>
+                <div className="mockup-streak">
+                  <div>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,.7)', letterSpacing: '1px', marginBottom: '2px' }}>STREAK</div>
+                    <div className="streak-txt">🔥 12 Day Streak!</div>
+                  </div>
+                  <div className="streak-fire">🔥</div>
                 </div>
-             </div>
-
-             {/* Floating Badge 1 (Coins) */}
-             <motion.div 
-               initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 1.2, type: 'spring' }}
-               className="absolute -right-6 top-12 bg-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 border border-gray-100 z-20 pointer-events-none"
-             >
-                <div className="bg-yellow-100 p-2 rounded-full"><Award size={16} className="text-yellow-600"/></div>
-                <span className="font-bold text-sm whitespace-nowrap">💰 +25 Coins Earned!</span>
-             </motion.div>
-
-             {/* Floating Badge 2 (Badge) */}
-             <motion.div 
-               initial={{ x: -30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 1.5, type: 'spring' }}
-               className="absolute -left-12 -bottom-6 bg-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2 border border-gray-100 z-20 pointer-events-none"
-             >
-                <div className="bg-green-100 p-2 rounded-full"><CheckCircle size={16} className="text-green-600"/></div>
-                <span className="font-bold text-sm whitespace-nowrap">🏆 New Badge Unlocked!</span>
-             </motion.div>
-
-           </motion.div>
+              </div>
+              <div className="mockup-body">
+                <div className="mockup-test-card">
+                  <div className="mct-label">TODAY'S CHALLENGE</div>
+                  <div className="mct-title">UPSC Daily Mock Test</div>
+                  <button className="mct-btn">▶ Start — 30 Qs</button>
+                </div>
+                <div className="mockup-stats">
+                  <div className="ms"><div className="ms-n" style={{ color: '#3B82F6' }}>87%</div><div className="ms-l">Accuracy</div></div>
+                  <div className="ms"><div className="ms-n" style={{ color: '#00C853' }}>48</div><div className="ms-l">Tests</div></div>
+                  <div className="ms"><div className="ms-n" style={{ color: '#FF6B00' }}>#3</div><div className="ms-l">Rank</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </main>
+      </section>
+
+      {/* FEATURES */}
+      <section className="features" id="features">
+        <div className="container text-center">
+          <div className="section-tag reveal">✦ Platform Features</div>
+          <h2 className="section-title reveal reveal-delay-1">Everything you need to<br /><span style={{ color: 'var(--orange)' }}>crack your exam</span></h2>
+          <p className="section-sub reveal reveal-delay-2">Built for UPSC, SSC, RRB, Banking, Reasoning and Aptitude. The only platform that rewards you for studying daily.</p>
+          <div className="features-grid" style={{ marginTop: '56px' }}>
+            <div className="card feat-card feat-card-1 reveal">
+              <div className="feat-icon" style={{ background: 'rgba(255,107,0,.12)' }}>🤖</div>
+              <div className="feat-title">AI Daily Questions</div>
+              <div className="feat-desc">GPT-4o generates 180 fresh questions every midnight across 6 exam categories. Never the same question twice. Always current, always challenging.</div>
+            </div>
+            <div className="card feat-card feat-card-2 reveal reveal-delay-1">
+              <div className="feat-icon" style={{ background: 'rgba(0,200,83,.12)' }}>🔥</div>
+              <div className="feat-title">Daily Streak System</div>
+              <div className="feat-desc">Build a daily habit and get rewarded for it. Miss one day and your streak resets. Milestones at 7, 30, 100 and 365 days unlock badges and real rewards.</div>
+            </div>
+            <div className="card feat-card feat-card-3 reveal reveal-delay-2">
+              <div className="feat-icon" style={{ background: 'rgba(124,58,237,.12)' }}>🏆</div>
+              <div className="feat-title">Live Leaderboard</div>
+              <div className="feat-desc">Compete with 2.5L+ students across India in real-time. Top 3 win real cash every Sunday. Your rank updates live without a page refresh.</div>
+            </div>
+            <div className="card feat-card feat-card-4 reveal">
+              <div className="feat-icon" style={{ background: 'rgba(14,165,233,.12)' }}>📊</div>
+              <div className="feat-title">AI Performance Analysis</div>
+              <div className="feat-desc">After every test, GPT-4o analyses your weak areas and gives a personalised 7-day study plan. No generic advice — specific chapters, specific books.</div>
+            </div>
+            <div className="card feat-card feat-card-5 reveal reveal-delay-1">
+              <div className="feat-icon" style={{ background: 'rgba(245,158,11,.12)' }}>❓</div>
+              <div className="feat-title">AI Doubt Solver</div>
+              <div className="feat-desc">Upload any question as image or text. Get a step-by-step explanation within seconds. Available 24/7. No waiting for a teacher to respond.</div>
+            </div>
+            <div className="card feat-card feat-card-6 reveal reveal-delay-2">
+              <div className="feat-icon" style={{ background: 'rgba(239,68,68,.12)' }}>💰</div>
+              <div className="feat-title">Coin Rewards System</div>
+              <div className="feat-desc">Earn coins for every test, every streak milestone, every referral. Redeem coins for streak freezes, premium access, or weekly cash payouts.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="how" id="how">
+        <div className="container text-center">
+          <div className="section-tag reveal">⚡ Simple Process</div>
+          <h2 className="section-title reveal reveal-delay-1">Three steps to <span style={{ color: 'var(--orange)' }}>transform your prep</span></h2>
+          <p className="section-sub reveal reveal-delay-2">No complicated setup. No credit card. Start your first test in under 2 minutes.</p>
+          <div className="steps-row">
+            <div className="step reveal">
+              <div className="step-num" style={{ background: '#FF6B00', boxShadow: '0 8px 24px rgba(255,107,0,.4)' }}>01</div>
+              <h3 className="step-title">Create Free Account</h3>
+              <p className="step-desc">Sign up with email in 30 seconds. Pick your exam goal — UPSC, SSC, RRB, Banking, Reasoning or Aptitude. No credit card needed ever.</p>
+            </div>
+            <div className="step reveal reveal-delay-2">
+              <div className="step-num" style={{ background: '#00C853', boxShadow: '0 8px 24px rgba(0,200,83,.4)' }}>02</div>
+              <h3 className="step-title">Take Daily AI Tests</h3>
+              <p className="step-desc">Every day at 9 AM, fresh AI-generated questions are waiting for you. Complete the test, see your rank, get instant AI feedback on your weak areas.</p>
+            </div>
+            <div className="step reveal reveal-delay-4">
+              <div className="step-num" style={{ background: '#7C3AED', boxShadow: '0 8px 24px rgba(124,58,237,.4)' }}>03</div>
+              <h3 className="step-title">Build Streak and Earn</h3>
+              <p className="step-desc">Come back tomorrow. Build your streak. Climb the leaderboard. Top 3 weekly performers win real cash every Sunday. Your consistency is finally being rewarded.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* STATS */}
+      <section className="stats-section reveal">
+        <div className="container">
+          <div className="stats-grid">
+            <div className="stat-item"><div className="stat-num count-up">2.5L+</div><div className="stat-lbl">Students Registered</div></div>
+            <div className="stat-item"><div className="stat-num count-up">5L+</div><div className="stat-lbl">Tests Completed</div></div>
+            <div className="stat-item"><div className="stat-num">94%</div><div className="stat-lbl">Report Improved Scores</div></div>
+            <div className="stat-item"><div className="stat-num">150+</div><div className="stat-lbl">Test Categories</div></div>
+          </div>
+        </div>
+      </section>
+
+      {/* LEADERBOARD */}
+      <section className="leaderboard-section" id="leaderboard-section">
+        <div className="container text-center">
+          <div className="section-tag reveal">🏆 Live Rankings</div>
+          <h2 className="section-title reveal reveal-delay-1">This Week's <span style={{ color: 'var(--orange)' }}>Champions</span></h2>
+          <p className="section-sub reveal reveal-delay-2">Top 3 win ₹500, ₹250 and ₹100 every Sunday midnight. Your rank updates in real-time.</p>
+          <div className="lb-card reveal">
+            <div className="lb-head">
+              <div className="lb-head-title">🏆 Weekly Leaderboard</div>
+              <div className="badge badge-green" style={{ fontSize: '11px' }}>● Live</div>
+            </div>
+            <div className="lb-row">
+              <div className="lb-medal">🥇</div>
+              <div className="lb-ava" style={{ background: 'linear-gradient(135deg, #FF6B00, #FF3D00)' }}>RK</div>
+              <div><div className="lb-name">Rahul Kumar</div><div className="lb-exam">UPSC · 🔥 28 streak</div></div>
+              <div><div className="lb-pts">2,840</div><div className="lb-streak">+₹500 this Sunday</div></div>
+            </div>
+            <div className="lb-row">
+              <div className="lb-medal">🥈</div>
+              <div className="lb-ava" style={{ background: 'linear-gradient(135deg, #3B82F6, #7C3AED)' }}>PS</div>
+              <div><div className="lb-name">Priya Sharma</div><div className="lb-exam">SSC · 🔥 21 streak</div></div>
+              <div><div className="lb-pts">2,680</div><div className="lb-streak">+₹250 this Sunday</div></div>
+            </div>
+            <div className="lb-row">
+              <div className="lb-medal">🥉</div>
+              <div className="lb-ava" style={{ background: 'linear-gradient(135deg, #00C853, #0891B2)' }}>SM</div>
+              <div><div className="lb-name">Sneha Misra</div><div className="lb-exam">Banking · 🔥 19 streak</div></div>
+              <div><div className="lb-pts">2,540</div><div className="lb-streak">+₹100 this Sunday</div></div>
+            </div>
+            <div className="lb-row you">
+              <div className="lb-medal" style={{ fontSize: '14px', fontWeight: 700, color: 'var(--orange)' }}>#342</div>
+              <div className="lb-ava" style={{ background: 'var(--orange)' }}>DR</div>
+              <div><div className="lb-name" style={{ color: 'var(--orange)' }}>You — Dheeraj Royal</div><div className="lb-exam">UPSC · 🔥 12 streak</div></div>
+              <div><div className="lb-pts" style={{ color: '#fff' }}>1,940</div><div className="lb-streak">45 pts to reach #341</div></div>
+            </div>
+            <div style={{ padding: '16px 24px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,.06)' }}>
+              <button onClick={handleCtaClick} className="btn btn-primary btn-sm">Join and Compete →</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section className="testimonials">
+        <div className="container text-center">
+          <div className="section-tag reveal">💬 Student Stories</div>
+          <h2 className="section-title reveal reveal-delay-1">Real students. <span style={{ color: 'var(--orange)' }}>Real results.</span></h2>
+        </div>
+        <div className="testi-scroll" style={{ marginTop: '48px' }}>
+          <div className="testi-track" id="testi-track">
+            <div className="testi-card"><div className="testi-stars">★★★★★</div><p className="testi-quote">"VidyaJaya's AI analysis told me exactly which Polity chapters I was weak in. Focused on those for 2 weeks and cleared UPSC Prelims in my first attempt."</p><div className="testi-author"><div className="testi-ava" style={{ background: 'linear-gradient(135deg,#FF6B00,#FF3D00)' }}>PS</div><div><div className="testi-name">Priya Sharma</div><div className="testi-exam">UPSC 2024 — Cleared</div></div></div></div>
+            <div className="testi-card"><div className="testi-stars">★★★★★</div><p className="testi-quote">"The daily streak kept me consistent for 180 days straight. I scored 99 marks in SSC CGL Tier-1. The leaderboard competition motivated me to study even on difficult days."</p><div className="testi-author"><div className="testi-ava" style={{ background: 'linear-gradient(135deg,#3B82F6,#7C3AED)' }}>RK</div><div><div className="testi-name">Rahul Kumar</div><div className="testi-exam">SSC CGL — 99 Marks</div></div></div></div>
+            <div className="testi-card"><div className="testi-stars">★★★★★</div><p className="testi-quote">"I was failing Banking exams repeatedly. VidyaJaya showed me my accuracy in Quant was only 42%. Practiced specific weak chapters for 3 weeks. Got selected in SBI PO."</p><div className="testi-author"><div className="testi-ava" style={{ background: 'linear-gradient(135deg,#00C853,#0891B2)' }}>SP</div><div><div className="testi-name">Sneha Patel</div><div className="testi-exam">SBI PO — Selected</div></div></div></div>
+            
+            <div className="testi-card"><div className="testi-stars">★★★★★</div><p className="testi-quote">"VidyaJaya's AI analysis told me exactly which Polity chapters I was weak in. Focused on those for 2 weeks and cleared UPSC Prelims in my first attempt."</p><div className="testi-author"><div className="testi-ava" style={{ background: 'linear-gradient(135deg,#FF6B00,#FF3D00)' }}>PS</div><div><div className="testi-name">Priya Sharma</div><div className="testi-exam">UPSC 2024 — Cleared</div></div></div></div>
+            <div className="testi-card"><div className="testi-stars">★★★★★</div><p className="testi-quote">"The daily streak kept me consistent for 180 days straight. I scored 99 marks in SSC CGL Tier-1. The leaderboard competition motivated me to study even on difficult days."</p><div className="testi-author"><div className="testi-ava" style={{ background: 'linear-gradient(135deg,#3B82F6,#7C3AED)' }}>RK</div><div><div className="testi-name">Rahul Kumar</div><div className="testi-exam">SSC CGL — 99 Marks</div></div></div></div>
+            <div className="testi-card"><div className="testi-stars">★★★★★</div><p className="testi-quote">"I was failing Banking exams repeatedly. VidyaJaya showed me my accuracy in Quant was only 42%. Practiced specific weak chapters for 3 weeks. Got selected in SBI PO."</p><div className="testi-author"><div className="testi-ava" style={{ background: 'linear-gradient(135deg,#00C853,#0891B2)' }}>SP</div><div><div className="testi-name">Sneha Patel</div><div className="testi-exam">SBI PO — Selected</div></div></div></div>
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING */}
+      <section className="pricing" id="pricing">
+        <div className="container text-center">
+          <div className="section-tag reveal">💳 Simple Pricing</div>
+          <h2 className="section-title reveal reveal-delay-1">Start free. <span style={{ color: 'var(--orange)' }}>Upgrade when ready.</span></h2>
+          <p className="section-sub reveal reveal-delay-2">No hidden fees. Cancel anytime. Students on free plan can still build streaks and view the leaderboard.</p>
+          
+          <div className="pricing-toggle reveal reveal-delay-3">
+            <span className={`toggle-lbl ${!isAnnual ? 'active' : ''}`} id="lbl-monthly">Monthly</span>
+            <div className={`toggle-track ${isAnnual ? 'on' : ''}`} onClick={() => setIsAnnual(!isAnnual)}><div className="toggle-thumb"></div></div>
+            <span className={`toggle-lbl ${isAnnual ? 'active' : ''}`} id="lbl-annual">Annual</span>
+            <span className="save-badge" style={{ opacity: isAnnual ? 1 : 0 }}>Save 30%!</span>
+          </div>
+
+          <div className="pricing-grid reveal">
+            <div className="price-card">
+              <div className="price-name">Free</div>
+              <div className="price-amount">₹0 <span>/ forever</span></div>
+              <div className="price-desc">Perfect to start and build your daily habit.</div>
+              <div className="price-features">
+                <div className="pf yes"><div className="pf-check">✓</div><span>5 tests per week</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Daily current affairs (10 Qs)</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Daily streak tracking</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>View-only leaderboard</span></div>
+                <div className="pf no"><div className="pf-check">✗</div><span>AI performance analysis</span></div>
+                <div className="pf no"><div className="pf-check">✗</div><span>Coin earning & rewards</span></div>
+              </div>
+              <button onClick={handleCtaClick} className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center' }}>Start Free — No Card</button>
+            </div>
+
+            <div className="price-card popular">
+              <div className="popular-badge">MOST POPULAR</div>
+              <div className="price-name" style={{ color: 'var(--orange)' }}>Pro</div>
+              <div className="price-amount"><sup>₹</sup>{isAnnual ? '69' : '99'} <span>/ month</span></div>
+              <div className="price-desc">Everything you need. No compromises whatsoever.</div>
+              <div className="price-features">
+                <div className="pf yes"><div className="pf-check">✓</div><span>Unlimited daily tests</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>All 6 exam sectors</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Weekly cash rewards (Top 3)</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>AI performance analysis + study plan</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Unlimited AI doubt solving</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Coin earning + streak freeze</span></div>
+              </div>
+              <button onClick={handleCtaClick} className="btn btn-primary pulse-glow" style={{ width: '100%', justifyContent: 'center' }}>Start PRO Now →</button>
+            </div>
+
+            <div className="price-card">
+              <div className="price-name">Pro+</div>
+              <div className="price-amount"><sup>₹</sup>{isAnnual ? '139' : '199'} <span>/ month</span></div>
+              <div className="price-desc">For serious aspirants who want maximum support.</div>
+              <div className="price-features">
+                <div className="pf yes"><div className="pf-check">✓</div><span>Everything in Pro</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>1:1 AI personalised study plan</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Download test certificates</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Priority support response</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Early access to new features</span></div>
+              </div>
+              <button onClick={handleCtaClick} className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center' }}>Upgrade to Pro+</button>
+            </div>
+          </div>
+        </div>
+      </section>
       
+      {/* EXAM CATEGORIES */}
+      <section className="exams-section">
+        <div className="container text-center">
+          <div className="section-tag reveal">📚 All Exams Covered</div>
+          <h2 className="section-title reveal reveal-delay-1">One platform for <span style={{ color: 'var(--orange)' }}>every competitive exam</span></h2>
+          <p className="section-sub reveal reveal-delay-2">VidyaJaya covers 6 major exam categories with AI-generated questions tailored to each exam's pattern and syllabus.</p>
+          <div className="exam-grid">
+            <div className="card exam-card reveal" style={{ '--ec-color': '#FF6B00' }}>
+              <div className="exam-icon">🏛️</div>
+              <div className="exam-name">UPSC Civil Services</div>
+              <div className="exam-desc">Prelims, Mains, Current Affairs. AI-generated daily tests mapped to UPSC syllabus. Polity, History, Economy, Science & Tech.</div>
+              <div className="exam-meta">
+                <span className="exam-tag">Prelims</span><span className="exam-tag">Mains GS</span><span className="exam-tag">Current Affairs</span>
+              </div>
+            </div>
+            <div className="card exam-card reveal reveal-delay-1" style={{ '--ec-color': '#3B82F6' }}>
+              <div className="exam-icon">📋</div>
+              <div className="exam-name">SSC CGL / CHSL / MTS</div>
+              <div className="exam-desc">Speed and accuracy-focused tests. Quantitative Aptitude, English, General Awareness, Reasoning. Tier-I & Tier-II patterns.</div>
+              <div className="exam-meta">
+                <span className="exam-tag">Tier I</span><span className="exam-tag">Tier II</span><span className="exam-tag">Speed Tests</span>
+              </div>
+            </div>
+            <div className="card exam-card reveal reveal-delay-2" style={{ '--ec-color': '#00C853' }}>
+              <div className="exam-icon">🚂</div>
+              <div className="exam-name">RRB NTPC / Group D</div>
+              <div className="exam-desc">Railway exam preparation with affordable access. CBT-1 and CBT-2 patterns. Mobile-friendly daily practice tests.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WHATSAPP STRIP */}
+      <div className="wa-strip">
+        <div className="container">
+          <div className="wa-inner">
+            <div>
+              <div className="wa-text">📲 Join 12,000+ students on our Telegram community</div>
+              <div className="wa-sub">Get daily current affairs, free study notes, and launch updates directly on Telegram</div>
+            </div>
+            <a href="https://t.me/vidyajayaa" target="_blank" rel="noopener noreferrer" className="wa-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.941z"/></svg>
+              Join Telegram →
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* FAQ */}
+      <section className="faq-section">
+        <div className="container text-center">
+          <div className="section-tag reveal">❓ Questions Answered</div>
+          <h2 className="section-title reveal reveal-delay-1">Frequently asked <span style={{ color: 'var(--orange)' }}>questions</span></h2>
+          <div className="faq-list">
+            {[
+              { q: "Is VidyaJaya really free? What's the catch?", a: "Yes, the Free plan is genuinely free forever — no credit card required, no hidden trial. You get 5 tests per week, daily current affairs (10 questions), streak tracking, and leaderboard access. The paid Pro plan (₹99/month) unlocks unlimited tests, AI analysis, coin rewards, and weekly cash prizes. We made the free plan useful enough to start, and the Pro plan valuable enough to upgrade." },
+              { q: "How is VidyaJaya different from Testbook or Unacademy?", a: "Three things no other platform does: (1) AI-generated fresh questions every single day using GPT-4o — questions are never recycled. (2) A streak + coin reward system that pays you for consistency — top 3 weekly students win real cash every Sunday. (3) Genuine AI analysis that tells you which specific chapter to study next, not a generic percentage. VidyaJaya is built to be addictive in the best way — you'll want to come back every day." },
+              { q: "Are the weekly cash rewards real? How do I receive them?", a: "Yes, 100% real. Every Sunday midnight, the top 3 students on the weekly leaderboard receive ₹500, ₹250, and ₹100 respectively. Rewards are credited as coins first and can be withdrawn to your UPI ID or bank account. To be eligible, you must be on a Pro plan. Free users can view the leaderboard but are not eligible for cash rewards." },
+              { q: "What happens if I miss a day and my streak breaks?", a: "Missing a day resets your streak to 0 — this is intentional, it creates urgency and habit. However, Pro users get 2 \"Streak Freeze\" credits per month. Use a freeze on a day you can't study and your streak is protected. You can also earn extra streak freezes by spending coins. We'll send you a reminder notification at 8 PM if you haven't completed a test that day." },
+              { q: "When will VidyaJaya launch? How do I get access?", a: "VidyaJaya is in final development and launching very soon. Join the waitlist above with your email and you'll be among the first to get access. The first 1,000 students on the waitlist will receive 3 months of Pro access completely free at launch. Join the Telegram community for real-time launch updates and daily free study content in the meantime." }
+            ].map((item, i) => (
+              <div key={i} className={`faq-item reveal ${openFaq === i ? 'open' : ''}`} style={{ transitionDelay: `${i * 0.1}s` }}>
+                <button className="faq-q" onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                  <span className="faq-q-text">{item.q}</span>
+                  <div className="faq-chevron">▾</div>
+                </button>
+                <div className="faq-a"><div className="faq-a-inner">{item.a}</div></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FOUNDER */}
+      <section className="founder reveal">
+        <div className="container">
+          <div className="text-center" style={{ marginBottom: '48px' }}>
+            <div className="section-tag" style={{ color: 'rgba(255,107,0,.8)' }}>👤 The Founder</div>
+            <h2 style={{ color: '#fff', marginBottom: 0 }}>The person <span style={{ color: 'var(--orange)' }}>behind VidyaJaya</span></h2>
+          </div>
+          <div className="founder-card">
+            <div className="founder-top">
+              <div className="founder-ava">MD</div>
+              <div className="founder-info">
+                <div className="founder-name">Mallem Dheeraj Royal</div>
+                <div className="founder-role">Founder & CEO — VidyaJaya Technologies Pvt Ltd</div>
+                <div className="founder-loc">📍 Kadiri, Sri Sathya Sai District, Andhra Pradesh, India</div>
+              </div>
+            </div>
+            <blockquote className="founder-quote">"I built VidyaJaya because 2.5 crore students in India study every single day and not one platform was rewarding their consistency. They wake up at 5 AM, they read the newspaper, they practice mock tests — and at the end of the day they have nothing to show for it except hope. VidyaJaya changes that. Every test you take, every streak you maintain, every question you answer correctly — it counts. It rewards you. It brings you one step closer to the rank you deserve."</blockquote>
+            <div className="founder-contacts">
+              <div className="fc"><span className="fc-icon">📧</span><span className="fc-val">mallemdheerajroyal@gmail.com</span></div>
+              <div className="fc"><span className="fc-icon">📱</span><span className="fc-val">9059061099</span></div>
+              <div className="fc"><span className="fc-icon">📸</span><span className="fc-val">@mallemdheerajroyal</span></div>
+              <div className="fc"><span className="fc-icon">🌐</span><span className="fc-val">vidyajaya.in</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA BAND */}
+      <section className="cta-band">
+        <div className="container">
+          <h2 className="cta-title">Start your streak today 🔥</h2>
+          <p className="cta-sub">Join 2.5 lakh students who study smarter, rank higher, and earn real rewards. Free forever to start.</p>
+          <div className="cta-btns">
+            <button onClick={handleCtaClick} className="btn btn-white btn-lg">🔥 Join Now For Free →</button>
+            <a href="https://t.me/vidyajayaa" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{ background: 'rgba(255,255,255,.15)', color: '#fff', borderColor: 'rgba(255,255,255,.3)' }}>✈️ Join Telegram</a>
+          </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="footer">
+        <div className="container">
+          <div className="footer-grid">
+            <div className="footer-brand">
+              <div className="footer-logo">
+                <div className="nav-logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><path d="M4 5l8 14L20 5"/></svg></div>
+                <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '20px', fontWeight: 900, color: '#fff' }}>Vidya<span style={{ color: 'var(--orange)' }}>Jaya</span></span>
+              </div>
+              <p className="footer-desc">India's AI-powered daily mock test platform. UPSC · SSC · RRB · Banking. Build streaks, earn coins, win real rewards.</p>
+            </div>
+            <div>
+              <div className="footer-col-title">Platform</div>
+              <Link className="footer-link" to="/login">Dashboard</Link>
+              <Link className="footer-link" to="/login">Daily Tests</Link>
+              <Link className="footer-link" to="/login">Leaderboard</Link>
+            </div>
+            <div>
+              <div className="footer-col-title">Exams</div>
+              <span className="footer-link">UPSC Civil Services</span>
+              <span className="footer-link">SSC CGL / CHSL</span>
+              <span className="footer-link">RRB NTPC / Group D</span>
+            </div>
+            <div>
+              <div className="footer-col-title">Company</div>
+              <span className="footer-link">About Us</span>
+              <span className="footer-link">Contact</span>
+              <span className="footer-link">Privacy Policy</span>
+            </div>
+          </div>
+          <div className="footer-bottom">
+            <div className="footer-copy">© 2026 VidyaJaya Technologies Pvt Ltd · All rights reserved · Built from Kadiri, Andhra Pradesh</div>
+            <div className="social-row">
+              <a href="https://www.instagram.com/vidyajaya.in?igsh=cGNzZGkxYTFiODgx" target="_blank" rel="noopener noreferrer" className="social-btn" title="Instagram">📸</a>
+              <a href="https://t.me/vidyajayaa" target="_blank" rel="noopener noreferrer" className="social-btn" title="Telegram">✈️</a>
+              <div className="social-btn" title="YouTube">▶</div>
+              <div className="social-btn" title="LinkedIn">in</div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
-};
-
-export default Landing;
+}
