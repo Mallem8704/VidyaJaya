@@ -216,8 +216,12 @@ const Dashboard = () => {
               <Link to="/practice" className="group block bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-xl shadow hover:border-secondary transition-all hover:-translate-y-1">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h4 className="font-bold mb-1 text-[var(--text-primary)]">🎯 AI Practice</h4>
-                    <p className="text-xs text-[var(--text-secondary)]">Polity & Constitution (Weak Area)</p>
+                    <h4 className="font-bold mb-1 text-[var(--text-primary)] flex items-center gap-2">
+                       ✨ AI Practice
+                    </h4>
+                    <p className="text-xs text-[var(--text-secondary)] font-medium">
+                       {dashboard.recommendation || "Take tests to unlock AI insights!"}
+                    </p>
                   </div>
                   <ArrowRightIcon className="text-secondary group-hover:translate-x-1 transition-transform" />
                 </div>

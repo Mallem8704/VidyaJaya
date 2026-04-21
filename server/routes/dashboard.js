@@ -102,6 +102,41 @@ router.get('/', protect, async (req, res) => {
     else if (accuracy >= 60) performance = "Good";
     else performance = "Needs Improvement";
 
+    // 8. Next Action Recommendation
+    const topicStats = {};
+    submissions.forEach(sub => {
+      if (sub.topicWise && Array.isArray(sub.topicWise)) {
+        sub.topicWise.forEach(t => {
+          if (!t.topic) return;
+          if (!topicStats[t.topic]) {
+            topicStats[t.topic] = { correct: 0, total: 0 };
+          }
+          topicStats[t.topic].correct += (t.correct || 0);
+          topicStats[t.topic].total += (t.total || 0);
+        });
+      }
+    });
+
+    let weakestTopic = null;
+    let lowestAccuracy = 100;
+    for (let topic in topicStats) {
+      const { correct, total } = topicStats[topic];
+      if (total > 0) {
+        const acc = (correct / total) * 100;
+        if (acc < lowestAccuracy) {
+          lowestAccuracy = acc;
+          weakestTopic = topic;
+        }
+      }
+    }
+
+    let recommendation = "🎯 Keep practicing to unlock insights!";
+    if (accuracy > 80) {
+      recommendation = "🔥 You're doing great — attempt a mock test now!";
+    } else if (weakestTopic) {
+      recommendation = `🎯 Revise ${weakestTopic} — weakest area`;
+    }
+
     res.json({
       accuracy,
       testsTaken: totalTests,
@@ -110,6 +145,7 @@ router.get('/', protect, async (req, res) => {
       rank,
       performance,
       improvementMessage,
+      recommendation,
       lastUpdated: new Date().toISOString()
     });
 
