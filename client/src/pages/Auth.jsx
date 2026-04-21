@@ -83,8 +83,8 @@ const Auth = ({ type }) => {
         setTimeout(() => navigate('/dashboard'), 1500);
       }
     } catch (error) {
-      // toast is already handled in store or we can trigger shake animation
-      toast.error('Authentication failed');
+      // Show the actual error message returned from the backend/store
+      toast.error(error.response?.data?.message || error.message || 'Authentication failed');
     }
   };
 
