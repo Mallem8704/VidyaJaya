@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Target, MonitorPlay, Zap, ArrowRight, Brain } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -14,6 +15,8 @@ const baseTopics = [
 ];
 
 const Practice = () => {
+  const navigate = useNavigate();
+  const [isGenerating, setIsGenerating] = useState(false);
   const [testsTaken, setTestsTaken] = useState(0);
 
   useEffect(() => {
@@ -23,6 +26,19 @@ const Practice = () => {
       })
       .catch(err => console.error(err));
   }, []);
+  const handleStartDrill = async () => {
+    setIsGenerating(true);
+    const loadToast = toast.loading("AI is analyzing your weak areas...");
+    try {
+      toast.dismiss(loadToast);
+      navigate('/test/drill-ai');
+    } catch (err) {
+      toast.error("Failed to start AI drill");
+      toast.dismiss(loadToast);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const practiceTopics = baseTopics.map(t => ({
     ...t,
@@ -32,6 +48,7 @@ const Practice = () => {
   const handleComingSoon = () => {
     toast("Feature coming soon 🚀", { icon: "🚀" });
   };
+
   return (
     <div className="max-w-6xl mx-auto space-y-10 animate-fade-in pb-10">
        
@@ -40,7 +57,13 @@ const Practice = () => {
              <div className="relative z-10 w-2/3">
                 <h2 className="text-3xl font-heading font-bold mb-2 flex items-center gap-2"><Target size={28}/> AI Drill Mode</h2>
                 <p className="text-gray-200 text-sm mb-6">Our AI analyzes your weak subjects and generates a custom 20-question rapid drill specifically for you.</p>
-                <button onClick={handleComingSoon} className="btn bg-white text-primary hover:bg-gray-100 font-bold px-6 py-2 shadow-lg">Start AI Drill</button>
+                <button 
+                  onClick={handleStartDrill} 
+                  disabled={isGenerating}
+                  className="btn bg-white text-primary hover:bg-gray-100 font-bold px-6 py-2 shadow-lg flex items-center gap-2"
+                >
+                  {isGenerating ? "Analyzing..." : "Start AI Drill"}
+                </button>
              </div>
              <div className="text-8xl opacity-10 absolute -right-6 -bottom-6">🧠</div>
           </div>

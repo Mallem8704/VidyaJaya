@@ -8,7 +8,13 @@ import { Mail, Lock, User, Phone, BookOpen, ArrowRight, Eye, EyeOff, CheckCircle
 const Auth = ({ type }) => {
   const navigate = useNavigate();
   const { token } = useParams();
-  const { login, register, isloading, forgotPassword, resetPassword } = useAuthStore();
+  const { login, register, isloading, forgotPassword, resetPassword, isAuthenticated } = useAuthStore();
+  
+  React.useEffect(() => {
+    if (isAuthenticated && type !== 'Reset Password') {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, type, navigate]);
   
   // States
   const [formData, setFormData] = useState({

@@ -10,6 +10,11 @@ export const useAuthStore = create(
       isAuthenticated: false,
       isloading: false,
       error: null,
+      _hasHydrated: false,
+
+      setHasHydrated: (state) => {
+        set({ _hasHydrated: state });
+      },
 
       login: async (email, password) => {
         set({ isloading: true, error: null });
@@ -105,6 +110,9 @@ export const useAuthStore = create(
     }),
     {
       name: 'auth-storage',
+      onRehydrateStorage: () => (state) => {
+        state.setHasHydrated(true);
+      }
     }
   )
 );

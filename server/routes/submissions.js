@@ -108,12 +108,13 @@ router.post('/', protect, async (req, res) => {
     const overallAccuracy = totalAttempted === 0 ? 0 : Math.round((totalCorrect / totalAttempted) * 100);
     const totalScore = allSubs.reduce((sum, s) => sum + (s.score || 0), 0);
 
-    const { data: profile } = await supabase.from('profiles').select('coins, streak').eq('id', req.user.id).single();
+    const { data: profile } = await supabase.from('profiles').select('coins, streak, weekly_score').eq('id', req.user.id).single();
     
     await supabase.from('profiles').update({
       coins: (profile?.coins || 0) + (submission.coins_earned || 0),
       streak: (profile?.streak || 0) + 1,
       total_score: totalScore,
+      weekly_score: (profile?.weekly_score || 0) + result.score,
       accuracy: overallAccuracy,
       last_streak_update: new Date()
     }).eq('id', req.user.id);

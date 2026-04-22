@@ -44,6 +44,8 @@ const doubtRoutes = require('./routes/doubts');
 const rewardRoutes = require('./routes/rewards');
 const streakRoutes = require('./routes/streak');
 const dashboardRoutes = require('./routes/dashboard');
+const profileRoutes = require('./routes/profiles');
+const practiceRoutes = require('./routes/practice');
 
 // Import Cron Jobs
 const startStreakResetJob = require('./jobs/streakReset');
@@ -65,10 +67,21 @@ app.use('/api/doubts', doubtRoutes);
 app.use('/api/rewards', rewardRoutes);
 app.use('/api/streak', streakRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/profiles', profileRoutes);
+app.use('/api/practice', practiceRoutes);
 
 // Placeholder routes
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
+});
+
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+  logger.error(err.stack);
+  res.status(err.status || 500).json({
+    message: err.message || 'An unexpected error occurred',
+    error: process.env.NODE_ENV === 'development' ? err.stack : {}
+  });
 });
 
 // Socket.io for Real-time features

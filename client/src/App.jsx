@@ -25,13 +25,13 @@ import Result from './pages/Result';
 
 function App() {
   const { theme } = useAppStore();
-  const { loadUser, token } = useAuthStore();
+  const { loadUser, token, _hasHydrated } = useAuthStore();
 
   useEffect(() => {
-    if (token) {
+    if (_hasHydrated && token) {
       loadUser();
     }
-  }, []);
+  }, [_hasHydrated, token]);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -40,6 +40,14 @@ function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  if (!_hasHydrated) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[var(--bg-light)]">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   // Handle routing
   return (

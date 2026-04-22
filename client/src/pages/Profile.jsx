@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, LogOut, Bell, Shield, CreditCard, ChevronRight, Edit3, User as UserIcon } from 'lucide-react';
+import { Settings, LogOut, Bell, Shield, CreditCard, ChevronRight, Edit3, User as UserIcon, Loader } from 'lucide-react';
+import toast from 'react-hot-toast';
+import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
 const Profile = () => {
-  const { user, logout } = useAuthStore();
+  const { user, logout, updateUser } = useAuthStore();
   const [activeTab, setActiveTab] = useState('Account Details');
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  const [profileData, setProfileData] = useState({
+    name: user?.name || '',
+    phone: user?.phone || '',
+    examGoal: user?.examGoal || 'UPSC'
+  });
 
   const tabs = [
     { icon: UserIcon, label: 'Account Details' },
@@ -15,6 +24,24 @@ const Profile = () => {
     { icon: Settings, label: 'App Settings' },
   ];
 
+  const handleChange = (e) => {
+    setProfileData({ ...profileData, [e.target.name]: e.target.value });
+  };
+
+  const handleUpdate = async () => {
+    setIsUpdating(true);
+    try {
+      const res = await axios.put('/api/profiles/update', profileData);
+      updateUser(res.data.user);
+      toast.success('Profile updated successfully!');
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Failed to update profile');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto animate-fade-in pb-10 space-y-6">
       
@@ -23,7 +50,7 @@ const Profile = () => {
         
         <div className="relative group cursor-pointer z-10">
           <div className="w-28 h-28 bg-[var(--bg-light)] bg-opacity-20 rounded-full border-4 border-[rgba(255,255,255,0.2)] flex items-center justify-center text-4xl font-bold text-gray-200 overflow-hidden shadow-xl backdrop-blur-md">
-             {user?.name?.charAt(0) || 'R'}
+             {user?.name?.charAt(0) || 'U'}
           </div>
           <div className="absolute bottom-0 right-0 w-8 h-8 bg-secondary rounded-full flex items-center justify-center text-white border-2 border-primary shadow-md hover:scale-110 transition-transform">
             <Edit3 size={14} />
@@ -31,12 +58,12 @@ const Profile = () => {
         </div>
 
         <div className="flex-1 text-center md:text-left z-10">
-           <h2 className="text-3xl font-heading font-bold mb-1">{user?.name || 'Rahul Demo'}</h2>
-           <p className="text-primary-light mb-4">{user?.email || 'demo@vidyajaya.in'}</p>
+           <h2 className="text-3xl font-heading font-bold mb-1">{user?.name || 'Warrior'}</h2>
+           <p className="text-primary-light mb-4">{user?.email}</p>
            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
              <span className="px-3 py-1 bg-[rgba(255,255,255,0.1)] rounded-full text-xs font-bold border border-[rgba(255,255,255,0.2)] backdrop-blur-md">🎯 Goal: {user?.examGoal || 'UPSC'}</span>
-             <span className="px-3 py-1 bg-accent-gold text-yellow-900 font-bold rounded-full text-xs shadow-md">👑 Plan: {user?.plan || 'PRO'}</span>
-             <span className="px-3 py-1 bg-accent-green text-green-900 font-bold rounded-full text-xs shadow-md">Member since 2026</span>
+             <span className="px-3 py-1 bg-accent-gold text-yellow-900 font-bold rounded-full text-xs shadow-md">👑 Plan: {user?.plan || 'Free'}</span>
+             <span className="px-3 py-1 bg-accent-green text-green-900 font-bold rounded-full text-xs shadow-md">Verified Student</span>
            </div>
         </div>
       </div>
@@ -80,27 +107,31 @@ const Profile = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                      <div className="space-y-2">
                        <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide">Full Name</label>
-                       <input type="text" defaultValue={user?.name || 'Rahul Demo'} className="w-full p-3 bg-[var(--bg-light)] border border-[var(--border)] rounded-lg text-[var(--text-primary)] outline-none focus:border-secondary transition-colors" />
+                       <input type="text" name="name" value={profileData.name} onChange={handleChange} className="w-full p-3 bg-[var(--bg-light)] border border-[var(--border)] rounded-lg text-[var(--text-primary)] outline-none focus:border-secondary transition-colors" />
                      </div>
                      <div className="space-y-2">
                        <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide">Email Address</label>
-                       <input type="email" disabled defaultValue={user?.email || 'demo@vidyajaya.in'} className="w-full p-3 bg-[var(--bg-light)] border border-[var(--border)] rounded-lg text-gray-500 cursor-not-allowed opacity-70" />
+                       <input type="email" disabled value={user?.email} className="w-full p-3 bg-[var(--bg-light)] border border-[var(--border)] rounded-lg text-gray-500 cursor-not-allowed opacity-70" />
                      </div>
                      <div className="space-y-2">
                        <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide">Phone Number</label>
-                       <input type="text" defaultValue="+91 9876543210" className="w-full p-3 bg-[var(--bg-light)] border border-[var(--border)] rounded-lg text-[var(--text-primary)] outline-none focus:border-secondary transition-colors" />
+                       <input type="text" name="phone" value={profileData.phone} onChange={handleChange} className="w-full p-3 bg-[var(--bg-light)] border border-[var(--border)] rounded-lg text-[var(--text-primary)] outline-none focus:border-secondary transition-colors" />
                      </div>
                      <div className="space-y-2">
                        <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide">Exam Target</label>
-                       <select className="w-full p-3 bg-[var(--bg-light)] border border-[var(--border)] rounded-lg text-[var(--text-primary)] outline-none focus:border-secondary transition-colors">
-                          <option>UPSC Civil Services</option>
-                          <option>SSC CGL</option>
-                          <option>Banking PO</option>
+                       <select name="examGoal" value={profileData.examGoal} onChange={handleChange} className="w-full p-3 bg-[var(--bg-light)] border border-[var(--border)] rounded-lg text-[var(--text-primary)] outline-none focus:border-secondary transition-colors">
+                          <option value="UPSC">UPSC Civil Services</option>
+                          <option value="SSC">SSC CGL</option>
+                          <option value="Banking">Banking PO</option>
+                          <option value="RRB">RRB Railways</option>
                        </select>
                      </div>
                   </div>
                   <div className="pt-8 mt-8 border-t border-[var(--border)] flex justify-end">
-                     <button className="btn btn-primary px-8">Save Changes</button>
+                     <button onClick={handleUpdate} disabled={isUpdating} className="btn btn-primary px-8 flex items-center gap-2">
+                       {isUpdating && <Loader className="animate-spin" size={16} />}
+                       {isUpdating ? 'Saving...' : 'Save Changes'}
+                     </button>
                   </div>
                 </div>
               )}
