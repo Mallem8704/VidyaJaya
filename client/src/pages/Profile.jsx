@@ -13,7 +13,7 @@ const Profile = () => {
   const [profileData, setProfileData] = useState({
     name: user?.name || '',
     phone: user?.phone || '',
-    examGoal: user?.examGoal || 'UPSC'
+    examGoal: user?.exam_goal || 'UPSC'
   });
 
   const tabs = [
@@ -61,7 +61,7 @@ const Profile = () => {
            <h2 className="text-3xl font-heading font-bold mb-1">{user?.name || 'Warrior'}</h2>
            <p className="text-primary-light mb-4">{user?.email}</p>
            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-             <span className="px-3 py-1 bg-[rgba(255,255,255,0.1)] rounded-full text-xs font-bold border border-[rgba(255,255,255,0.2)] backdrop-blur-md">🎯 Goal: {user?.examGoal || 'UPSC'}</span>
+             <span className="px-3 py-1 bg-[rgba(255,255,255,0.1)] rounded-full text-xs font-bold border border-[rgba(255,255,255,0.2)] backdrop-blur-md">🎯 Goal: {user?.exam_goal || 'UPSC'}</span>
              <span className="px-3 py-1 bg-accent-gold text-yellow-900 font-bold rounded-full text-xs shadow-md">👑 Plan: {user?.plan || 'Free'}</span>
              <span className="px-3 py-1 bg-accent-green text-green-900 font-bold rounded-full text-xs shadow-md">Verified Student</span>
            </div>

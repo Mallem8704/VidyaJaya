@@ -12,6 +12,8 @@ const Dashboard = () => {
   const { user, updateUser } = useAuthStore();
   const [isFreezing, setIsFreezing] = useState(false);
   const [dashboard, setDashboard] = useState(null);
+  const [loadingStage, setLoadingStage] = useState('spinner');
+
   React.useEffect(() => {
     const fetchDashboard = async () => {
       try {
@@ -48,10 +50,10 @@ const Dashboard = () => {
     );
   }
 
-  const streakAmount = dashboard.streak;
-  const coinsAmount = dashboard.coins;
-  const rankAmount = dashboard.rank;
-  const freezeCount = user?.streak?.freezesRemaining || 0;
+  const streakAmount = dashboard?.streak || 0;
+  const coinsAmount = dashboard?.coins || 0;
+  const rankAmount = dashboard?.rank || 'N/A';
+  const freezeCount = user?.freezes_remaining || 0;
 
   const handleFreeze = async () => {
     setIsFreezing(true);
@@ -147,10 +149,10 @@ const Dashboard = () => {
           {/* Performance Summary Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Accuracy', value: `${dashboard.accuracy}%`, icon: Target, color: 'text-secondary', change: 'Computed from all tests' },
-              { label: 'Tests Taken', value: dashboard.testsTaken, icon: CheckCircle, color: 'text-accent-green', change: 'Total submissions' },
-              { label: 'Global Rank', value: `#${dashboard.rank}`, icon: Trophy, color: 'text-accent-gold', change: 'Live ranking' },
-              { label: 'Performance', value: dashboard.performance, icon: TrendingUp, color: 'text-accent-purple', change: dashboard.improvementMessage },
+              { label: 'Accuracy', value: `${dashboard?.accuracy || 0}%`, icon: Target, color: 'text-secondary', change: 'Computed from all tests' },
+              { label: 'Tests Taken', value: dashboard?.testsTaken || 0, icon: CheckCircle, color: 'text-accent-green', change: 'Total submissions' },
+              { label: 'Global Rank', value: `#${dashboard?.rank || 'N/A'}`, icon: Trophy, color: 'text-accent-gold', change: 'Live ranking' },
+              { label: 'Performance', value: dashboard?.performance || 'N/A', icon: TrendingUp, color: 'text-accent-purple', change: dashboard?.improvementMessage || 'Take a test!' },
             ].map((stat, i) => (
               <motion.div 
                 key={i}
