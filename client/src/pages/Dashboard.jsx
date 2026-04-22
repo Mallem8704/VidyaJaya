@@ -7,55 +7,23 @@ import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 
-const mockPerformanceData = [
-  { date: '1 Apr', score: 65 },
-  { date: '3 Apr', score: 70 },
-  { date: '5 Apr', score: 68 },
-  { date: '7 Apr', score: 74 },
-  { date: '9 Apr', score: 82 },
-  { date: '10 Apr', score: 78 },
-  { date: '11 Apr', score: 87 },
-];
-
-const mockTests = [
-  { id: 1, name: 'UPSC Prelims GS Set #47', category: 'UPSC', score: '87%', accuracy: '92%', date: 'Today' },
-  { id: 2, name: 'SSC CGL Reasoning #23', category: 'SSC', score: '94%', accuracy: '96%', date: 'Yesterday' },
-  { id: 3, name: 'Current Affairs April', category: 'UPSC', score: '78%', accuracy: '80%', date: '2 days ago' },
-];
 
 const Dashboard = () => {
   const { user, updateUser } = useAuthStore();
   const [isFreezing, setIsFreezing] = useState(false);
   const [dashboard, setDashboard] = useState(null);
-  const [loadingStage, setLoadingStage] = useState('spinner'); // 'spinner', 'waking', 'error', 'loaded'
-
   React.useEffect(() => {
-    const wakeTimer = setTimeout(() => {
-      setLoadingStage(prev => prev === 'spinner' ? 'waking' : prev);
-    }, 3000);
-
-    const errorTimer = setTimeout(() => {
-      setLoadingStage(prev => prev === 'waking' ? 'error' : prev);
-    }, 8000);
-
-    axios.get('/api/dashboard')
-      .then(res => {
-         setDashboard(res.data);
-         setLoadingStage('loaded');
-         clearTimeout(wakeTimer);
-         clearTimeout(errorTimer);
-      })
-      .catch(err => {
-         console.error("Failed to load dashboard:", err);
-         setLoadingStage('error');
-         clearTimeout(wakeTimer);
-         clearTimeout(errorTimer);
-      });
-
-    return () => {
-      clearTimeout(wakeTimer);
-      clearTimeout(errorTimer);
+    const fetchDashboard = async () => {
+      try {
+        const res = await axios.get('/api/dashboard');
+        setDashboard(res.data);
+        setLoadingStage('loaded');
+      } catch (err) {
+        console.error("Failed to load dashboard:", err);
+        setLoadingStage('error');
+      }
     };
+    fetchDashboard();
   }, []);
 
   if (loadingStage === 'spinner' || loadingStage === 'waking') {
@@ -85,21 +53,31 @@ const Dashboard = () => {
   const rankAmount = dashboard.rank;
   const freezeCount = user?.streak?.freezesRemaining || 0;
 
-  const handleFreeze = () => {
-    if (coinsAmount < 50) {
-      toast.error("Not enough coins! You need 50 💰");
-      return;
-    }
+  const handleFreeze = async () => {
     setIsFreezing(true);
-    setTimeout(() => {
-      // Mock freeze API success
+    try {
+      const res = await axios.post('/api/streak/freeze');
+      
+      // Update global user state (for other components)
       updateUser({ 
-        coins: coinsAmount - 50,
-        streak: { ...user.streak, freezesRemaining: freezeCount + 1 }
+        coins: res.data.coins,
+        freezesRemaining: res.data.freezesRemaining
       });
-      toast.success("Streak freeze activated!");
+
+      // Update local dashboard state
+      setDashboard(prev => ({
+        ...prev,
+        coins: res.data.coins
+      }));
+
+      toast.success(res.data.message || "Streak freeze activated!");
+    } catch (err) {
+      console.error(err);
+      const msg = err.response?.data?.message || "Failed to purchase freeze";
+      toast.error(msg);
+    } finally {
       setIsFreezing(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -267,14 +245,14 @@ const Dashboard = () => {
             </div>
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={mockPerformanceData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <AreaChart data={dashboard.chartData || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#FF6B00" stopOpacity={0.3}/>
                       <stop offset="95%" stopColor="#FF6B00" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} dy={10} />
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} domain={[0, 100]} />
                   <RechartsTooltip 
                     contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow)', backgroundColor: 'var(--bg-card)' }}
@@ -334,14 +312,14 @@ const Dashboard = () => {
                    </tr>
                  </thead>
                  <tbody>
-                   {mockTests.map((t) => (
+                   {dashboard.recentTests?.map((t) => (
                       <tr key={t.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--bg-light)] transition-colors group cursor-pointer">
                         <td className="py-3">
-                          <div className="font-medium text-[var(--text-primary)] group-hover:text-secondary transition-colors truncate w-32 md:w-auto">{t.name}</div>
-                          <div className="text-[10px] text-[var(--text-secondary)] mt-0.5">{t.date}</div>
+                          <div className="font-medium text-[var(--text-primary)] group-hover:text-secondary transition-colors truncate w-32 md:w-auto">{t.title}</div>
+                          <div className="text-[10px] text-[var(--text-secondary)] mt-0.5">{t.time}</div>
                         </td>
                         <td className="py-3 text-right">
-                          <span className="font-bold text-accent-green">{t.score}</span>
+                          <span className="font-bold text-accent-green">{t.score}%</span>
                         </td>
                       </tr>
                    ))}

@@ -1,6 +1,94 @@
 const express = require('express');
 const router = express.Router();
+const supabase = require('../config/supabase');
+const { protect } = require('../middleware/authMiddleware');
+const OpenAI = require('openai');
 
-router.get('/', (req, res) => res.json({ message: 'Doubts Route' }));
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Solve a doubt
+router.post('/solve', protect, async (req, res) => {
+  try {
+    const { questionText, type } = req.body;
+    const userId = req.user.id;
+
+    // 1. Check user coins
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('coins')
+      .eq('id', userId)
+      .single();
+
+    if (profileError || !profile) return res.status(404).json({ message: 'User profile not found' });
+    
+    if (profile.coins < 10) {
+      return res.status(400).json({ message: 'Insufficient coins! You need 10 coins to solve a doubt.' });
+    }
+
+    // 2. Call OpenAI
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { 
+          role: "system", 
+          content: "You are VidyaJaya AI, an expert tutor for UPSC, SSC and other competitive exams. Provide a concise answer, a detailed step-by-step explanation, and related concepts for the given question. Return the response in JSON format with keys: answer, explanation, relatedConcepts (array)." 
+        },
+        { role: "user", content: questionText }
+      ],
+      response_format: { type: "json_object" }
+    });
+
+    const aiResult = JSON.parse(completion.choices[0].message.content);
+
+    // 3. Save to database
+    const { data: doubt, error: doubtError } = await supabase
+      .from('doubts')
+      .insert({
+        user_id: userId,
+        question_text: questionText,
+        ai_response: JSON.stringify(aiResult),
+        topic: aiResult.relatedConcepts?.[0] || 'General'
+      })
+      .select()
+      .single();
+
+    if (doubtError) throw doubtError;
+
+    // 4. Deduct coins
+    await supabase
+      .from('profiles')
+      .update({ coins: profile.coins - 10 })
+      .eq('id', userId);
+
+    res.json({
+      id: doubt.id,
+      questionText: doubt.question_text,
+      ...aiResult
+    });
+
+  } catch (error) {
+    console.error('Doubt Solving Error:', error);
+    res.status(500).json({ message: 'Failed to solve doubt. Please try again.' });
+  }
+});
+
+// Get user doubts history
+router.get('/history', protect, async (req, res) => {
+  try {
+    const { data: doubts, error } = await supabase
+      .from('doubts')
+      .select('*')
+      .eq('user_id', req.user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    res.json(doubts);
+  } catch (error) {
+    console.error('Fetch Doubts History Error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 module.exports = router;

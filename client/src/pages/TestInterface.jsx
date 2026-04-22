@@ -6,99 +6,40 @@ import toast from 'react-hot-toast';
 
 import axios from 'axios';
 
-// 5 real UPSC style questions for the UI demo
-const dummyQuestions = [
-  {
-    id: `q1`,
-    text: `Which of the following provisions of the Constitution of India have a bearing on Education?
-1. Directive Principles of State Policy
-2. Rural and Urban Local Bodies
-3. Fifth Schedule
-4. Sixth Schedule
-5. Seventh Schedule
-Select the correct answer using the codes given below:`,
-    options: [
-      `1 and 2 only`,
-      `3, 4 and 5 only`,
-      `1, 2 and 5 only`,
-      `1, 2, 3, 4 and 5`
-    ],
-    correctIndex: 3,
-    category: 'Polity'
-  },
-  {
-    id: `q2`,
-    text: `In India, which of the following review the independent regulators in sectors like telecommunications, insurance, electricity, etc.?
-1. Ad Hoc Committees set up by the Parliament
-2. Parliamentary Department Related Standing Committees
-3. Finance Commission
-4. Financial Sector Legislative Reforms Commission
-5. NITI Aayog
-Select the correct answer using the code given below:`,
-    options: [
-      `1 and 2`,
-      `1, 3 and 4`,
-      `3, 4 and 5`,
-      `2 and 5`
-    ],
-    correctIndex: 0,
-    category: 'Polity'
-  },
-  {
-    id: `q3`,
-    text: `With reference to the Indian economy, consider the following statements:
-1. 'Commercial Paper' is a short-term unsecured promissory note.
-2. 'Certificate of Deposit' is a long-term instrument issued by the Reserve Bank of India to a corporation.
-3. 'Call Money' is a short-term finance used for interbank transactions.
-4. 'Zero-Coupon Bonds' are the interest bearing short-term bonds issued by the Scheduled Commercial Banks to corporations.
-Which of the statements given above is/are correct?`,
-    options: [
-      `1 and 2 only`,
-      `4 only`,
-      `1 and 3 only`,
-      `2, 3 and 4 only`
-    ],
-    correctIndex: 2,
-    category: 'Economy'
-  },
-  {
-    id: `q4`,
-    text: `With reference to Foreign Direct Investment in India, which one of the following is considered its major characteristic?`,
-    options: [
-      `It is the investment through capital instruments essentially in a listed company.`,
-      `It is a largely non-debt creating capital flow.`,
-      `It is the investment which involves debt-servicing.`,
-      `It is the investment made by foreign institutional investors in the Government securities.`
-    ],
-    correctIndex: 1,
-    category: 'Economy'
-  },
-  {
-    id: `q5`,
-    text: `The money multiplier in an economy increases with which one of the following?`,
-    options: [
-      `Increase in the cash reserve ratio`,
-      `Increase in the banking habit of the population`,
-      `Increase in the statutory liquidity ratio`,
-      `Increase in the population of the country`
-    ],
-    correctIndex: 1,
-    category: 'Economy'
-  }
-];
 
 const TestInterface = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   
+  const [test, setTest] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState({}); // { qIndex: optionIndex }
   const [markedForReview, setMarkedForReview] = useState(new Set());
-  const [timeLeft, setTimeLeft] = useState(7200); // 2 hours
+  const [timeLeft, setTimeLeft] = useState(0); 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  useEffect(() => {
+    const fetchTestData = async () => {
+      try {
+        const res = await axios.get(`/api/tests/${id}`);
+        setTest(res.data);
+        setQuestions(res.data.questions || []);
+        setTimeLeft(res.data.duration || 7200);
+      } catch (err) {
+        console.error('Error fetching test data:', err);
+        toast.error('Failed to load test questions');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTestData();
+  }, [id]);
 
   // Timer logic
   useEffect(() => {
+    if (loading) return;
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
@@ -110,7 +51,7 @@ const TestInterface = () => {
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [loading]);
 
   const formatTime = (seconds) => {
     const h = Math.floor(seconds / 3600);
@@ -136,19 +77,18 @@ const TestInterface = () => {
   const handleSubmit = async () => {
     try {
       const formattedAnswers = Object.entries(answers).map(([qIdx, optIdx]) => ({
-        questionId: dummyQuestions[qIdx].id,
+        questionId: questions[qIdx].id,
         selectedIndex: optIdx,
-        timeTaken: 60 // Mock time taken
+        timeTaken: 60 // Mock time taken for now
       }));
 
       const res = await axios.post('/api/submissions', {
-        testId: id || 'mock-47',
-        answers: formattedAnswers,
-        questions: dummyQuestions // Pass questions to backend so it can grade the hardcoded ones
+        testId: id,
+        answers: formattedAnswers
       });
 
       toast.success('Test Submitted Successfully!');
-      navigate(`/result/${res.data._id}`);
+      navigate(`/result/${res.data.id}`);
     } catch (err) {
       console.error(err);
       toast.error('Something went wrong submitting your test. Please try again.');
@@ -156,12 +96,21 @@ const TestInterface = () => {
     }
   };
 
-  const currentQ = dummyQuestions[currentIdx];
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen space-y-4">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <p className="font-bold">Loading Questions...</p>
+      </div>
+    );
+  }
+
+  const currentQ = questions[currentIdx];
 
   // Stats calculation
   const answeredCount = Object.keys(answers).length;
   const reviewCount = markedForReview.size;
-  const unvisitedCount = dummyQuestions.length - answeredCount - reviewCount; // Rough approx for UI
+  const unvisitedCount = questions.length - answeredCount - reviewCount; 
 
   return (
     <div className="flex flex-col h-screen bg-[#F8FAFC] dark:bg-[#0B1120] text-[var(--text-primary)]">
@@ -169,7 +118,7 @@ const TestInterface = () => {
       {/* Top Bar */}
       <header className="h-16 bg-primary text-white flex items-center justify-between px-6 shrink-0 shadow-lg relative z-20">
         <div className="font-heading font-bold lg:text-lg truncate w-1/3">
-          Mock Test: UPSC Prelims Part 1
+          {test?.title || 'Mock Test'}
         </div>
         
         <div className={`flex items-center gap-2 font-bold text-xl px-4 py-1 rounded-lg ${timeLeft < 300 ? 'bg-red-500 animate-pulse' : 'bg-primary-light border border-[#1E3A5F]'}`}>
@@ -178,7 +127,7 @@ const TestInterface = () => {
         </div>
         
         <div className="flex items-center gap-4 w-1/3 justify-end">
-          <span className="text-sm text-gray-300 hidden md:block">Question {currentIdx + 1} of {dummyQuestions.length}</span>
+          <span className="text-sm text-gray-300 hidden md:block">Question {currentIdx + 1} of {questions.length}</span>
           <button 
             className="btn bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] border border-[rgba(255,255,255,0.2)] py-1.5 px-4 text-sm"
             onClick={() => {}}
@@ -248,8 +197,8 @@ const TestInterface = () => {
              </button>
 
              <button 
-               onClick={() => setCurrentIdx(Math.min(dummyQuestions.length - 1, currentIdx + 1))}
-               disabled={currentIdx === dummyQuestions.length - 1}
+               onClick={() => setCurrentIdx(Math.min(questions.length - 1, currentIdx + 1))}
+               disabled={currentIdx === questions.length - 1}
                className="btn bg-[var(--text-primary)] text-[var(--bg-card)] hover:opacity-90 flex items-center gap-2"
              >
                Next <ChevronRight size={18} />
@@ -276,7 +225,7 @@ const TestInterface = () => {
           </div>
 
           <div className="flex-1 overflow-y-auto p-6 flex content-start flex-wrap gap-2.5">
-            {dummyQuestions.map((_, idx) => {
+            {questions.map((_, idx) => {
               const isAns = answers[idx] !== undefined;
               const isMark = markedForReview.has(idx);
               const isActive = currentIdx === idx;
@@ -326,7 +275,7 @@ const TestInterface = () => {
          <button onClick={toggleReview} className="px-6 border bg-orange-50 text-orange-600 border-orange-200 rounded-full text-sm font-semibold flex items-center gap-1">
            <Bookmark size={14} className={markedForReview.has(currentIdx) ? 'fill-current' : ''} /> {markedForReview.has(currentIdx) ? 'Marked' : 'Mark'}
          </button>
-         <button onClick={() => setCurrentIdx(Math.min(dummyQuestions.length - 1, currentIdx + 1))} className="p-2 bg-primary text-white rounded-full"><ChevronRight /></button>
+         <button onClick={() => setCurrentIdx(Math.min(questions.length - 1, currentIdx + 1))} className="p-2 bg-primary text-white rounded-full"><ChevronRight /></button>
       </div>
 
       {/* Confirmation Modal */}
@@ -342,13 +291,13 @@ const TestInterface = () => {
             </div>
             <h2 className="text-2xl font-bold font-heading text-center mb-2">Ready to Submit?</h2>
             <p className="text-center text-[var(--text-secondary)] mb-6">
-              You have {dummyQuestions.length - answeredCount} unanswered questions. Check your palette before submitting.
+              You have {questions.length - answeredCount} unanswered questions. Check your palette before submitting.
             </p>
             
             <div className="bg-[var(--bg-light)] rounded-lg p-4 mb-8 flex justify-around text-center border border-[var(--border)]">
               <div><span className="block font-bold text-accent-green text-xl">{answeredCount}</span><span className="text-xs">Answered</span></div>
               <div><span className="block font-bold text-orange-400 text-xl">{reviewCount}</span><span className="text-xs">Marked</span></div>
-              <div><span className="block font-bold text-gray-500 text-xl">{dummyQuestions.length - answeredCount}</span><span className="text-xs">Pending</span></div>
+              <div><span className="block font-bold text-gray-500 text-xl">{questions.length - answeredCount}</span><span className="text-xs">Pending</span></div>
             </div>
 
             <div className="flex gap-4">

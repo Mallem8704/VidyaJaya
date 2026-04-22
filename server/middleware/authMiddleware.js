@@ -1,5 +1,4 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const supabase = require('../config/supabase');
 
 const protect = async (req, res, next) => {
   let token;
@@ -10,16 +9,31 @@ const protect = async (req, res, next) => {
   ) {
     try {
       token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
-      req.user = await User.findById(decoded.id).select('-password');
-      if (!req.user) {
-        return res.status(401).json({ message: 'Not authorized, user not found' });
+      // Verify token with Supabase
+      const { data: { user }, error } = await supabase.auth.getUser(token);
+      
+      if (error || !user) {
+        return res.status(401).json({ message: 'Not authorized, token failed' });
+      }
+
+      // Fetch user profile from profiles table
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError || !profile) {
+        // Fallback to basic auth user info if profile isn't found
+        req.user = { id: user.id, email: user.email, ...user.user_metadata };
+      } else {
+        req.user = profile;
       }
 
       next();
     } catch (error) {
-      console.error(error);
+      console.error('Auth Middleware Error:', error);
       res.status(401).json({ message: 'Not authorized, token failed' });
     }
   }
@@ -30,7 +44,7 @@ const protect = async (req, res, next) => {
 };
 
 const admin = (req, res, next) => {
-  if (req.user && req.user.isAdmin) {
+  if (req.user && (req.user.isAdmin || req.user.plan === 'admin')) {
     next();
   } else {
     res.status(401).json({ message: 'Not authorized as an admin' });
@@ -38,3 +52,4 @@ const admin = (req, res, next) => {
 };
 
 module.exports = { protect, admin };
+

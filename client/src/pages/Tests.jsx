@@ -1,22 +1,29 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { BookOpen, Award, CheckCircle, Clock, Filter, Share2 } from 'lucide-react';
-
-const mockTests = [
-  { id: 'mock-47', title: 'UPSC Prelims GS Set #47', category: 'UPSC', duration: 120, questions: 100, isPaid: false, difficulty: 'Hard' },
-  { id: 'mock-48', title: 'Current Affairs April Week 2', category: 'General', duration: 30, questions: 25, isPaid: false, difficulty: 'Medium' },
-  { id: 'mock-49', title: 'SSC CGL Tier 1 Mock', category: 'SSC', duration: 60, questions: 100, isPaid: true, difficulty: 'Medium' },
-  { id: 'mock-50', title: 'Modern History Deep Dive', category: 'UPSC', duration: 45, questions: 50, isPaid: false, difficulty: 'Hard' },
-  { id: 'mock-51', title: 'Quantitative Aptitude Test', category: 'Bank PO', duration: 60, questions: 35, isPaid: true, difficulty: 'Medium' },
-];
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const Tests = () => {
+  const [tests, setTests] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
+
+  React.useEffect(() => {
+    const fetchTests = async () => {
+      try {
+        const res = await axios.get('/api/tests');
+        setTests(res.data);
+      } catch (err) {
+        console.error('Error fetching tests:', err);
+        toast.error('Failed to load tests');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTests();
+  }, []);
   
   const filteredTests = activeFilter === 'All' 
-    ? mockTests 
-    : mockTests.filter(t => t.category === activeFilter || (activeFilter === 'PRO' && t.isPaid));
+    ? tests 
+    : tests.filter(t => t.category === activeFilter || (activeFilter === 'PRO' && t.is_premium));
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-10">
@@ -57,11 +64,11 @@ const Tests = () => {
             key={test.id} 
             className="card hover:-translate-y-1 transition-all border border-[var(--border)] hover:border-secondary overflow-hidden flex flex-col"
           >
-            <div className={`p-4 border-b border-[var(--border)] flex justify-between items-start ${test.isPaid ? 'bg-[rgba(255,107,0,0.02)]' : 'bg-[var(--bg-light)]'}`}>
+            <div className={`p-4 border-b border-[var(--border)] flex justify-between items-start ${test.is_premium ? 'bg-[rgba(255,107,0,0.02)]' : 'bg-[var(--bg-light)]'}`}>
                <span className={`text-xs font-bold px-2 py-0.5 rounded ${test.category === 'UPSC' ? 'bg-blue-100 text-blue-700 dark:bg-[#07192a] dark:text-blue-400' : 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300'}`}>
                  {test.category}
                </span>
-               {test.isPaid ? (
+               {test.is_premium ? (
                  <span className="text-[10px] bg-accent-gold text-white font-bold px-2 py-0.5 rounded shadow flex items-center gap-1"><Award size={10}/> PRO</span>
                ) : (
                  <span className="text-[10px] text-accent-green font-bold px-2 py-0.5 flex items-center gap-1"><CheckCircle size={12}/> FREE</span>
@@ -72,16 +79,16 @@ const Tests = () => {
                <h4 className="font-bold text-lg leading-tight mb-4">{test.title}</h4>
                
                <div className="flex gap-4 text-sm text-[var(--text-secondary)] mb-6 mt-auto">
-                 <div className="flex items-center gap-1"><Clock size={16}/> {test.duration}m</div>
-                 <div className="flex items-center gap-1"><BookOpen size={16}/> {test.questions} Qs</div>
+                 <div className="flex items-center gap-1"><Clock size={16}/> {Math.round(test.duration / 60)}m</div>
+                 <div className="flex items-center gap-1"><BookOpen size={16}/> {test.total_questions} Qs</div>
                  <div className={`flex items-center gap-1 font-medium ${test.difficulty === 'Hard' ? 'text-red-500' : 'text-yellow-600'}`}>
-                    • {test.difficulty}
+                    • {test.difficulty || 'Medium'}
                  </div>
                </div>
                
                <div className="flex gap-3">
-                 <Link to={`/test/${test.id}`} className={`flex-1 btn ${test.isPaid ? 'btn-outline border-accent-gold text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-[rgba(255,215,0,0.1)]' : 'btn-primary'} text-center py-2 `}>
-                   {test.isPaid ? 'Unlock with PRO' : 'Take Test'}
+                 <Link to={`/test/${test.id}`} className={`flex-1 btn ${test.is_premium ? 'btn-outline border-accent-gold text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-[rgba(255,215,0,0.1)]' : 'btn-primary'} text-center py-2 `}>
+                   {test.is_premium ? 'Unlock with PRO' : 'Take Test'}
                  </Link>
                  <button className="p-2 border border-[var(--border)] rounded-lg hover:bg-[var(--bg-light)] text-[var(--text-secondary)]"><Share2 size={20}/></button>
                </div>

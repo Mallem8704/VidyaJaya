@@ -1,42 +1,53 @@
 const cron = require('node-cron');
-const User = require('../models/User');
-const { format, subDays } = require('date-fns');
+const supabase = require('../config/supabase');
+const { subDays } = require('date-fns');
 
 // Run daily at 11:59 PM IST (which is 18:29 UTC)
 const startStreakResetJob = () => {
-  // node-cron is based on server local time unless timezone is specified.
   cron.schedule('59 23 * * *', async () => {
     console.log('Running daily streak reset job...');
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    
+    // Today 00:00:00
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
 
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+    // Yesterday 00:00:00
+    const yesterdayStart = new Date(todayStart);
+    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
 
     try {
-      const users = await User.find({ 'streak.current': { $gt: 0 } });
+      // 1. Fetch users with an active streak
+      const { data: users, error } = await supabase
+        .from('profiles')
+        .select('id, streak, last_streak_update, freezes_remaining')
+        .gt('streak', 0);
+
+      if (error) throw error;
       
       for (const user of users) {
-        const lastTestDate = user.streak.lastTestDate;
+        const lastUpdate = user.last_streak_update ? new Date(user.last_streak_update) : null;
         
-        if (!lastTestDate || lastTestDate < yesterday) {
-          // Missed testing yesterday
-          if (user.streak.freezesRemaining > 0) {
-            user.streak.freezesRemaining -= 1;
-            user.notifications.push({
-              type: 'streak',
-              message: 'You missed your test yesterday! A streak freeze was automatically used to save your streak. 🔥'
-            });
-            console.log(`Used freeze for user ${user._id}`);
+        // If they didn't take a test today AND didn't take one yesterday
+        // (Streak is usually updated on test submission)
+        if (!lastUpdate || lastUpdate < yesterdayStart) {
+          
+          if (user.freezes_remaining > 0) {
+            // Automatically use a freeze
+            console.log(`Using freeze for user ${user.id}`);
+            await supabase
+              .from('profiles')
+              .update({ freezes_remaining: user.freezes_remaining - 1 })
+              .eq('id', user.id);
+            
+            // In a real app, we would add a notification here
           } else {
-            console.log(`Resetting streak for user ${user._id}`);
-            user.streak.current = 0;
-            user.notifications.push({
-              type: 'streak',
-              message: 'Your streak was reset! Start fresh today. 🔥'
-            });
+            // Reset streak
+            console.log(`Resetting streak for user ${user.id}`);
+            await supabase
+              .from('profiles')
+              .update({ streak: 0 })
+              .eq('id', user.id);
           }
-          await user.save();
         }
       }
       console.log('Daily streak reset job completed.');
@@ -49,3 +60,4 @@ const startStreakResetJob = () => {
 };
 
 module.exports = startStreakResetJob;
+

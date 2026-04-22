@@ -1,14 +1,43 @@
 import React, { useState } from 'react';
-import { Award, Lock, Star, Zap, CheckCircle, ShieldCheck } from 'lucide-react';
+import { Award, Lock, Star, Zap, CheckCircle, ShieldCheck, Loader2 } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
+import toast from 'react-hot-toast';
+import axios from 'axios';
 
 const mockRewards = [
-  { id: 1, title: 'Streak Freeze', cost: 50, icon: '❄️', desc: 'Saves your streak if you miss a day. (Max 2)' },
-  { id: 2, title: 'Profile Frame: Conqueror', cost: 200, icon: '🖼️', desc: 'Adds a flaming border to your avatar.' },
-  { id: 3, title: '1 AI Doubt Token', cost: 100, icon: '🤖', desc: 'Get an instant step-by-step GPT explanation.' },
+  { id: 'freeze', title: 'Streak Freeze', cost: 50, icon: '❄️', desc: 'Saves your streak if you miss a day. (Max 2)' },
+  { id: 'frame', title: 'Profile Frame: Conqueror', cost: 200, icon: '🖼️', desc: 'Adds a flaming border to your avatar.' },
+  { id: 'token', title: '1 AI Doubt Token', cost: 100, icon: '🤖', desc: 'Get an instant step-by-step GPT explanation.' },
 ];
 
 const Rewards = () => {
-  const coins = 340;
+  const { user, updateUser } = useAuthStore();
+  const [loadingId, setLoadingId] = useState(null);
+  const coins = user?.coins || 0;
+
+  const handlePurchase = async (reward) => {
+    if (coins < reward.cost) {
+      return toast.error(`Not enough coins! You need ${reward.cost} 💰`);
+    }
+
+    if (reward.id === 'freeze') {
+      setLoadingId('freeze');
+      try {
+        const res = await axios.post('/api/streak/freeze');
+        updateUser({ 
+          coins: res.data.coins,
+          freezesRemaining: res.data.freezesRemaining
+        });
+        toast.success("Streak Freeze purchased!");
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Purchase failed");
+      } finally {
+        setLoadingId(null);
+      }
+    } else {
+      toast.error("This reward is currently out of stock!");
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-12 animate-fade-in pb-10">
@@ -44,8 +73,13 @@ const Rewards = () => {
                         <h4 className="font-bold text-lg">{reward.title}</h4>
                         <p className="text-sm text-[var(--text-secondary)]">{reward.desc}</p>
                      </div>
-                     <button className="btn bg-orange-100 hover:bg-orange-200 text-orange-700 dark:bg-[rgba(255,165,0,0.1)] dark:text-orange-400 dark:hover:bg-[rgba(255,165,0,0.2)] font-bold px-4 py-2 flex items-center gap-1 border border-orange-300 dark:border-orange-900 border-opacity-50">
-                        <Award size={16}/> {reward.cost}
+                     <button 
+                        onClick={() => handlePurchase(reward)}
+                        disabled={loadingId === reward.id}
+                        className="btn bg-orange-100 hover:bg-orange-200 text-orange-700 dark:bg-[rgba(255,165,0,0.1)] dark:text-orange-400 dark:hover:bg-[rgba(255,165,0,0.2)] font-bold px-4 py-2 flex items-center gap-1 border border-orange-300 dark:border-orange-900 border-opacity-50"
+                     >
+                        {loadingId === reward.id ? <Loader2 size={16} className="animate-spin" /> : <Award size={16}/>} 
+                        {reward.cost}
                      </button>
                   </div>
                ))}

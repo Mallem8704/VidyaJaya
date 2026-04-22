@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const rateLimit = require('express-rate-limit');
@@ -81,14 +80,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// Avoid connecting to Mongo right away if env isn't ready
-if (process.env.MONGO_URI && process.env.MONGO_URI !== 'mongodb://localhost:27017/vidyajaya') {
-  mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB connected'))
-    .catch(err => console.error('MongoDB connection error:', err));
-} else {
-  console.log('MongoDB URI uses default local address. Update .env for production.');
-}
+// Removed MongoDB connection as we have migrated to Supabase.
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {

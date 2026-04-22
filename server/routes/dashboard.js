@@ -1,49 +1,71 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
-const Submission = require('../models/Submission');
+const supabase = require('../config/supabase');
 const { protect } = require('../middleware/authMiddleware');
-const logger = require('../utils/logger');
 
 router.get('/', protect, async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    // Get user profile from Supabase
+    const { data: user, error: userError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (userError || !user) {
+      console.warn(`Profile not found for user ${userId}, returning default stats.`);
+      return res.json({
+        accuracy: 0,
+        testsTaken: 0,
+        streak: 0,
+        coins: 0,
+        rank: '?',
+        performance: "Average",
+        improvementMessage: "Take your first test!",
+        recommendation: "🎯 Take tests to unlock AI insights!",
+        lastUpdated: new Date().toISOString()
+      });
     }
 
-    // Must read from User and Submission (Test results)
-    // Optimization: explicitly selecting only the fields we need to reduce memory footprint
-    const submissions = await Submission.find({ userId })
-      .select('correctCount wrongCount skippedCount submittedAt')
-      .sort({ submittedAt: -1 })
-      .lean();
+    // Fetch submissions from Supabase
+    const { data: submissions, error: subError } = await supabase
+      .from('submissions')
+      .select('correct_count, wrong_count, skipped_count, submitted_at, topic_wise')
+      .eq('user_id', userId)
+      .order('submitted_at', { ascending: false });
+
+    if (subError) {
+      console.error("Submissions Fetch Error:", subError);
+      // Return stats with empty submissions if table fetch fails
+      return res.json({
+        accuracy: user.accuracy || 0,
+        testsTaken: 0,
+        streak: user.streak || 0,
+        coins: user.coins || 0,
+        rank: '?',
+        performance: "Average",
+        improvementMessage: "Database connection issue",
+        recommendation: "🎯 Statistics unavailable at the moment",
+        lastUpdated: new Date().toISOString()
+      });
+    }
 
     // 1. Total Tests
     const totalTests = submissions.length;
 
     // 2. Accuracy
-    const correct = submissions.reduce((sum, sub) => sum + (sub.correctCount || 0), 0);
-    const total = submissions.reduce((sum, sub) => sum + (sub.correctCount || 0) + (sub.wrongCount || 0) + (sub.skippedCount || 0), 0);
+    const correct = submissions.reduce((sum, sub) => sum + (sub.correct_count || 0), 0);
+    const total = submissions.reduce((sum, sub) => sum + (sub.correct_count || 0) + (sub.wrong_count || 0) + (sub.skipped_count || 0), 0);
     const accuracy = total === 0 ? 0 : Math.round((correct / total) * 100);
 
-    // Update User's base accuracy to keep our rank computation honest and fast
-    if (user.accuracy !== accuracy) {
-       user.accuracy = accuracy;
-       user.totalTests = totalTests;
-       await user.save();
-    }
-
     // 3. Coins
-    const coins = user.coins || totalTests * 10;
+    const coins = user.coins || 0;
 
-    // 4. Streak (Properly handling 'Yesterday' missing logic)
-    const dates = [...new Set(submissions.map(sub => new Date(sub.submittedAt).toDateString()))];
+    // 4. Streak logic
+    const dates = [...new Set(submissions.map(sub => new Date(sub.submitted_at).toDateString()))];
     let streak = 0;
-    
-    // allow streak to start from today OR yesterday
     const today = new Date();
     const yesterday = new Date();
     yesterday.setDate(today.getDate() - 1);
@@ -59,42 +81,36 @@ router.get('/', protect, async (req, res) => {
         streak++;
         checkDate.setDate(checkDate.getDate() - 1);
       } else if (new Date(d) > checkDate) {
-        // Skip ahead
         continue;
       } else {
-        break; // streak broke
+        break;
       }
     }
 
-    // 5. Rank
-    const betterUsers = await User.countDocuments({
-      accuracy: { $gt: accuracy }
-    });
-    const rank = betterUsers + 1;
+    // 5. Rank (Count users with higher accuracy)
+    const { count: betterUsers, error: rankError } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .gt('accuracy', accuracy);
+      
+    const rank = (betterUsers || 0) + 1;
 
     // 6. Insight Metric: Weekly Progress
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    
-    const weeklySubmissions = submissions.filter(sub => new Date(sub.submittedAt) >= oneWeekAgo);
+    const weeklySubmissions = submissions.filter(sub => new Date(sub.submitted_at) >= oneWeekAgo);
     let improvementMessage = "Take more tests to see insights!";
     
     if (weeklySubmissions.length > 0) {
-       const weeklyC = weeklySubmissions.reduce((sum, sub) => sum + (sub.correctCount || 0), 0);
-       const weeklyT = weeklySubmissions.reduce((sum, sub) => sum + (sub.correctCount || 0) + (sub.wrongCount || 0) + (sub.skippedCount || 0), 0);
+       const weeklyC = weeklySubmissions.reduce((sum, sub) => sum + (sub.correct_count || 0), 0);
+       const weeklyT = weeklySubmissions.reduce((sum, sub) => sum + (sub.correct_count || 0) + (sub.wrong_count || 0) + (sub.skipped_count || 0), 0);
        const weeklyAccuracy = weeklyT === 0 ? 0 : Math.round((weeklyC / weeklyT) * 100);
-       
        const improvement = weeklyAccuracy - accuracy;
        
-       if (totalTests === 0) {
-         improvementMessage = "Finish your first test!";
-       } else if (improvement > 0) {
-           improvementMessage = `🔥 You improved +${improvement}% recently`;
-       } else if (improvement < 0) {
-           improvementMessage = `Keep practicing to bounce back!`;
-       } else {
-           improvementMessage = `Consistent performance this week!`;
-       }
+       if (totalTests === 0) improvementMessage = "Finish your first test!";
+       else if (improvement > 0) improvementMessage = `🔥 You improved +${improvement}% recently`;
+       else if (improvement < 0) improvementMessage = `Keep practicing to bounce back!`;
+       else improvementMessage = `Consistent performance this week!`;
     }
 
     // 7. Performance Tag
@@ -106,37 +122,58 @@ router.get('/', protect, async (req, res) => {
     // 8. Next Action Recommendation
     const topicStats = {};
     submissions.forEach(sub => {
-      if (sub.topicWise && Array.isArray(sub.topicWise)) {
-        sub.topicWise.forEach(t => {
-          if (!t.topic) return;
-          if (!topicStats[t.topic]) {
-            topicStats[t.topic] = { correct: 0, total: 0 };
-          }
-          topicStats[t.topic].correct += (t.correct || 0);
-          topicStats[t.topic].total += (t.total || 0);
+      if (sub.topic_wise && Array.isArray(sub.topic_wise)) {
+        sub.topic_wise.forEach(t => {
+          const topicName = t.topic || 'General';
+          if (!topicStats[topicName]) topicStats[topicName] = { correct: 0, total: 0 };
+          topicStats[topicName].correct += (t.correct || 0);
+          topicStats[topicName].total += (t.total || 0);
         });
       }
     });
 
     let weakestTopic = null;
-    let lowestAccuracy = 100;
+    let lowestAcc = 100;
     for (let topic in topicStats) {
       const { correct, total } = topicStats[topic];
       if (total > 0) {
         const acc = (correct / total) * 100;
-        if (acc < lowestAccuracy) {
-          lowestAccuracy = acc;
+        if (acc < lowestAcc) {
+          lowestAcc = acc;
           weakestTopic = topic;
         }
       }
     }
 
     let recommendation = "🎯 Keep practicing to unlock insights!";
-    if (accuracy > 80) {
-      recommendation = "🔥 You're doing great — attempt a mock test now!";
-    } else if (weakestTopic) {
-      recommendation = `🎯 Revise ${weakestTopic} — weakest area`;
-    }
+    if (accuracy > 80) recommendation = "🔥 You're doing great — attempt a mock test now!";
+    else if (weakestTopic) recommendation = `🎯 Revise ${weakestTopic} — weakest area`;
+
+    // 9. Chart Data (Last 7 tests trend)
+    const chartData = [...submissions]
+      .reverse()
+      .slice(-7)
+      .map((sub, i) => ({
+        day: `T-${submissions.length - 1 - (submissions.length - 1 - i)}`,
+        score: sub.accuracy || 0
+      }));
+
+    // 10. Recent Tests (Last 5)
+    // Fetch titles for recent tests
+    const { data: recentSubmissions } = await supabase
+      .from('submissions')
+      .select('id, accuracy, time_taken, tests(title)')
+      .eq('user_id', userId)
+      .order('submitted_at', { ascending: false })
+      .limit(5);
+
+    const recentTests = recentSubmissions?.map(sub => ({
+      id: sub.id,
+      title: sub.tests?.title || 'Practice Session',
+      score: sub.accuracy || 0,
+      time: Math.round((sub.time_taken || 0) / 60) + 'm',
+      status: 'Completed'
+    })) || [];
 
     res.json({
       accuracy,
@@ -147,11 +184,13 @@ router.get('/', protect, async (req, res) => {
       performance,
       improvementMessage,
       recommendation,
+      chartData,
+      recentTests,
       lastUpdated: new Date().toISOString()
     });
 
   } catch (err) {
-    logger.error("Dashboard Fetch Error: %O", err);
+    console.error("Dashboard Fetch Error:", err);
     res.status(500).json({ error: "Server error" });
   }
 });

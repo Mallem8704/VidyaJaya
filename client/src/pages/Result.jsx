@@ -6,13 +6,6 @@ import { CheckCircle, XCircle, Clock, ChevronRight, Share2, Award, Loader2 } fro
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-const mockTopicData = [
-  { name: 'Polity', score: 80, fill: '#00C853' },
-  { name: 'History', score: 60, fill: '#FF6B00' },
-  { name: 'Geography', score: 70, fill: '#FF6B00' },
-  { name: 'Economy', score: 40, fill: '#EF4444' },
-  { name: 'Science', score: 90, fill: '#00C853' },
-];
 
 const Result = () => {
   const { id } = useParams();
@@ -62,6 +55,22 @@ const Result = () => {
     const secs = seconds % 60;
     return `${mins}m ${secs}s`;
   };
+
+  // Process topic data for chart
+  const topicData = (submission.topicWise || []).map(t => {
+    const score = t.total === 0 ? 0 : Math.round((t.correct / t.total) * 100);
+    return {
+      name: t.topic || 'General',
+      score: score,
+      fill: score >= 80 ? '#00C853' : score >= 50 ? '#FF6B00' : '#EF4444'
+    };
+  });
+
+  // Sort by score for better visualization
+  topicData.sort((a, b) => b.score - a.score);
+
+  const bestTopic = topicData[0];
+  const worstTopic = topicData[topicData.length - 1];
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-12 mt-4 px-4 overflow-x-hidden">
@@ -154,11 +163,16 @@ const Result = () => {
                 <span className="p-2 bg-accent-purple bg-opacity-20 rounded-lg text-accent-purple shrink-0">🤖</span>
                 <h3 className="font-heading font-bold text-xl text-white">AI Performance Insight</h3>
              </div>
-             <p className="text-gray-300 leading-relaxed text-[15px] mb-6">
-                Your strongest area is <strong className="text-white">Science & Technology</strong>. Focus more on <strong className="text-red-400">Economy</strong> — you got only 40% there. Your answering speed is excellent (avg 62 sec/question).
+              <p className="text-gray-300 leading-relaxed text-[15px] mb-6">
+                Your strongest area is <strong className="text-white">{bestTopic?.name || 'General'}</strong> ({bestTopic?.score || 0}%). 
+                {worstTopic && worstTopic.name !== bestTopic?.name ? (
+                  <> Focus more on <strong className="text-red-400">{worstTopic.name}</strong> — you got {worstTopic.score}% there.</>
+                ) : (
+                  <> Keep up the consistent performance across all areas!</>
+                )}
                 <br/><br/>
-                <span className="text-accent-gold font-medium">Recommended:</span> Practice 20 Economy questions daily for the next 7 days.
-             </p>
+                <span className="text-accent-gold font-medium">AI Tip:</span> {worstTopic && worstTopic.score < 50 ? `Revisit the basics of ${worstTopic.name} and try 10 practice questions daily.` : "Take a more difficult mock test to challenge your limits!"}
+              </p>
              <Link to="/analysis" className="btn bg-[rgba(255,255,255,0.1)] text-white hover:bg-[rgba(255,255,255,0.2)] text-sm px-5 py-2">
                Get Complete AI Plan
              </Link>
@@ -169,12 +183,12 @@ const Result = () => {
             <h3 className="font-heading font-bold text-xl mb-6">Topic-Wise Breakdown</h3>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={mockTopicData} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 0 }}>
+                <BarChart data={topicData} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 0 }}>
                   <XAxis type="number" domain={[0, 100]} hide />
                   <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: 'var(--text-primary)', fontWeight: 500}} width={80} />
                   <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '12px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)' }} />
                   <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={24}>
-                     {mockTopicData.map((entry, index) => (
+                     {topicData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.fill} />
                      ))}
                   </Bar>
