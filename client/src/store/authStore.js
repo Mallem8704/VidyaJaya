@@ -55,6 +55,52 @@ export const useAuthStore = create(
 
       updateUser: (userData) => {
         set({ user: { ...get().user, ...userData } });
+      },
+
+      loadUser: async () => {
+        const token = get().token;
+        if (!token) return;
+
+        try {
+          const response = await axios.get('/api/auth/me');
+          set({ user: response.data, isAuthenticated: true });
+        } catch (error) {
+          // Handled by interceptor, but we ensure state clear here too
+          set({ user: null, token: null, isAuthenticated: false });
+        }
+      },
+
+      forgotPassword: async (email) => {
+        set({ isloading: true, error: null });
+        try {
+          await axios.post('/api/auth/forgot-password', { email });
+          set({ isloading: false });
+        } catch (error) {
+          set({ 
+            error: error.response?.data?.message || 'Failed to send reset email',
+            isloading: false 
+          });
+          throw error;
+        }
+      },
+
+      resetPassword: async (token, password) => {
+        set({ isloading: true, error: null });
+        try {
+          const response = await axios.put(`/api/auth/reset-password/${token}`, { password });
+          set({ 
+            user: response.data.user, 
+            token: response.data.token, 
+            isAuthenticated: true,
+            isloading: false 
+          });
+        } catch (error) {
+          set({ 
+            error: error.response?.data?.message || 'Password reset failed',
+            isloading: false 
+          });
+          throw error;
+        }
       }
     }),
     {

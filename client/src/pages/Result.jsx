@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { CheckCircle, XCircle, Clock, ChevronRight, Share2, Award } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, ChevronRight, Share2, Award, Loader2 } from 'lucide-react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const mockTopicData = [
   { name: 'Polity', score: 80, fill: '#00C853' },
@@ -14,12 +16,52 @@ const mockTopicData = [
 
 const Result = () => {
   const { id } = useParams();
+  const [submission, setSubmission] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchResult = async () => {
+      try {
+        const res = await axios.get(`/api/submissions/${id}`);
+        setSubmission(res.data);
+      } catch (err) {
+        console.error('Error fetching result:', err);
+        toast.error('Could not load test results');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchResult();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!submission) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <p className="text-xl font-medium">Result not found</p>
+        <Link to="/dashboard" className="btn btn-primary">Back to Dashboard</Link>
+      </div>
+    );
+  }
 
   // Progress Circle computation
-  const percentage = 72;
+  const percentage = submission.accuracy;
   const radius = 60;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-12 mt-4 px-4 overflow-x-hidden">
@@ -44,7 +86,7 @@ const Result = () => {
             className="card p-8 flex flex-col items-center justify-center text-center relative overflow-hidden bg-primary text-white"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-secondary blur-3xl opacity-30 rounded-full"></div>
-            <h2 className="text-xl font-heading font-medium mb-6 text-gray-200">UPSC Mock Set #47</h2>
+            <h2 className="text-xl font-heading font-medium mb-6 text-gray-200">{submission.testId?.title || 'Practice Set'}</h2>
             
             <div className="relative w-40 h-40 flex items-center justify-center mb-6">
               <svg className="transform -rotate-90 w-40 h-40">
@@ -64,17 +106,17 @@ const Result = () => {
               </div>
             </div>
 
-            <p className="text-lg font-medium">Great performance!</p>
-            <p className="text-sm text-gray-300 px-4 mt-2">You scored better than 68% of students in this test.</p>
+            <p className="text-lg font-medium">{percentage > 70 ? 'Great performance!' : percentage > 40 ? 'Good effort!' : 'Keep practicing!'}</p>
+            <p className="text-sm text-gray-300 px-4 mt-2">You scored {submission.score} marks in this session.</p>
             
             <div className="mt-8 bg-[rgba(0,0,0,0.2)] rounded-xl p-4 w-full flex justify-between items-center border border-[rgba(255,255,255,0.1)]">
                <div>
                   <div className="text-xs text-gray-400">Coins Earned</div>
-                  <div className="text-xl font-bold text-accent-gold flex items-center gap-1"><Award size={18}/> +25</div>
+                  <div className="text-xl font-bold text-accent-gold flex items-center gap-1"><Award size={18}/> +{submission.coinsEarned}</div>
                </div>
                <div className="text-right">
-                  <div className="text-xs text-gray-400">Global Rank</div>
-                  <div className="text-xl font-bold">#342</div>
+                  <div className="text-xs text-gray-400">Status</div>
+                  <div className="text-xl font-bold">Completed</div>
                </div>
             </div>
           </motion.div>
@@ -82,22 +124,22 @@ const Result = () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="card p-4 border flex flex-col items-center text-center bg-green-50 border-green-100 dark:bg-[#062111] dark:border-green-900">
                <CheckCircle size={28} className="text-accent-green mb-2" />
-               <div className="text-2xl font-bold mb-1 text-[var(--text-primary)]">72</div>
+                <div className="text-2xl font-bold mb-1 text-[var(--text-primary)]">{submission.correctCount}</div>
                <div className="text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wide">Correct</div>
             </div>
             <div className="card p-4 border flex flex-col items-center text-center bg-red-50 border-red-100 dark:bg-[#250d0d] dark:border-red-900">
                <XCircle size={28} className="text-red-500 mb-2" />
-               <div className="text-2xl font-bold mb-1 text-[var(--text-primary)]">18</div>
+                <div className="text-2xl font-bold mb-1 text-[var(--text-primary)]">{submission.wrongCount}</div>
                <div className="text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wide">Wrong</div>
             </div>
             <div className="card p-4 border flex flex-col items-center text-center bg-gray-50 dark:bg-[#151c27]">
                <div className="text-xl mb-2">⏭️</div>
-               <div className="text-2xl font-bold mb-1 text-[var(--text-primary)]">10</div>
+                <div className="text-2xl font-bold mb-1 text-[var(--text-primary)]">{submission.skippedCount}</div>
                <div className="text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wide">Skipped</div>
             </div>
             <div className="card p-4 border flex flex-col items-center text-center bg-blue-50 dark:bg-[#07192a] border-blue-100 dark:border-primary">
                <Clock size={28} className="text-primary-light mb-2" />
-               <div className="text-xl font-bold mb-1 text-[var(--text-primary)]">1h 43m</div>
+                <div className="text-xl font-bold mb-1 text-[var(--text-primary)]">{formatTime(submission.timeTaken)}</div>
                <div className="text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wide">Time</div>
             </div>
           </div>
@@ -174,7 +216,7 @@ const Result = () => {
                
              </div>
              <div className="p-4 text-center bg-[var(--bg-light)] rounded-b-custom">
-               <button className="text-secondary font-bold text-sm hover:underline">View All 100 Explanations →</button>
+                <button className="text-secondary font-bold text-sm hover:underline">View Detailed Analysis →</button>
              </div>
           </div>
 

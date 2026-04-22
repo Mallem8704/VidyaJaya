@@ -1,15 +1,23 @@
-const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+const nodemailer = require('nodemailer');
+
+const sendEmail = async (options) => {
+  const transporter = nodemailer.createTransport({
+    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+    port: process.env.EMAIL_PORT || 587,
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
+  const message = {
+    from: `${process.env.FROM_NAME || 'VidyaJaya'} <${process.env.FROM_EMAIL || process.env.EMAIL_USER}>`,
+    to: options.email,
+    subject: options.subject,
+    text: options.message
+  };
+
+  await transporter.sendMail(message);
 };
 
-const sendEmailOTP = async (email, otp) => {
-  // Mock email implementation. In production use nodemailer transporter
-  console.log(`------------- EMAIL SENT -------------`);
-  console.log(`To: ${email}`);
-  console.log(`Subject: Your VidyaJaya OTP Code`);
-  console.log(`Body: Your OTP code is ${otp}. It will expire in 10 minutes.`);
-  console.log(`--------------------------------------`);
-  return true;
-};
-
-module.exports = { generateOTP, sendEmailOTP };
+module.exports = { sendEmail };

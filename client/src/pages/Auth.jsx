@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, Link, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
@@ -7,16 +7,14 @@ import { Mail, Lock, User, Phone, BookOpen, ArrowRight, Eye, EyeOff, CheckCircle
 
 const Auth = ({ type }) => {
   const navigate = useNavigate();
-  const { login, register, isloading } = useAuthStore();
+  const { token } = useParams();
+  const { login, register, isloading, forgotPassword, resetPassword } = useAuthStore();
   
   // States
   const [formData, setFormData] = useState({
-    name: '', email: '', phone: '', password: '', examGoal: 'UPSC'
+    name: '', email: '', phone: '', password: '', confirmPassword: '', examGoal: 'UPSC'
   });
   const [showPassword, setShowPassword] = useState(false);
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [otpTimer, setOtpTimer] = useState(60);
-  const otpRefs = useRef([]);
 
   // Password Strength
   const getPasswordStrength = () => {
@@ -28,32 +26,8 @@ const Auth = ({ type }) => {
     return score;
   };
 
-  useEffect(() => {
-    if (type === 'Verify OTP' && otpTimer > 0) {
-      const interval = setInterval(() => setOtpTimer(prev => prev - 1), 1000);
-      return () => clearInterval(interval);
-    }
-  }, [type, otpTimer]);
-
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleOtpChange = (index, value) => {
-    if (isNaN(value)) return;
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-    // Auto advance
-    if (value !== '' && index < 5) {
-      otpRefs.current[index + 1].focus();
-    }
-  };
-
-  const handleOtpKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      otpRefs.current[index - 1].focus();
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -67,23 +41,18 @@ const Auth = ({ type }) => {
         await register(formData);
         toast.success('Registration successful. Welcome to VidyaJaya!');
         navigate('/dashboard');
-      } else if (type === 'Verify OTP') {
-        const otpString = otp.join('');
-        if (otpString.length !== 6) {
-          return toast.error('Please enter a valid 6-digit OTP');
+      } else if (type === 'Forgot Password') {
+        await forgotPassword(formData.email);
+        toast.success('Reset link sent to your email');
+      } else if (type === 'Reset Password') {
+        if (formData.password !== formData.confirmPassword) {
+          return toast.error('Passwords do not match');
         }
-        // Assuming mock OTP logic for development:
-        // Real implementation would call a verify endpoint in the store
-        toast.success(
-          <div className="flex items-center gap-2">
-            <CheckCircle className="text-green-500" />
-            <span>Verified successfully!</span>
-          </div>
-        );
-        setTimeout(() => navigate('/dashboard'), 1500);
+        await resetPassword(token, formData.password);
+        toast.success('Password reset successful. Logging you in...');
+        navigate('/dashboard');
       }
     } catch (error) {
-      // Show the actual error message returned from the backend/store
       toast.error(error.response?.data?.message || error.message || 'Authentication failed');
     }
   };
@@ -161,14 +130,14 @@ const Auth = ({ type }) => {
               <h2 className="text-3xl font-heading font-bold mb-2 text-[var(--text-primary)]">
                 {type === 'Login' ? 'Welcome Back!' : 
                  type === 'Signup' ? 'Create Account' : 
-                 type === 'Verify OTP' ? 'Verification' :
-                 'Reset Password'}
+                 type === 'Forgot Password' ? 'Reset Password' :
+                 'Set New Password'}
               </h2>
               <p className="text-[var(--text-secondary)]">
                 {type === 'Login' ? 'Enter your details to access your dashboard.' : 
                  type === 'Signup' ? 'Start your journey to success today.' : 
-                 type === 'Verify OTP' ? 'Enter the 6-digit code sent to your email.' :
-                 'Enter your email to receive reset instructions.'}
+                 type === 'Forgot Password' ? 'Enter your email to receive a reset link.' :
+                 'Enter your new password below.'}
               </p>
             </div>
 
@@ -227,7 +196,7 @@ const Auth = ({ type }) => {
                 </>
               )}
 
-              {(type === 'Login' || type === 'Signup') && (
+              {(type === 'Login' || type === 'Signup' || type === 'Forgot Password') && (
                 <>
                   <div>
                     <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Email Address</label>
@@ -243,10 +212,14 @@ const Auth = ({ type }) => {
                       />
                     </div>
                   </div>
+                </>
+              )}
 
+              {(type === 'Login' || type === 'Signup' || type === 'Reset Password') && (
+                <>
                   <div>
                     <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)] flex justify-between">
-                      <span>Password</span>
+                      <span>{type === 'Reset Password' ? 'New Password' : 'Password'}</span>
                       {type === 'Login' && (
                         <Link to="/forgot-password" className="text-secondary hover:underline text-xs">Forgot Password?</Link>
                       )}
@@ -270,7 +243,7 @@ const Auth = ({ type }) => {
                       </button>
                     </div>
                     {/* Password Strength Indicator */}
-                    {type === 'Signup' && formData.password && (
+                    {(type === 'Signup' || type === 'Reset Password') && formData.password && (
                       <div className="mt-2 flex gap-1">
                         {[1, 2, 3, 4].map((level) => (
                           <div 
@@ -288,31 +261,19 @@ const Auth = ({ type }) => {
                 </>
               )}
 
-              {/* OTP Fields */}
-              {type === 'Verify OTP' && (
-                <div className="py-4">
-                  <div className="flex justify-between gap-2 mb-6">
-                    {otp.map((digit, index) => (
-                      <input
-                        key={index}
-                        ref={(el) => (otpRefs.current[index] = el)}
-                        type="text"
-                        maxLength={1}
-                        value={digit}
-                        onChange={(e) => handleOtpChange(index, e.target.value)}
-                        onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                        className="w-12 h-14 text-center text-2xl font-bold bg-[var(--bg-card)] border border-[var(--border)] rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-[var(--text-primary)]"
-                      />
-                    ))}
-                  </div>
-                  <div className="text-center text-sm text-[var(--text-secondary)] flex justify-center items-center gap-1">
-                    {otpTimer > 0 ? (
-                      <span>Resend code in <span className="font-bold text-primary">{otpTimer}s</span></span>
-                    ) : (
-                      <button type="button" onClick={() => setOtpTimer(60)} className="text-secondary font-semibold hover:underline">
-                        Resend OTP code
-                      </button>
-                    )}
+              {type === 'Reset Password' && (
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Confirm Password</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <Lock size={18} />
+                    </div>
+                    <input 
+                      type={showPassword ? "text" : "password"} name="confirmPassword" 
+                      value={formData.confirmPassword} onChange={handleChange}
+                      className="pl-10 pr-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                      placeholder="••••••••" required
+                    />
                   </div>
                 </div>
               )}
@@ -328,15 +289,6 @@ const Auth = ({ type }) => {
                 </div>
               )}
 
-              {type === 'Login' && (
-                <div className="flex justify-between items-center text-sm">
-                  <label className="flex items-center gap-2 cursor-pointer text-[var(--text-secondary)]">
-                    <input type="checkbox" className="rounded border-gray-300 text-secondary focus:ring-secondary" />
-                    Remember me
-                  </label>
-                </div>
-              )}
-
               <button 
                 type="submit" 
                 disabled={isloading}
@@ -346,7 +298,10 @@ const Auth = ({ type }) => {
                   <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></span>
                 ) : (
                   <>
-                    {type === 'Login' ? 'Log In' : type === 'Signup' ? 'Create Account' : 'Verify Account'}
+                    {type === 'Login' ? 'Log In' : 
+                     type === 'Signup' ? 'Create Account' : 
+                     type === 'Forgot Password' ? 'Send Reset Link' : 
+                     'Reset Password'}
                     <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
@@ -358,6 +313,8 @@ const Auth = ({ type }) => {
                   <p>Don't have an account? <Link to="/signup" className="text-secondary font-semibold hover:underline">Sign up</Link></p>
                 ) : type === 'Signup' ? (
                   <p>Already have an account? <Link to="/login" className="text-secondary font-semibold hover:underline">Log in</Link></p>
+                ) : type === 'Forgot Password' || type === 'Reset Password' ? (
+                  <p>Remember your password? <Link to="/login" className="text-secondary font-semibold hover:underline">Log in</Link></p>
                 ) : null}
               </div>
 

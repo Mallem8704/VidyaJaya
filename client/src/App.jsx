@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAppStore } from './store/appStore';
+import { useAuthStore } from './store/authStore';
 
 // Routes & Layouts
 import PrivateRoute from './components/PrivateRoute';
@@ -24,6 +25,13 @@ import Result from './pages/Result';
 
 function App() {
   const { theme } = useAppStore();
+  const { loadUser, token } = useAuthStore();
+
+  useEffect(() => {
+    if (token) {
+      loadUser();
+    }
+  }, []);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -53,7 +61,8 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Auth type="Login" />} />
         <Route path="/signup" element={<Auth type="Signup" />} />
-        <Route path="/verify-otp" element={<Auth type="Verify OTP" />} />
+        <Route path="/forgot-password" element={<Auth type="Forgot Password" />} />
+        <Route path="/reset-password/:token" element={<Auth type="Reset Password" />} />
         
         {/* Protected Routes inside Layout */}
         <Route element={<PrivateRoute />}>

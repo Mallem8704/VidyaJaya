@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useAppStore } from '../store/appStore';
@@ -8,6 +8,7 @@ import { Menu, Bell, Sun, Moon } from 'lucide-react';
 const Layout = () => {
   const { theme, toggleTheme, toggleSidebar } = useAppStore();
   const { user } = useAuthStore();
+  const [showNotifications, setShowNotifications] = useState(false);
 
   // Apply theme class on mount
   useEffect(() => {
@@ -51,10 +52,27 @@ const Layout = () => {
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
             </button>
             
-            <button className="relative p-2 rounded-full hover:bg-[var(--bg-light)] text-[var(--text-secondary)] hover:text-secondary transition-all">
-              <Bell size={20} />
-              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[var(--bg-card)]"></span>
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 rounded-full hover:bg-[var(--bg-light)] text-[var(--text-secondary)] hover:text-secondary transition-all"
+              >
+                <Bell size={20} />
+                <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[var(--bg-card)]"></span>
+              </button>
+              
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-72 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-xl z-50 overflow-hidden">
+                  <div className="p-3 border-b border-[var(--border)] font-bold text-sm bg-[var(--bg-light)]">
+                    Notifications
+                  </div>
+                  <div className="p-4 text-sm text-[var(--text-secondary)] text-center">
+                    <p className="mb-2">🏆 You are on a 12 day streak!</p>
+                    <p>No new notifications right now.</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

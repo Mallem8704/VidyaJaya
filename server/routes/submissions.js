@@ -11,16 +11,33 @@ router.post('/', protect, async (req, res) => {
   try {
     const { testId, answers } = req.body;
     
-    const test = await Test.findById(testId).populate('questions');
-    if (!test) return res.status(404).json({ message: 'Test not found' });
+    let test;
+    let questionsToGrade;
+    
+    if (testId === 'mock-47') {
+      test = {
+        _id: 'mock-47',
+        title: 'UPSC Prelims Mock 47',
+        category: 'UPSC',
+        totalMarks: 10,
+        totalQuestions: 5,
+        negativeMarking: 0.67
+      };
+      // For hardcoded frontend questions, the frontend will send the questions array in the request body
+      questionsToGrade = req.body.questions || [];
+    } else {
+      test = await Test.findById(testId).populate('questions');
+      if (!test) return res.status(404).json({ message: 'Test not found' });
+      questionsToGrade = test.questions;
+    }
 
     // Calculate score
-    const result = calculateScore(answers, test.questions, test);
+    const result = calculateScore(answers, questionsToGrade, test);
 
     // Save submission
     const submission = new Submission({
       userId: req.user._id,
-      testId,
+      testId: test._id,
       answers,
       ...result,
       coinsEarned: result.accuracy > 80 ? 25 : 10 // Base logic for coins

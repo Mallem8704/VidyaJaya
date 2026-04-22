@@ -2,7 +2,6 @@ const calculateScore = (answers, questions, test) => {
   let score = 0;
   let correctCount = 0;
   let wrongCount = 0;
-  let skippedCount = 0;
   let timeTaken = 0;
 
   const topicWise = {};
@@ -18,7 +17,7 @@ const calculateScore = (answers, questions, test) => {
     topicWise[topic].total += 1;
 
     if (answer.selectedIndex === -1 || answer.selectedIndex === undefined || answer.selectedIndex === null) {
-      skippedCount++;
+      // Handled outside loop to guarantee correct math
     } else if (answer.selectedIndex === question.correctIndex) {
       correctCount++;
       // standard marks per question = totalMarks / totalQuestions
@@ -34,7 +33,8 @@ const calculateScore = (answers, questions, test) => {
     }
   });
 
-  const accuracy = (correctCount / (correctCount + wrongCount)) * 100 || 0;
+  const skippedCount = test.totalQuestions - correctCount - wrongCount;
+  const accuracy = (correctCount / test.totalQuestions) * 100 || 0;
   // Floor score to 2 decimal places
   score = Math.max(0, Math.round(score * 100) / 100);
 

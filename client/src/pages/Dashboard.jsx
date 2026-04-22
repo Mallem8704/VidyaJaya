@@ -27,32 +27,49 @@ const Dashboard = () => {
   const { user, updateUser } = useAuthStore();
   const [isFreezing, setIsFreezing] = useState(false);
   const [dashboard, setDashboard] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [loadingStage, setLoadingStage] = useState('spinner'); // 'spinner', 'waking', 'error', 'loaded'
 
   React.useEffect(() => {
+    const wakeTimer = setTimeout(() => {
+      setLoadingStage(prev => prev === 'spinner' ? 'waking' : prev);
+    }, 3000);
+
+    const errorTimer = setTimeout(() => {
+      setLoadingStage(prev => prev === 'waking' ? 'error' : prev);
+    }, 8000);
+
     axios.get('/api/dashboard')
       .then(res => {
          setDashboard(res.data);
-         setLoading(false);
+         setLoadingStage('loaded');
+         clearTimeout(wakeTimer);
+         clearTimeout(errorTimer);
       })
       .catch(err => {
          console.error("Failed to load dashboard:", err);
-         setError(true);
-         setLoading(false);
+         setLoadingStage('error');
+         clearTimeout(wakeTimer);
+         clearTimeout(errorTimer);
       });
+
+    return () => {
+      clearTimeout(wakeTimer);
+      clearTimeout(errorTimer);
+    };
   }, []);
 
-  if (loading) {
+  if (loadingStage === 'spinner' || loadingStage === 'waking') {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <div className="w-12 h-12 border-4 border-primary border-t-white rounded-full animate-spin"></div>
-        <p className="text-secondary font-bold font-heading animate-pulse">Loading Your Insights...</p>
+        <p className="text-secondary font-bold font-heading animate-pulse">
+          {loadingStage === 'waking' ? 'Server waking up, please wait...' : 'Loading Your Insights...'}
+        </p>
       </div>
     );
   }
 
-  if (error || !dashboard) {
+  if (loadingStage === 'error' || !dashboard) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 text-center">
         <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-3xl">⚠️</div>

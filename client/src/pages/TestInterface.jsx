@@ -4,18 +4,88 @@ import { motion } from 'framer-motion';
 import { Clock, Bookmark, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Dummy questions for the UI demo
-const dummyQuestions = Array.from({ length: 50 }).map((_, i) => ({
-  id: `q${i + 1}`,
-  text: `This is a sample question ${i + 1} for the UPSC Prelims Mock Test. Which of the following statements is/are correct regarding the fundamental rights under the Indian Constitution?`,
-  options: [
-    `Option A for question ${i + 1}`,
-    `Option B for question ${i + 1}`,
-    `Option C for question ${i + 1}`,
-    `Option D for question ${i + 1}`
-  ],
-  category: i % 2 === 0 ? 'Polity' : 'Economy'
-}));
+import axios from 'axios';
+
+// 5 real UPSC style questions for the UI demo
+const dummyQuestions = [
+  {
+    id: `q1`,
+    text: `Which of the following provisions of the Constitution of India have a bearing on Education?
+1. Directive Principles of State Policy
+2. Rural and Urban Local Bodies
+3. Fifth Schedule
+4. Sixth Schedule
+5. Seventh Schedule
+Select the correct answer using the codes given below:`,
+    options: [
+      `1 and 2 only`,
+      `3, 4 and 5 only`,
+      `1, 2 and 5 only`,
+      `1, 2, 3, 4 and 5`
+    ],
+    correctIndex: 3,
+    category: 'Polity'
+  },
+  {
+    id: `q2`,
+    text: `In India, which of the following review the independent regulators in sectors like telecommunications, insurance, electricity, etc.?
+1. Ad Hoc Committees set up by the Parliament
+2. Parliamentary Department Related Standing Committees
+3. Finance Commission
+4. Financial Sector Legislative Reforms Commission
+5. NITI Aayog
+Select the correct answer using the code given below:`,
+    options: [
+      `1 and 2`,
+      `1, 3 and 4`,
+      `3, 4 and 5`,
+      `2 and 5`
+    ],
+    correctIndex: 0,
+    category: 'Polity'
+  },
+  {
+    id: `q3`,
+    text: `With reference to the Indian economy, consider the following statements:
+1. 'Commercial Paper' is a short-term unsecured promissory note.
+2. 'Certificate of Deposit' is a long-term instrument issued by the Reserve Bank of India to a corporation.
+3. 'Call Money' is a short-term finance used for interbank transactions.
+4. 'Zero-Coupon Bonds' are the interest bearing short-term bonds issued by the Scheduled Commercial Banks to corporations.
+Which of the statements given above is/are correct?`,
+    options: [
+      `1 and 2 only`,
+      `4 only`,
+      `1 and 3 only`,
+      `2, 3 and 4 only`
+    ],
+    correctIndex: 2,
+    category: 'Economy'
+  },
+  {
+    id: `q4`,
+    text: `With reference to Foreign Direct Investment in India, which one of the following is considered its major characteristic?`,
+    options: [
+      `It is the investment through capital instruments essentially in a listed company.`,
+      `It is a largely non-debt creating capital flow.`,
+      `It is the investment which involves debt-servicing.`,
+      `It is the investment made by foreign institutional investors in the Government securities.`
+    ],
+    correctIndex: 1,
+    category: 'Economy'
+  },
+  {
+    id: `q5`,
+    text: `The money multiplier in an economy increases with which one of the following?`,
+    options: [
+      `Increase in the cash reserve ratio`,
+      `Increase in the banking habit of the population`,
+      `Increase in the statutory liquidity ratio`,
+      `Increase in the population of the country`
+    ],
+    correctIndex: 1,
+    category: 'Economy'
+  }
+];
 
 const TestInterface = () => {
   const { id } = useParams();
@@ -63,11 +133,27 @@ const TestInterface = () => {
     setMarkedForReview(newMarked);
   };
 
-  const handleSubmit = () => {
-    // Generate a mock score and redirect to result
-    const score = Math.floor(Math.random() * 100);
-    navigate(`/result/${id}`);
-    toast.success('Test Submitted Successfully!');
+  const handleSubmit = async () => {
+    try {
+      const formattedAnswers = Object.entries(answers).map(([qIdx, optIdx]) => ({
+        questionId: dummyQuestions[qIdx].id,
+        selectedIndex: optIdx,
+        timeTaken: 60 // Mock time taken
+      }));
+
+      const res = await axios.post('/api/submissions', {
+        testId: id || 'mock-47',
+        answers: formattedAnswers,
+        questions: dummyQuestions // Pass questions to backend so it can grade the hardcoded ones
+      });
+
+      toast.success('Test Submitted Successfully!');
+      navigate(`/result/${res.data._id}`);
+    } catch (err) {
+      console.error(err);
+      toast.error('Something went wrong submitting your test. Please try again.');
+      setShowConfirmModal(false);
+    }
   };
 
   const currentQ = dummyQuestions[currentIdx];
