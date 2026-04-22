@@ -52,6 +52,15 @@ router.post('/freeze', protect, async (req, res) => {
       .single();
 
     if (updateError) throw updateError;
+    
+    // Record the transaction in the rewards table
+    await supabase.from('rewards').insert({
+        user_id: req.user.id,
+        transaction_type: 'spent',
+        amount: 50,
+        source: 'streak_freeze',
+        description: 'Purchased a Streak Freeze'
+    });
 
     res.json({ message: 'Streak freeze purchased!', streak: updatedUser.streak, coins: updatedUser.coins, freezesRemaining: updatedUser.freezes_remaining });
   } catch (error) {

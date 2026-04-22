@@ -46,6 +46,7 @@ const streakRoutes = require('./routes/streak');
 const dashboardRoutes = require('./routes/dashboard');
 const profileRoutes = require('./routes/profiles');
 const practiceRoutes = require('./routes/practice');
+const questionRoutes = require('./routes/questions');
 
 // Import Cron Jobs
 const startStreakResetJob = require('./jobs/streakReset');
@@ -69,6 +70,7 @@ app.use('/api/streak', streakRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/profiles', profileRoutes);
 app.use('/api/practice', practiceRoutes);
+app.use('/api/questions', questionRoutes);
 
 // Placeholder routes
 app.get('/health', (req, res) => {

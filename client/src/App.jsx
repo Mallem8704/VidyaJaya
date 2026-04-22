@@ -22,6 +22,7 @@ import Practice from './pages/Practice';
 import Profile from './pages/Profile';
 import Landing from './pages/Landing';
 import Result from './pages/Result';
+import DailyAiQuestions from './pages/DailyAiQuestions';
 
 function App() {
   const { theme } = useAppStore();
@@ -83,6 +84,7 @@ function App() {
             <Route path="/doubts" element={<Doubts />} />
             <Route path="/rewards" element={<Rewards />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/ai-questions" element={<DailyAiQuestions />} />
             
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>

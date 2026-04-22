@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Award, Lock, Star, Zap, CheckCircle, ShieldCheck, Loader2 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
@@ -13,7 +13,29 @@ const mockRewards = [
 const Rewards = () => {
   const { user, updateUser } = useAuthStore();
   const [loadingId, setLoadingId] = useState(null);
-  const coins = user?.coins || 0;
+  const [transactions, setTransactions] = useState([]);
+  const [loadingTransactions, setLoadingTransactions] = useState(true);
+  const [realCoins, setRealCoins] = useState(user?.coins || 0);
+
+  useEffect(() => {
+    const fetchRewardsData = async () => {
+      try {
+        const [transRes, balRes] = await Promise.all([
+          axios.get('/api/rewards'),
+          axios.get('/api/rewards/balance')
+        ]);
+        setTransactions(transRes.data);
+        setRealCoins(balRes.data.coins);
+      } catch (err) {
+        console.error("Failed to fetch rewards data", err);
+      } finally {
+        setLoadingTransactions(false);
+      }
+    };
+    fetchRewardsData();
+  }, []);
+
+  const coins = realCoins;
 
   const handlePurchase = async (reward) => {
     if (coins < reward.cost) {
@@ -25,9 +47,12 @@ const Rewards = () => {
       try {
         const res = await axios.post('/api/streak/freeze');
         updateUser({ 
-          coins: res.data.coins,
           freezesRemaining: res.data.freezesRemaining
         });
+        setRealCoins(res.data.coins);
+        // Refresh transactions
+        const transRes = await axios.get('/api/rewards');
+        setTransactions(transRes.data);
         toast.success("Streak Freeze purchased!");
       } catch (err) {
         toast.error(err.response?.data?.message || "Purchase failed");
@@ -148,6 +173,41 @@ const Rewards = () => {
             </div>
          </div>
 
+      </div>
+
+      {/* Transactions History */}
+      <div className="mt-12 space-y-6">
+        <h3 className="text-2xl font-heading font-bold flex items-center gap-2">
+          📜 Transaction History
+        </h3>
+        <div className="card p-6 border border-[var(--border)] overflow-hidden">
+          {loadingTransactions ? (
+            <div className="flex justify-center p-8">
+              <Loader2 className="animate-spin text-secondary" size={32} />
+            </div>
+          ) : transactions.length === 0 ? (
+            <p className="text-center text-[var(--text-secondary)] py-8">No transactions yet. Complete tests to earn coins!</p>
+          ) : (
+            <div className="space-y-4">
+              {transactions.map(t => (
+                <div key={t.id} className="flex justify-between items-center p-4 border-b border-[var(--border)] last:border-0 hover:bg-[var(--bg-light)] rounded-lg transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-full ${t.transaction_type === 'earned' ? 'bg-green-100 text-green-600 dark:bg-green-900/30' : 'bg-red-100 text-red-600 dark:bg-red-900/30'}`}>
+                      {t.transaction_type === 'earned' ? <CheckCircle size={18} /> : <Zap size={18} />}
+                    </div>
+                    <div>
+                      <p className="font-bold">{t.description || t.source}</p>
+                      <p className="text-xs text-[var(--text-secondary)]">{new Date(t.created_at).toLocaleDateString()} • {new Date(t.created_at).toLocaleTimeString()}</p>
+                    </div>
+                  </div>
+                  <div className={`font-bold ${t.transaction_type === 'earned' ? 'text-green-500' : 'text-red-500'}`}>
+                    {t.transaction_type === 'earned' ? '+' : '-'}{t.amount} 💰
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

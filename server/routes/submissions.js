@@ -119,6 +119,15 @@ router.post('/', protect, async (req, res) => {
       last_streak_update: new Date()
     }).eq('id', req.user.id);
 
+    // Record the transaction in the rewards table
+    await supabase.from('rewards').insert({
+        user_id: req.user.id,
+        transaction_type: 'earned',
+        amount: submission.coins_earned || 0,
+        source: 'test_completion',
+        description: `Earned from ${test.title || 'test'}`
+    });
+
     res.status(201).json(mapSubmission(submission));
   } catch (error) {
     console.error('Submission Error:', error);

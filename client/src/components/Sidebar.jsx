@@ -13,7 +13,8 @@ import {
   User, 
   Settings,
   LogOut,
-  X
+  X,
+  Sparkles
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -23,6 +24,7 @@ const Sidebar = () => {
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'Tests', icon: BookOpen, path: '/tests' },
+    { name: 'AI Questions', icon: Sparkles, path: '/ai-questions' },
     { name: 'Practice', icon: Target, path: '/practice' },
     { name: 'Leaderboard', icon: Trophy, path: '/leaderboard' },
     { name: 'Analysis', icon: BarChart2, path: '/analysis' },
