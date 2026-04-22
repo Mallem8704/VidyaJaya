@@ -20,10 +20,11 @@ export const useAuthStore = create(
         set({ isloading: true, error: null });
         try {
           const response = await axios.post('/api/auth/login', { email, password });
+          const { user, token } = response.data;
           set({ 
-            user: response.data.user, 
-            token: response.data.token, 
-            isAuthenticated: true,
+            user, 
+            token, 
+            isAuthenticated: !!token,
             isloading: false 
           });
         } catch (error) {
@@ -39,10 +40,11 @@ export const useAuthStore = create(
         set({ isloading: true, error: null });
         try {
           const response = await axios.post('/api/auth/register', userData);
+          const { user, token } = response.data;
           set({ 
-            user: response.data.user, 
-            token: response.data.token, 
-            isAuthenticated: true,
+            user, 
+            token, 
+            isAuthenticated: !!token,
             isloading: false 
           });
         } catch (error) {
