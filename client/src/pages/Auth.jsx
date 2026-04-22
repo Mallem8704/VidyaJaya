@@ -59,7 +59,15 @@ const Auth = ({ type }) => {
         navigate('/dashboard');
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || error.message || 'Authentication failed');
+      const serverError = error.response?.data;
+      const errorMessage = serverError?.error 
+        ? `${serverError.message}: ${serverError.error}` 
+        : (serverError?.message || error.message || 'Authentication failed');
+      
+      toast.error(errorMessage, {
+        duration: 5000,
+        style: { maxWidth: '500px' }
+      });
     }
   };
 

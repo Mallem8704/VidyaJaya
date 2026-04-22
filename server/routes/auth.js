@@ -43,7 +43,11 @@ router.post('/register', async (req, res) => {
     if (profileError) {
       const logger = require('../utils/logger');
       logger.error('Profile Creation Error:', profileError);
-      return res.status(500).json({ message: 'Error creating user profile. Please try again.' });
+      return res.status(500).json({ 
+        message: 'Error creating user profile.', 
+        error: profileError.message,
+        details: profileError.details
+      });
     }
     
     res.status(201).json({
