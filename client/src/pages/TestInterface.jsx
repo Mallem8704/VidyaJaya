@@ -105,6 +105,16 @@ const TestInterface = () => {
     );
   }
 
+  if (!questions || questions.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen space-y-4">
+        <div className="text-4xl">⚠️</div>
+        <h2 className="text-xl font-bold">No questions found for this test.</h2>
+        <button onClick={() => navigate('/tests')} className="btn btn-primary">Back to Tests</button>
+      </div>
+    );
+  }
+
   const currentQ = questions[currentIdx];
 
   // Stats calculation

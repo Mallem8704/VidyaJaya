@@ -1,5 +1,8 @@
+import React, { useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
+import { Trophy, Flame, Crown, Medal } from 'lucide-react';
 
 const Leaderboard = () => {
   const [tab, setTab] = useState('global'); // 'global' or 'weekly'
