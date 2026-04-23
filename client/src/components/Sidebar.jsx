@@ -30,6 +30,7 @@ const Sidebar = () => {
     { name: 'Analysis', icon: BarChart2, path: '/analysis' },
     { name: 'Doubts', icon: HelpCircle, path: '/doubts' },
     { name: 'Rewards', icon: Gift, path: '/rewards' },
+    { name: 'Pricing', icon: Sparkles, path: '/pricing' },
     { name: 'Profile', icon: User, path: '/profile' },
   ];
 
@@ -84,6 +85,22 @@ const Sidebar = () => {
               </li>
             ))}
           </ul>
+
+          {/* Upgrade Card */}
+          {!user?.is_premium && (
+            <div className="mx-4 mt-6 p-4 rounded-xl bg-gradient-to-br from-secondary/40 to-accent-gold/40 border border-secondary/30">
+              <p className="text-xs font-bold text-accent-gold mb-1 flex items-center gap-1">
+                <Sparkles size={12}/> UPGRADE TO PRO
+              </p>
+              <p className="text-[10px] text-gray-100 mb-3">Unlock unlimited AI doubt solving & premium tests.</p>
+              <NavLink 
+                to="/pricing" 
+                className="block w-full py-2 text-center text-[10px] font-bold bg-white text-secondary rounded-lg hover:bg-opacity-90 transition-all shadow-sm"
+              >
+                GET PRO NOW
+              </NavLink>
+            </div>
+          )}
         </nav>
 
         {/* User Card */}
