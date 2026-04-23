@@ -5,8 +5,6 @@ const { protect } = require('../middleware/authMiddleware');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-// Using gemini-flash-latest as it is available for this key
-const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
 // Solve a doubt
 router.post('/solve', protect, async (req, res) => {
@@ -27,7 +25,7 @@ router.post('/solve', protect, async (req, res) => {
       return res.status(400).json({ message: 'Insufficient coins! You need 10 coins to solve a doubt.' });
     }
 
-    // 2. Call Gemini
+    // 2. Call Gemini with Safety Bypass and Fallback
     const prompt = `
       You are VidyaJaya AI, an expert tutor for UPSC, SSC and other competitive exams. 
       Provide a concise answer, a detailed step-by-step explanation, and related concepts for the given question.
@@ -37,13 +35,32 @@ router.post('/solve', protect, async (req, res) => {
       Return the response in STRICT JSON format with keys: answer, explanation, relatedConcepts (array).
     `;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    let text = response.text();
-    
-    // Clean potential markdown artifacts
-    text = text.replace(/```json/g, "").replace(/```/g, "").trim();
-    const aiResult = JSON.parse(text);
+    let aiResult;
+    try {
+      // Use the stable 1.5 Flash model
+      const model = genAI.getGenerativeModel({ 
+        model: "gemini-1.5-flash",
+        safetySettings: [
+          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+          { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+        ]
+      });
+
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      let text = response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+      aiResult = JSON.parse(text);
+    } catch (aiErr) {
+      console.warn("Primary AI failed, trying fallback...", aiErr.message);
+      // Fallback to Pro model if Flash is busy
+      const fallbackModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const result = await fallbackModel.generateContent(prompt);
+      const response = await result.response;
+      let text = response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+      aiResult = JSON.parse(text);
+    }
 
     // 3. Save to database
     const { data: doubt, error: doubtError } = await supabase
