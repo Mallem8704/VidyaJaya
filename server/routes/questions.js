@@ -43,20 +43,14 @@ router.post('/generate-questions', protect, async (req, res) => {
     }
     */
 
-    // 3. Format for Supabase and Store
+    // 3. Format for Supabase and Store (Only using verified existing columns)
     const questionsToInsert = questions.map(q => ({
       text: q.question,
       options: q.options,
-      correct_index: q.options.indexOf(q.answer),
+      correct_index: q.options.indexOf(q.answer) !== -1 ? q.options.indexOf(q.answer) : 0,
       explanation: q.explanation,
       category: subject,
-      sub_topic: q.topic,
-      difficulty: q.difficulty?.toLowerCase() || 'medium',
-      // Store in new columns too if they exist
-      question: q.question,
-      answer: q.answer,
-      subject: subject,
-      topic: q.topic
+      difficulty: q.difficulty?.toLowerCase() || 'medium'
     }));
 
     const { data, error } = await supabase
