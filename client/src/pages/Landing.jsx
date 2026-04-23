@@ -36,7 +36,7 @@ export default function Landing() {
 
   // Typewriter hook
   useEffect(() => {
-    const lines = ['Crack UPSC 2026', 'Score 99 in SSC CGL', 'Ace RRB NTPC', 'Beat 2.5L Students'];
+    const lines = ['Crack UPSC 2026', 'Score 99 in SSC CGL', 'Ace RRB NTPC', 'Master Daily Tests', 'Win Weekly Rewards'];
     let li = 0;
     let ci = 0;
     let deleting = false;
