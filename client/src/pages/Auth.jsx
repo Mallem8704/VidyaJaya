@@ -79,7 +79,9 @@ const Auth = ({ type }) => {
       
       <div className="z-10 relative">
         <Link to="/" className="flex items-center gap-3 mb-16">
-          <div className="w-10 h-10 bg-secondary rounded flex items-center justify-center font-bold text-white text-2xl shadow-lg">V</div>
+          <div className="w-10 h-10 bg-secondary rounded flex items-center justify-center overflow-hidden shadow-lg">
+            <img src="/logo.png" alt="V" className="w-full h-full object-contain" />
+          </div>
           <span className="font-heading font-bold text-3xl tracking-wide">VidyaJaya</span>
         </Link>
         
@@ -90,7 +92,7 @@ const Auth = ({ type }) => {
         >
           <h1 className="text-4xl md:text-5xl font-heading font-bold mb-6 leading-tight">
             Where Knowledge <br/>
-            Turns <span className="text-secondary">Victory</span>
+            <span className="text-secondary">Pays Off</span>
           </h1>
           <p className="text-lg text-gray-300 mb-10 max-w-md">
             Join 2.5L+ students building their streaks and conquering UPSC, SSC, and Banking exams with AI-powered practice.
@@ -130,7 +132,9 @@ const Auth = ({ type }) => {
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
           <div className="flex lg:hidden items-center justify-center gap-2 mb-10">
-            <div className="w-8 h-8 bg-secondary rounded flex items-center justify-center font-bold text-white text-xl">V</div>
+            <div className="w-8 h-8 bg-secondary rounded flex items-center justify-center overflow-hidden">
+              <img src="/logo.png" alt="V" className="w-full h-full object-contain" />
+            </div>
             <span className="font-heading font-bold text-2xl text-[var(--text-primary)]">VidyaJaya</span>
           </div>
 

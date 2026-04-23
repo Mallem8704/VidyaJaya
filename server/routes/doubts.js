@@ -2,11 +2,11 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
 const { protect } = require('../middleware/authMiddleware');
-const OpenAI = require('openai');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+// Using gemini-flash-latest as it is available for this key
+const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
 // Solve a doubt
 router.post('/solve', protect, async (req, res) => {
@@ -27,20 +27,23 @@ router.post('/solve', protect, async (req, res) => {
       return res.status(400).json({ message: 'Insufficient coins! You need 10 coins to solve a doubt.' });
     }
 
-    // 2. Call OpenAI
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { 
-          role: "system", 
-          content: "You are VidyaJaya AI, an expert tutor for UPSC, SSC and other competitive exams. Provide a concise answer, a detailed step-by-step explanation, and related concepts for the given question. Return the response in JSON format with keys: answer, explanation, relatedConcepts (array)." 
-        },
-        { role: "user", content: questionText }
-      ],
-      response_format: { type: "json_object" }
-    });
+    // 2. Call Gemini
+    const prompt = `
+      You are VidyaJaya AI, an expert tutor for UPSC, SSC and other competitive exams. 
+      Provide a concise answer, a detailed step-by-step explanation, and related concepts for the given question.
+      
+      Question: ${questionText}
+      
+      Return the response in STRICT JSON format with keys: answer, explanation, relatedConcepts (array).
+    `;
 
-    const aiResult = JSON.parse(completion.choices[0].message.content);
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    let text = response.text();
+    
+    // Clean potential markdown artifacts
+    text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    const aiResult = JSON.parse(text);
 
     // 3. Save to database
     const { data: doubt, error: doubtError } = await supabase

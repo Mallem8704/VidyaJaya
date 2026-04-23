@@ -1,7 +1,8 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+// Using gemini-flash-latest as it is available for this key
+const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
 /**
  * Generates UPSC-style MCQs using Gemini API
@@ -42,7 +43,7 @@ const generateQuestions = async (subject, difficulty = "medium", weakTopics = []
     const response = await result.response;
     let text = response.text();
     
-    // Clean potential markdown artifacts if Gemini includes them despite instructions
+    // Clean potential markdown artifacts
     text = text.replace(/```json/g, "").replace(/```/g, "").trim();
     
     try {
@@ -51,11 +52,10 @@ const generateQuestions = async (subject, difficulty = "medium", weakTopics = []
     } catch (parseError) {
       console.error("JSON Parse Error in Gemini response:", parseError);
       console.log("Raw text:", text);
-      // Retry logic could go here, but for now we throw and let the caller handle it
       throw new Error("Invalid JSON returned from AI");
     }
   } catch (error) {
-    console.error("Gemini API Error:", error);
+    console.error("Gemini API Error details:", error);
     throw error;
   }
 };

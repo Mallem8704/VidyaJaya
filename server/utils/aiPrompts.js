@@ -1,18 +1,22 @@
-const { OpenAI } = require('openai');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-const getOpenAIClient = () => {
-  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here') {
-    return new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
+const getGeminiClient = () => {
+  if (process.env.GEMINI_API_KEY) {
+    return new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   }
   return null;
 };
 
+const getModel = () => {
+    const client = getGeminiClient();
+    if (client) return client.getGenerativeModel({ model: "gemini-flash-latest" });
+    return null;
+};
+
 const analyzePerformance = async (topicWiseData) => {
-  const openai = getOpenAIClient();
+  const model = getModel();
   
-  if (!openai) {
+  if (!model) {
     // Mock response for development if no API key
     return {
       weakTopics: ["Economy (Budgeting)", "Modern History"],
@@ -31,81 +35,69 @@ const analyzePerformance = async (topicWiseData) => {
   }
 
   try {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert UPSC/SSC coaching AI. Respond strictly in JSON format matching this structure: { weakTopics: string[], strongTopics: string[], suggestions: string[], studyPlan: [{day: number, focus: string, action: string, time: string}], encouragement: string }"
-        },
-        {
-          role: "user",
-          content: `Analyze this student's performance: ${JSON.stringify(topicWiseData)}. Provide: 1) Top 3 weak areas with specific chapters, 2) Top 3 strong areas, 3) 5 actionable improvement suggestions, 4) 7-day study plan, 5) An encouraging message.`
-        }
-      ],
-      response_format: { type: "json_object" }
-    });
+    const prompt = `Analyze this student's performance: ${JSON.stringify(topicWiseData)}. 
+    Provide: 1) Top 3 weak areas with specific chapters, 2) Top 3 strong areas, 3) 5 actionable improvement suggestions, 4) 7-day study plan, 5) An encouraging message.
+    
+    Respond strictly in JSON format matching this structure: 
+    { 
+      "weakTopics": ["string"], 
+      "strongTopics": ["string"], 
+      "suggestions": ["string"], 
+      "studyPlan": [{"day": number, "focus": "string", "action": "string", "time": "string"}], 
+      "encouragement": "string" 
+    }`;
 
-    return JSON.parse(response.choices[0].message.content);
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    let text = response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+    return JSON.parse(text);
   } catch (error) {
-    console.error("OpenAI Analysis Error:", error);
+    console.error("Gemini Analysis Error:", error);
     throw error;
   }
 };
 
 const solveDoubt = async (questionText, imageBase64) => {
-  const openai = getOpenAIClient();
+  const model = getModel();
   
-  if (!openai) {
+  if (!model) {
     // Mock response for development
     return {
       answer: "The correct answer depends on the specifics, but generally it involves applying the core formula.",
-      explanation: "This is a mocked AI solution because the real OpenAI API key is missing. It would normally analyze your question text and image here.",
+      explanation: "This is a mocked AI solution because the real Gemini API key is missing.",
       relatedConcepts: ["Formula Application", "Basic Algebra"],
       memoryTips: "Mock Memory Tip: Practice makes perfect!"
     };
   }
 
   try {
-    const userMessageContent = [
-      { type: "text", text: `Solve this question step by step: ${questionText}` }
-    ];
-
+    let promptParts = [`Solve this question step by step: ${questionText}`];
+    
     if (imageBase64) {
-      userMessageContent.push({
-        type: "image_url",
-        image_url: {
-          url: `data:image/jpeg;base64,${imageBase64}`
+      promptParts.push({
+        inlineData: {
+          data: imageBase64,
+          mimeType: "image/jpeg"
         }
       });
     }
 
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        {
-          role: "system",
-          content: "You are an expert teacher for Indian competitive exams. Provide: answer, detailed explanation, related concepts, memory tips. Respond strictly in JSON structure: { answer: string, explanation: string, relatedConcepts: string[], memoryTips: string }"
-        },
-        {
-          role: "user",
-          content: userMessageContent
-        }
-      ],
-      response_format: { type: "json_object" }
-    });
-
-    return JSON.parse(response.choices[0].message.content);
+    const systemPrompt = "You are an expert teacher for Indian competitive exams. Provide: answer, detailed explanation, related concepts, memory tips. Respond strictly in JSON structure: { \"answer\": \"string\", \"explanation\": \"string\", \"relatedConcepts\": [\"string\"], \"memoryTips\": \"string\" }";
+    
+    const result = await model.generateContent([systemPrompt, ...promptParts]);
+    const response = await result.response;
+    let text = response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+    return JSON.parse(text);
   } catch (error) {
-    console.error("OpenAI Doubt Solving Error:", error);
+    console.error("Gemini Doubt Solving Error:", error);
     throw error;
   }
 };
 
 const fetchQuestionsFromAI = async (topic, count = 5, difficulty = 'medium') => {
-  const openai = getOpenAIClient();
+  const model = getModel();
   
-  if (!openai) {
+  if (!model) {
     // Mock response
     return Array.from({ length: count }).map((_, i) => ({
       question: `Mock ${difficulty} question ${i+1} about ${topic}?`,
@@ -116,16 +108,13 @@ const fetchQuestionsFromAI = async (topic, count = 5, difficulty = 'medium') => 
   }
 
   try {
-     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [{ 
-        role: "system", 
-        content: `You are an expert exam setter. Generate ${count} ${difficulty} MCQ questions on "${topic}". Respond strictly in JSON: { "questions": [ { "question": string, "options": string[], "correctIndex": number, "explanation": string } ] }` 
-      }],
-      response_format: { type: "json_object" }
-    });
+    const prompt = `You are an expert exam setter. Generate ${count} ${difficulty} MCQ questions on "${topic}". 
+    Respond strictly in JSON: { "questions": [ { "question": "string", "options": ["string"], "correctIndex": number, "explanation": "string" } ] }`;
 
-    const parsed = JSON.parse(response.choices[0].message.content);
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    let text = response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+    const parsed = JSON.parse(text);
     return parsed.questions || [];
   } catch (error) {
     console.error("fetchQuestionsFromAI Error:", error);

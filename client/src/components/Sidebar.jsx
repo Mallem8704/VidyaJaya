@@ -52,7 +52,9 @@ const Sidebar = () => {
         {/* Logo area */}
         <div className="flex items-center justify-between p-4 border-b border-primary-light">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-secondary rounded flex items-center justify-center font-bold text-white text-xl shadow-lg">V</div>
+            <div className="w-8 h-8 bg-secondary rounded flex items-center justify-center overflow-hidden shadow-lg">
+              <img src="/logo.png" alt="V" className="w-full h-full object-contain" />
+            </div>
             <span className="font-heading font-bold text-xl tracking-wide">VidyaJaya</span>
           </div>
           <button 

@@ -102,7 +102,7 @@ export default function Landing() {
         <div className="nav-inner">
           <div className="nav-logo">
             <div className="nav-logo-icon">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><path d="M4 5l8 14L20 5"/></svg>
+              <img src="/logo.png" alt="VidyaJaya Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
             <span className="nav-brand">Vidya<span>Jaya</span></span>
           </div>
@@ -544,7 +544,9 @@ export default function Landing() {
           <div className="footer-grid">
             <div className="footer-brand">
               <div className="footer-logo">
-                <div className="nav-logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round"><path d="M4 5l8 14L20 5"/></svg></div>
+                <div className="nav-logo-icon">
+                  <img src="/logo.png" alt="VidyaJaya Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
                 <span style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '20px', fontWeight: 900, color: '#fff' }}>Vidya<span style={{ color: 'var(--orange)' }}>Jaya</span></span>
               </div>
               <p className="footer-desc">India's AI-powered daily mock test platform. UPSC · SSC · RRB · Banking. Build streaks, earn coins, win real rewards.</p>
