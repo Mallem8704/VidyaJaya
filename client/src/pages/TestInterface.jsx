@@ -18,7 +18,9 @@ const TestInterface = () => {
   const [answers, setAnswers] = useState({}); // { qIndex: optionIndex }
   const [markedForReview, setMarkedForReview] = useState(new Set());
   const [timeLeft, setTimeLeft] = useState(0); 
+  const [qTimeLeft, setQTimeLeft] = useState(15); // 15s per question
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [isCheatDetected, setIsCheatDetected] = useState(false);
 
   useEffect(() => {
     const fetchTestData = async () => {
@@ -37,7 +39,7 @@ const TestInterface = () => {
     fetchTestData();
   }, [id]);
 
-  // Timer logic
+  // Overall Timer
   useEffect(() => {
     if (loading) return;
     const timer = setInterval(() => {
@@ -52,6 +54,45 @@ const TestInterface = () => {
     }, 1000);
     return () => clearInterval(timer);
   }, [loading]);
+
+  // Per-Question Timer (15s)
+  useEffect(() => {
+    if (loading || showConfirmModal) return;
+    
+    const qTimer = setInterval(() => {
+      setQTimeLeft(prev => {
+        if (prev <= 1) {
+          // Time up for this question - move to next
+          handleNextQuestion();
+          return 15;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(qTimer);
+  }, [loading, currentIdx, showConfirmModal]);
+
+  // Anti-Cheat: Visibility Change
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setIsCheatDetected(true);
+        toast.error('Anti-Cheat Alert: Please do not leave the test tab!', { duration: 5000 });
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  const handleNextQuestion = () => {
+    if (currentIdx < questions.length - 1) {
+      setCurrentIdx(currentIdx + 1);
+      setQTimeLeft(15);
+    } else {
+      setShowConfirmModal(true);
+    }
+  };
 
   const formatTime = (seconds) => {
     const h = Math.floor(seconds / 3600);
@@ -131,9 +172,14 @@ const TestInterface = () => {
           {test?.title || 'Mock Test'}
         </div>
         
-        <div className={`flex items-center gap-2 font-bold text-xl px-4 py-1 rounded-lg ${timeLeft < 300 ? 'bg-red-500 animate-pulse' : 'bg-primary-light border border-[#1E3A5F]'}`}>
-          <Clock size={20} />
-          {formatTime(timeLeft)}
+        <div className="flex items-center gap-4">
+          <div className={`flex items-center gap-2 font-bold text-xl px-4 py-1 rounded-lg ${timeLeft < 300 ? 'bg-red-500 animate-pulse' : 'bg-primary-light border border-[#1E3A5F]'}`}>
+            <Clock size={20} />
+            {formatTime(timeLeft)}
+          </div>
+          <div className={`flex items-center gap-2 font-bold text-lg px-3 py-1 rounded-lg border ${qTimeLeft < 5 ? 'text-red-500 border-red-500 animate-bounce' : 'text-orange-400 border-orange-400'}`}>
+            <span>Q Timer: {qTimeLeft}s</span>
+          </div>
         </div>
         
         <div className="flex items-center gap-4 w-1/3 justify-end">

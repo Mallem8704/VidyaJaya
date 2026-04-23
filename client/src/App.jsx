@@ -23,6 +23,7 @@ import Profile from './pages/Profile';
 import Landing from './pages/Landing';
 import Result from './pages/Result';
 import DailyAiQuestions from './pages/DailyAiQuestions';
+import KYC from './pages/KYC';
 
 function App() {
   const { theme } = useAppStore();
@@ -85,6 +86,7 @@ function App() {
             <Route path="/rewards" element={<Rewards />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/ai-questions" element={<DailyAiQuestions />} />
+            <Route path="/kyc" element={<KYC />} />
             
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>

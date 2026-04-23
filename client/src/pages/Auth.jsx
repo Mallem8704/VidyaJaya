@@ -21,6 +21,9 @@ const Auth = ({ type }) => {
     name: '', email: '', phone: '', password: '', confirmPassword: '', examGoal: 'UPSC'
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [showOtpField, setShowOtpField] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
 
   // Password Strength
   const getPasswordStrength = () => {
@@ -44,6 +47,18 @@ const Auth = ({ type }) => {
         toast.success('Welcome back!');
         navigate('/dashboard');
       } else if (type === 'Signup') {
+        if (!isOtpSent) {
+          // Simulate sending OTP
+          setIsOtpSent(true);
+          setShowOtpField(true);
+          toast.success('OTP sent to your mobile number!');
+          return;
+        }
+        
+        if (otp !== '1234') { // Mock OTP check
+           return toast.error('Invalid OTP. Please enter 1234 for simulation.');
+        }
+
         await register(formData);
         toast.success('Registration successful. Welcome to VidyaJaya!');
         navigate('/dashboard');
@@ -98,24 +113,44 @@ const Auth = ({ type }) => {
             Join 2.5L+ students building their streaks and conquering UPSC, SSC, and Banking exams with AI-powered practice.
           </p>
           
-          <div className="space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-4 bg-primary-light bg-opacity-40 p-4 rounded-xl backdrop-blur-sm border border-primary-light">
+              <div className="p-3 bg-secondary bg-opacity-20 rounded-lg text-secondary">
+                <CheckCircle size={24} />
+              </div>
+              <div>
+                <h4 className="font-semibold text-lg">1. Join with OTP</h4>
+                <p className="text-sm text-gray-400">Zero friction, zero credit card needed.</p>
+              </div>
+            </div>
+            
             <div className="flex items-center gap-4 bg-primary-light bg-opacity-40 p-4 rounded-xl backdrop-blur-sm border border-primary-light">
               <div className="p-3 bg-accent-green bg-opacity-20 rounded-lg text-accent-green">
                 <CheckCircle size={24} />
               </div>
               <div>
-                <h4 className="font-semibold text-lg">Daily Streaks</h4>
-                <p className="text-sm text-gray-400">Build habits and earn rewards</p>
+                <h4 className="font-semibold text-lg">2. Verify via DigiLocker</h4>
+                <p className="text-sm text-gray-400">Aadhaar-based KYC for reward eligibility.</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 bg-primary-light bg-opacity-40 p-4 rounded-xl backdrop-blur-sm border border-primary-light">
               <div className="p-3 bg-accent-purple bg-opacity-20 rounded-lg text-accent-purple">
                 <CheckCircle size={24} />
               </div>
               <div>
-                <h4 className="font-semibold text-lg">AI Analytics</h4>
-                <p className="text-sm text-gray-400">Identify weaknesses instantly</p>
+                <h4 className="font-semibold text-lg">3. Compete in 6 Sectors</h4>
+                <p className="text-sm text-gray-400">UPSC, Finance, S&T, and more.</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 bg-primary-light bg-opacity-40 p-4 rounded-xl backdrop-blur-sm border border-primary-light">
+              <div className="p-3 bg-orange-400 bg-opacity-20 rounded-lg text-orange-400">
+                <CheckCircle size={24} />
+              </div>
+              <div>
+                <h4 className="font-semibold text-lg">4. Instant Rewards</h4>
+                <p className="text-sm text-gray-400">Withdraw to bank account anytime (Min ₹50).</p>
               </div>
             </div>
           </div>
@@ -211,6 +246,18 @@ const Auth = ({ type }) => {
                       </select>
                     </div>
                   </div>
+                  
+                  {showOtpField && (
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-4 mb-4">
+                      <label className="block text-sm font-medium mb-1 text-secondary">Verification Code (OTP)</label>
+                      <input 
+                        type="text" value={otp} onChange={(e) => setOtp(e.target.value)}
+                        className="w-full p-4 text-center text-2xl tracking-widest rounded-xl border-2 border-secondary bg-[var(--bg-card)] focus:ring-2 focus:ring-secondary outline-none transition-all"
+                        placeholder="0000" maxLength={4}
+                      />
+                      <p className="text-xs text-[var(--text-secondary)] mt-2">Enter the 4-digit code sent to {formData.phone} (Try 1234)</p>
+                    </motion.div>
+                  )}
                 </>
               )}
 

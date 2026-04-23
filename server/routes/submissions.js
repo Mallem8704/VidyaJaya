@@ -11,7 +11,7 @@ const mapSubmission = (sub) => {
     _id: sub.id,
     id: sub.id,
     userId: sub.user_id,
-    testId: sub.tests || sub.test_id, // Populate case
+    testId: sub.tests || sub.test_id,
     score: sub.score,
     totalMarks: sub.total_marks,
     accuracy: sub.accuracy,
@@ -30,102 +30,112 @@ const mapSubmission = (sub) => {
   };
 };
 
-// Submit a test
+/**
+ * @route   POST /api/submissions
+ * @desc    Submit a test with Curfew (9 PM) and Tier Limits
+ */
 router.post('/', protect, async (req, res) => {
   try {
     const { testId, answers } = req.body;
-    
+    const user = req.user;
+
+    // 1. CURFEW CHECK (9:00 PM CLOSURE)
+    const now = new Date();
+    const currentHour = now.getHours();
+    if (currentHour >= 21) { // 9 PM onwards
+       return res.status(403).json({ 
+         message: 'Contest Closed! Submissions are only accepted until 9:00 PM IST.' 
+       });
+    }
+
+    // 2. FETCH TEST & QUESTIONS
     let test;
     let questionsToGrade;
     
-    if (testId === 'mock-47') {
-      test = {
-        id: 'mock-47',
-        title: 'UPSC Prelims Mock 47',
-        category: 'UPSC',
-        total_marks: 10,
-        total_questions: 5,
-        negative_marking: 0.67
-      };
-      questionsToGrade = req.body.questions || [];
-    } else {
-      const { data, error } = await supabase
+    const { data: testData, error: testErr } = await supabase
         .from('tests')
         .select('*, questions(*)')
         .eq('id', testId)
         .single();
         
-      if (error || !data) return res.status(404).json({ message: 'Test not found' });
-      test = data;
-      questionsToGrade = data.questions;
+    if (testErr || !testData) return res.status(404).json({ message: 'Test not found' });
+    test = testData;
+    questionsToGrade = testData.questions;
+
+    // 3. TIER LIMITS CHECK
+    const isPremium = user.is_premium || false;
+    
+    // Check if today's daily test
+    if (test.category === 'Daily Streak') {
+        const today = new Date().toISOString().split('T')[0];
+        const { data: todaySubs } = await supabase
+            .from('submissions')
+            .select('id, test_id')
+            .eq('user_id', user.id)
+            .gte('created_at', today);
+
+        if (!isPremium) {
+            // Free Tier: 1 sector/day, 10 questions limit
+            if (todaySubs && todaySubs.length >= 1) {
+                return res.status(403).json({ 
+                    message: 'Daily Limit Reached! Free tier users can attempt 1 sector per day. Upgrade to Pro for all 6 sectors.' 
+                });
+            }
+            if (answers.length > 10) {
+                return res.status(403).json({ 
+                    message: 'Free Tier Limit! You can only submit up to 10 questions. Upgrade to Pro for full 30 questions.' 
+                });
+            }
+        } else {
+            // Premium Tier: All 6 sectors (max 6 submissions for the daily test if categorized by sector)
+            // Or if it's one big test, 180 questions.
+            if (todaySubs && todaySubs.length >= 6) {
+                return res.status(403).json({ message: 'Daily Limit Reached for all 6 sectors!' });
+            }
+        }
     }
 
-    // Calculate score
+    // 4. SCORING (Precision Engine)
     const result = calculateScore(answers, questionsToGrade, test);
 
-    // Save submission
+    // 5. SAVE SUBMISSION
     const { data: submission, error: subError } = await supabase
       .from('submissions')
       .insert({
-        user_id: req.user.id,
-        test_id: test.id === 'mock-47' ? null : test.id,
+        user_id: user.id,
+        test_id: test.id,
         score: result.score,
-        total_marks: test.total_marks || test.totalMarks,
+        total_marks: test.total_marks,
         accuracy: result.accuracy,
         time_taken: result.timeTaken,
         correct_count: result.correctCount,
         wrong_count: result.wrongCount,
         skipped_count: result.skippedCount,
         topic_wise: result.topicWise,
-        coins_earned: result.accuracy > 80 ? 25 : 10
+        coins_earned: result.accuracy > 80 ? 25 : 10 // Basic coin logic, can be refined
       })
       .select()
       .single();
     
     if (subError) throw subError;
 
-    // Save answers
-    if (answers && answers.length > 0) {
-      const answersToInsert = answers.map(ans => ({
-        submission_id: submission.id,
-        question_id: ans.questionId,
-        selected_index: ans.selectedIndex,
-        time_taken: ans.timeTaken
-      }));
-      
-      const { error: ansError } = await supabase
-        .from('submission_answers')
-        .insert(answersToInsert);
-        
-      if (ansError) console.error('Answer Insert Error:', ansError);
-    }
-
-    // Update User Stats (Calculate overall accuracy and total score)
-    const { data: allSubs } = await supabase.from('submissions').select('correct_count, wrong_count, skipped_count, score').eq('user_id', req.user.id);
-    
-    const totalCorrect = allSubs.reduce((sum, s) => sum + (s.correct_count || 0), 0);
-    const totalAttempted = allSubs.reduce((sum, s) => sum + (s.correct_count || 0) + (s.wrong_count || 0) + (s.skipped_count || 0), 0);
-    const overallAccuracy = totalAttempted === 0 ? 0 : Math.round((totalCorrect / totalAttempted) * 100);
-    const totalScore = allSubs.reduce((sum, s) => sum + (s.score || 0), 0);
-
-    const { data: profile } = await supabase.from('profiles').select('coins, streak, weekly_score').eq('id', req.user.id).single();
+    // 6. UPDATE PROFILE STATS
+    const { data: profile } = await supabase.from('profiles').select('coins, streak, weekly_score').eq('id', user.id).single();
     
     await supabase.from('profiles').update({
       coins: (profile?.coins || 0) + (submission.coins_earned || 0),
       streak: (profile?.streak || 0) + 1,
-      total_score: totalScore,
       weekly_score: (profile?.weekly_score || 0) + result.score,
-      accuracy: overallAccuracy,
       last_streak_update: new Date()
-    }).eq('id', req.user.id);
+    }).eq('id', user.id);
 
-    // Record the transaction in the rewards table
+    // 7. RECORD REWARD
     await supabase.from('rewards').insert({
-        user_id: req.user.id,
+        user_id: user.id,
         transaction_type: 'earned',
         amount: submission.coins_earned || 0,
         source: 'test_completion',
-        description: `Earned from ${test.title || 'test'}`
+        description: `Earned from ${test.title}`
     });
 
     res.status(201).json(mapSubmission(submission));
@@ -174,5 +184,3 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 module.exports = router;
-
-
