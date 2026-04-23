@@ -22,6 +22,7 @@ const Auth = ({ type }) => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showOtpField, setShowOtpField] = useState(false);
+  const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
 
@@ -43,9 +44,24 @@ const Auth = ({ type }) => {
     e.preventDefault();
     try {
       if (type === 'Login') {
-        await login(formData.email, formData.password);
-        toast.success('Welcome back!');
-        navigate('/dashboard');
+        if (loginMethod === 'phone') {
+          if (!isOtpSent) {
+            setIsOtpSent(true);
+            setShowOtpField(true);
+            toast.success('OTP sent to your mobile!');
+            return;
+          }
+          if (otp !== '1234') {
+            return toast.error('Invalid OTP. Use 1234 for simulation.');
+          }
+          // Simulate login via phone
+          toast.success('Welcome back!');
+          navigate('/dashboard');
+        } else {
+          await login(formData.email, formData.password);
+          toast.success('Welcome back!');
+          navigate('/dashboard');
+        }
       } else if (type === 'Signup') {
         if (!isOtpSent) {
           // Simulate sending OTP
@@ -194,10 +210,64 @@ const Auth = ({ type }) => {
               </p>
             </div>
 
+            {type === 'Login' && (
+              <div className="flex bg-[var(--bg-light)] p-1 rounded-xl mb-8 border border-[var(--border)] relative z-10">
+                <button 
+                  type="button"
+                  onClick={() => { setLoginMethod('email'); setIsOtpSent(false); setShowOtpField(false); }}
+                  className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${loginMethod === 'email' ? 'bg-white shadow-md text-primary translate-y-0' : 'text-[var(--text-secondary)] hover:text-primary'}`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Mail size={16} /> Email Login
+                  </div>
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setLoginMethod('phone')}
+                  className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${loginMethod === 'phone' ? 'bg-white shadow-md text-primary translate-y-0' : 'text-[var(--text-secondary)] hover:text-primary'}`}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <Phone size={16} /> Phone (OTP)
+                  </div>
+                </button>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Form Fields Based on Type */}
-              {type === 'Signup' && (
+              {/* Form Fields Based on Type & Method */}
+              {type === 'Login' && loginMethod === 'phone' ? (
                 <>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Phone Number</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <Phone size={18} />
+                      </div>
+                      <input 
+                        type="tel" name="phone" 
+                        value={formData.phone} onChange={handleChange}
+                        className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                        placeholder="+91 9059061099" required
+                      />
+                    </div>
+                  </div>
+                  {showOtpField && (
+                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-4">
+                      <label className="block text-sm font-medium mb-1 text-secondary">Enter OTP</label>
+                      <input 
+                        type="text" value={otp} onChange={(e) => setOtp(e.target.value)}
+                        className="w-full p-3 text-center text-2xl tracking-[1em] rounded-xl border-2 border-secondary bg-[var(--bg-card)] focus:ring-2 focus:ring-secondary outline-none transition-all"
+                        placeholder="0000" maxLength={4} required
+                      />
+                      <p className="text-xs text-[var(--text-secondary)] mt-2">Enter 1234 to log in</p>
+                    </motion.div>
+                  )}
+                </>
+              ) : (
+                <>
+                  {type === 'Signup' && (
+                    <>
+                      {/* ... existing Signup fields ... */}
                   <div>
                     <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Full Name</label>
                     <div className="relative">
