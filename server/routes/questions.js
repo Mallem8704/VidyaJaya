@@ -27,6 +27,7 @@ router.post('/generate-questions', protect, async (req, res) => {
       questions = await generateQuestions(subject, difficulty || 'medium', weakTopics || []);
     }
 
+    /* 
     // 2. Avoid duplicate generation for same subject today
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -40,6 +41,7 @@ router.post('/generate-questions', protect, async (req, res) => {
     if (existing && existing.length > 0) {
       return res.status(409).json({ message: 'Questions for this subject have already been generated today.' });
     }
+    */
 
     // 3. Format for Supabase and Store
     const questionsToInsert = questions.map(q => ({

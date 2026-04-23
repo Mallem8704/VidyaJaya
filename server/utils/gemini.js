@@ -1,8 +1,13 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-// Using gemini-flash-latest as it is available for this key
-const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+// Using official gemini-1.5-flash and forcing JSON output mode
+const model = genAI.getGenerativeModel({ 
+  model: "gemini-1.5-flash",
+  generationConfig: {
+    responseMimeType: "application/json",
+  }
+});
 
 /**
  * Generates high-quality MCQs using Gemini API across various Knowledge Sectors
@@ -42,18 +47,17 @@ const generateQuestions = async (subject, difficulty = "medium", weakTopics = []
   try {
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    let text = response.text();
-    
-    // Clean potential markdown artifacts
-    text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    const text = response.text();
     
     try {
-      const parsed = JSON.parse(text);
+      // With JSON mode enabled, we can parse directly, but still check for markdown wrappers just in case
+      const cleanedText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+      const parsed = JSON.parse(cleanedText);
       return parsed;
     } catch (parseError) {
       console.error("JSON Parse Error in Gemini response:", parseError);
-      console.log("Raw text:", text);
-      throw new Error("Invalid JSON returned from AI");
+      console.log("Raw text received:", text);
+      throw new Error("The AI response was not in a valid format. Please try again.");
     }
   } catch (error) {
     console.error("Gemini API Error details:", error);
