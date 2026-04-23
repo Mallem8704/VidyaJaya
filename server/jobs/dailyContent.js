@@ -38,7 +38,7 @@ const startDailyContentJob = () => {
             // Create the Main Test Container
             const { data: dailyTest, error: testError } = await supabase.from('tests').insert({
                 title: testTitle,
-                category: 'Daily Mega Contest',
+                category: 'UPSC',
                 total_questions: 180, // 30 questions * 6 sectors
                 total_marks: 1800,
                 negative_marking: 0,

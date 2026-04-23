@@ -107,4 +107,28 @@ router.get('/daily', protect, async (req, res) => {
   }
 });
 
+/**
+ * @route   GET /api/questions/counts-by-category
+ * @desc    Get total question counts grouped by category
+ * @access  Private
+ */
+router.get('/counts-by-category', protect, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('questions')
+      .select('category');
+
+    if (error) throw error;
+
+    const counts = {};
+    data.forEach(q => {
+      counts[q.category] = (counts[q.category] || 0) + 1;
+    });
+
+    res.json(counts);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch question counts' });
+  }
+});
+
 module.exports = router;

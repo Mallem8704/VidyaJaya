@@ -6,12 +6,12 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 
 const baseTopics = [
-  { name: 'Indian Polity', count: 1240, progress: 45, icon: '📜' },
-  { name: 'Modern History', count: 850, progress: 20, icon: '⚔️' },
-  { name: 'Geography', count: 920, progress: 10, icon: '🌍' },
-  { name: 'Economy', count: 650, progress: 60, icon: '📈' },
-  { name: 'Quantitative Aptitude', count: 1500, progress: 5, icon: '🧮' },
-  { name: 'Logical Reasoning', count: 1100, progress: 80, icon: '🧩' },
+  { name: 'UPSC & Govt Exams', count: 0, progress: 0, icon: '🏛️' },
+  { name: 'Daily Current Affairs', count: 0, progress: 0, icon: '📰' },
+  { name: 'Science & Technology', count: 0, progress: 0, icon: '🚀' },
+  { name: 'Business & Finance', count: 0, progress: 0, icon: '💰' },
+  { name: 'Regional & State GK', count: 0, progress: 0, icon: '🗺️' },
+  { name: 'Civic & Electoral', count: 0, progress: 0, icon: '⚖️' },
 ];
 
 const Practice = () => {
@@ -19,12 +19,30 @@ const Practice = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [testsTaken, setTestsTaken] = useState(0);
 
+  const [topics, setTopics] = useState(baseTopics);
+
   useEffect(() => {
-    axios.get('/api/dashboard')
-      .then(res => {
-         setTestsTaken(res.data.testsTaken || 0);
-      })
-      .catch(err => console.error(err));
+    const fetchData = async () => {
+      try {
+        const [dashRes, countRes] = await Promise.all([
+          axios.get('/api/dashboard'),
+          axios.get('/api/questions/counts-by-category')
+        ]);
+        
+        setTestsTaken(dashRes.data.testsTaken || 0);
+        
+        // Update counts from DB
+        const dbCounts = countRes.data; // Expected format: { 'UPSC & Govt Exams': 30, ... }
+        setTopics(prev => prev.map(t => ({
+          ...t,
+          count: dbCounts[t.name] || 0,
+          progress: dashRes.data.testsTaken === 0 ? 0 : t.progress
+        })));
+      } catch (err) {
+        console.error('Error fetching practice data:', err);
+      }
+    };
+    fetchData();
   }, []);
   const handleStartDrill = async () => {
     setIsGenerating(true);
@@ -81,14 +99,15 @@ const Practice = () => {
        <div>
           <h3 className="font-heading font-bold text-2xl mb-6">Subject Wise Practice</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             {practiceTopics.map((topic, i) => (
-               <motion.div 
-                 initial={{ opacity: 0, scale: 0.95 }}
-                 animate={{ opacity: 1, scale: 1 }}
-                 transition={{ delay: i * 0.1 }}
-                 key={i} 
-                 className="card p-6 hover:shadow-lg transition-shadow cursor-pointer border border-[var(--border)] hover:border-accent-purple"
-               >
+              {topics.map((topic, i) => (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.1 }}
+                  key={i} 
+                  onClick={() => navigate(`/test/category/${encodeURIComponent(topic.name)}`)}
+                  className="card p-6 hover:shadow-lg transition-shadow cursor-pointer border border-[var(--border)] hover:border-accent-purple"
+                >
                  <div className="flex justify-between items-start mb-6">
                     <span className="text-3xl bg-[var(--bg-light)] w-12 h-12 flex items-center justify-center rounded-xl">{topic.icon}</span>
                     <span className="text-[10px] font-bold bg-[#F1F5F9] dark:bg-[#1E293B] text-[var(--text-secondary)] px-2 py-1 rounded">
