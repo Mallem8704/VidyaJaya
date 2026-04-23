@@ -15,12 +15,16 @@ const Leaderboard = () => {
       try {
         const endpoint = tab === 'global' ? '/api/leaderboard/global' : '/api/leaderboard/weekly';
         const res = await axios.get(endpoint);
-        setLeaderboard(res.data.map((u, i) => ({
-          ...u,
-          rank: i + 1,
-          score: tab === 'global' ? u.total_score : u.weekly_score,
-          plan: u.exam_goal || 'Basic' // Mapping exam_goal to plan for UI consistency
-        })));
+        if (res.data && Array.isArray(res.data)) {
+          setLeaderboard(res.data.map((u, i) => ({
+            ...u,
+            rank: i + 1,
+            score: (tab === 'global' ? u.total_score : u.weekly_score) || 0,
+            plan: u.exam_goal || 'Basic'
+          })));
+        } else {
+          setLeaderboard([]);
+        }
       } catch (err) {
         console.error('Error fetching leaderboard:', err);
         toast.error('Failed to load leaderboard');
@@ -130,37 +134,45 @@ const Leaderboard = () => {
         </div>
         
         <div className="divide-y divide-[var(--border)]">
-          {others.map((user, index) => (
-            <motion.div 
-              key={user.id || index}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-[var(--bg-light)] transition-colors"
-            >
-              <div className="col-span-2 md:col-span-1 text-center font-bold font-heading text-lg text-[var(--text-secondary)]">
-                #{user.rank}
-              </div>
-              <div className="col-span-5 md:col-span-5 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-white font-bold text-xs shrink-0">
-                  {user.name?.charAt(0) || '?'}
+          {leaderboard.length === 0 ? (
+            <div className="p-20 text-center text-[var(--text-secondary)]">
+              <Trophy size={48} className="mx-auto mb-4 opacity-20" />
+              <p className="text-lg font-bold">No rankings yet!</p>
+              <p className="text-sm">Be the first to complete a test and claim the #1 spot.</p>
+            </div>
+          ) : (
+            others.map((user, index) => (
+              <motion.div 
+                key={user.id || index}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="grid grid-cols-12 gap-4 p-4 items-center hover:bg-[var(--bg-light)] transition-colors"
+              >
+                <div className="col-span-2 md:col-span-1 text-center font-bold font-heading text-lg text-[var(--text-secondary)]">
+                  #{user.rank}
                 </div>
-                <span className="font-bold truncate">{user.name}</span>
-              </div>
-              <div className="col-span-2 hidden md:flex justify-center">
-                {user.plan === 'PRO' || user.is_premium
-                  ? <span className="text-[10px] bg-accent-gold bg-opacity-20 text-yellow-600 dark:text-yellow-400 font-bold px-2 py-0.5 rounded-full border border-yellow-200 dark:border-yellow-900">PRO</span>
-                  : <span className="text-[10px] text-gray-400">Basic</span>
-                }
-              </div>
-              <div className="col-span-3 md:col-span-2 flex items-center justify-center gap-1 font-bold text-orange-500">
-                <Flame size={16} fill="currentColor" /> {user.streak || 0}
-              </div>
-              <div className="col-span-2 md:col-span-2 text-right pr-4 font-heading font-bold text-lg">
-                {user.score}
-              </div>
-            </motion.div>
-          ))}
+                <div className="col-span-5 md:col-span-5 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-white font-bold text-xs shrink-0">
+                    {user.name?.charAt(0) || '?'}
+                  </div>
+                  <span className="font-bold truncate">{user.name}</span>
+                </div>
+                <div className="col-span-2 hidden md:flex justify-center">
+                  {user.plan === 'PRO' || user.is_premium
+                    ? <span className="text-[10px] bg-accent-gold bg-opacity-20 text-yellow-600 dark:text-yellow-400 font-bold px-2 py-0.5 rounded-full border border-yellow-200 dark:border-yellow-900">PRO</span>
+                    : <span className="text-[10px] text-gray-400">Basic</span>
+                  }
+                </div>
+                <div className="col-span-3 md:col-span-2 flex items-center justify-center gap-1 font-bold text-orange-500">
+                  <Flame size={16} fill="currentColor" /> {user.streak || 0}
+                </div>
+                <div className="col-span-2 md:col-span-2 text-right pr-4 font-heading font-bold text-lg">
+                  {user.score}
+                </div>
+              </motion.div>
+            ))
+          )}
         </div>
       </div>
       
