@@ -157,28 +157,27 @@ export default function Landing() {
               <div className="hero-badge">🚀 Free to Start</div>
             </div>
             <h1 className="hero-title">
-              Study Smarter.<br />
-              <span className="underline-orange">{typeWriterText}</span><br />
-              <span className="accent">Earn Rewards.</span>
+              Where your daily study<br />
+              <span className="accent">turns into ranks and rewards</span>
             </h1>
-            <p className="hero-sub">India's most intelligent exam preparation platform. AI-powered daily tests, real-time leaderboard, and a streak system that rewards your consistency.</p>
+            <p className="hero-sub">AI-powered daily mock tests, live leaderboards, and real cash rewards for UPSC, SSC, Banking and more. Every question fresh. Every day a new competition.</p>
             <div className="hero-pills">
-              <div className="hero-pill"><div className="dot" style={{ background: '#FF6B00' }}></div>Daily AI Mock Tests</div>
-              <div className="hero-pill"><div className="dot" style={{ background: '#FFD700' }}></div>Earn Real Rewards</div>
-              <div className="hero-pill"><div className="dot" style={{ background: '#00C853' }}></div>Live Leaderboard</div>
+              <div className="hero-pill"><div className="dot" style={{ background: '#FF6B00' }}></div>AI-generated daily mock tests across UPSC, SSC, Banking, RRB and more – never the same question twice.</div>
+              <div className="hero-pill"><div className="dot" style={{ background: '#FFD700' }}></div>Live leaderboard that ranks you against serious aspirants across India in real time.</div>
+              <div className="hero-pill"><div className="dot" style={{ background: '#00C853' }}></div>Weekly cash rewards and streak bonuses for top performers – pure skill, no gambling.</div>
             </div>
             <div className="hero-ctas">
-              <button onClick={handleCtaClick} className="btn btn-primary btn-lg pulse-glow">🔥 Start Free — No Card</button>
-              <button className="btn btn-ghost btn-lg" onClick={() => scrollToSection('how')}>▶ How It Works</button>
+              <button onClick={handleCtaClick} className="btn btn-primary btn-lg pulse-glow">Start Free – Take Today’s Mock Test</button>
+              <button className="btn btn-ghost btn-lg" onClick={() => scrollToSection('how')}>See How VidyaJaya Works →</button>
             </div>
             <div className="hero-trust">
               <span className="stars">★★★★★</span>
-              <span>Trusted by 2.5L+ students across India</span>
+              <span>2.5L+ students registered · 5L+ tests completed · 94% report improved scores · ₹0 to start, cancel anytime</span>
             </div>
             <div className="hero-stats">
               <div><div className="hero-stat-n">2.5L+</div><div className="hero-stat-l">STUDENTS</div></div>
-              <div><div className="hero-stat-n">50K+</div><div className="hero-stat-l">DAILY TESTS</div></div>
-              <div><div className="hero-stat-n">94%</div><div className="hero-stat-l">SUCCESS RATE</div></div>
+              <div><div className="hero-stat-n">5L+</div><div className="hero-stat-l">TESTS COMPLETED</div></div>
+              <div><div className="hero-stat-n">94%</div><div className="hero-stat-l">IMPROVED SCORES</div></div>
               <div><div className="hero-stat-n">₹0</div><div className="hero-stat-l">TO START</div></div>
             </div>
           </div>
@@ -227,28 +226,28 @@ export default function Landing() {
       <section className="features" id="features">
         <div className="container text-center">
           <div className="section-tag reveal">✦ Platform Features</div>
-          <h2 className="section-title reveal reveal-delay-1">Everything you need to<br /><span style={{ color: 'var(--orange)' }}>crack your exam</span></h2>
-          <p className="section-sub reveal reveal-delay-2">Built for UPSC, SSC, RRB, Banking, Reasoning and Aptitude. The only platform that rewards you for studying daily.</p>
+          <h2 className="section-title reveal reveal-delay-1">The only platform where<br /><span style={{ color: 'var(--orange)' }}>daily mock tests can actually pay you</span></h2>
+          <p className="section-sub reveal reveal-delay-2">Built for UPSC, SSC, Banking, RRB, and aptitude exams. VidyaJaya uses AI to generate fresh questions every night, runs daily contests with live leaderboards, and rewards your performance with coins and weekly cash payouts.</p>
           <div className="features-grid" style={{ marginTop: '56px' }}>
             <div className="card feat-card feat-card-1 reveal">
               <div className="feat-icon" style={{ background: 'rgba(255,107,0,.12)' }}>🤖</div>
               <div className="feat-title">AI Daily Questions</div>
-              <div className="feat-desc">GPT-4o generates 180 fresh questions every midnight across 6 exam categories. Never the same question twice. Always current, always challenging.</div>
+              <div className="feat-desc">GPT‑4o generates fresh questions every midnight across UPSC, SSC, Banking, RRB and more – mapped to real exam patterns and the latest current affairs. No recycled question bank.</div>
             </div>
             <div className="card feat-card feat-card-2 reveal reveal-delay-1">
               <div className="feat-icon" style={{ background: 'rgba(0,200,83,.12)' }}>🔥</div>
-              <div className="feat-title">Daily Streak System</div>
-              <div className="feat-desc">Build a daily habit and get rewarded for it. Miss one day and your streak resets. Milestones at 7, 30, 100 and 365 days unlock badges and real rewards.</div>
+              <div className="feat-title">Daily Streak & Coins</div>
+              <div className="feat-desc">Build your streak, earn coins for every test and milestone, and redeem them for streak freezes, Pro access, and cash rewards. Your consistency finally has a score.</div>
             </div>
             <div className="card feat-card feat-card-3 reveal reveal-delay-2">
               <div className="feat-icon" style={{ background: 'rgba(124,58,237,.12)' }}>🏆</div>
               <div className="feat-title">Live Leaderboard</div>
-              <div className="feat-desc">Compete with 2.5L+ students across India in real-time. Top 3 win real cash every Sunday. Your rank updates live without a page refresh.</div>
+              <div className="feat-desc">Compete with serious aspirants across India on a transparent leaderboard. Top performers win from a weekly and monthly reward pool funded from subscriptions, not betting.</div>
             </div>
             <div className="card feat-card feat-card-4 reveal">
               <div className="feat-icon" style={{ background: 'rgba(14,165,233,.12)' }}>📊</div>
               <div className="feat-title">AI Performance Analysis</div>
-              <div className="feat-desc">After every test, GPT-4o analyses your weak areas and gives a personalised 7-day study plan. No generic advice — specific chapters, specific books.</div>
+              <div className="feat-desc">After every test, AI highlights your exact weak chapters and question types and suggests what to study in the next 7 days. No generic “60% accuracy” reports.</div>
             </div>
             <div className="card feat-card feat-card-5 reveal reveal-delay-1">
               <div className="feat-icon" style={{ background: 'rgba(245,158,11,.12)' }}>❓</div>
@@ -381,7 +380,7 @@ export default function Landing() {
             <div className="price-card">
               <div className="price-name">Free</div>
               <div className="price-amount">₹0 <span>/ forever</span></div>
-              <div className="price-desc">Perfect to start and build your daily habit.</div>
+              <div className="price-desc">Perfect to start your streak and experience VidyaJaya. Take limited tests, track your streak, and see the leaderboard – but only Pro users are eligible for cash rewards.</div>
               <div className="price-features">
                 <div className="pf yes"><div className="pf-check">✓</div><span>5 tests per week</span></div>
                 <div className="pf yes"><div className="pf-check">✓</div><span>Daily current affairs (10 Qs)</span></div>
@@ -397,7 +396,7 @@ export default function Landing() {
               <div className="popular-badge">MOST POPULAR</div>
               <div className="price-name" style={{ color: 'var(--orange)' }}>Pro</div>
               <div className="price-amount"><sup>₹</sup>{isAnnual ? '69' : '99'} <span>/ month</span></div>
-              <div className="price-desc">Everything you need. No compromises whatsoever.</div>
+              <div className="price-desc">Everything you need to compete seriously. Unlimited tests across all sectors, AI analysis and doubt solving, coin rewards, and eligibility for weekly cash payouts from the reward pool.</div>
               <div className="price-features">
                 <div className="pf yes"><div className="pf-check">✓</div><span>Unlimited daily tests</span></div>
                 <div className="pf yes"><div className="pf-check">✓</div><span>All 6 exam sectors</span></div>
@@ -423,6 +422,9 @@ export default function Landing() {
               <button onClick={handleCtaClick} className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center' }}>Upgrade to Pro+</button>
             </div>
           </div>
+          <p className="pricing-disclaimer" style={{ marginTop: '40px', fontSize: '14px', color: 'rgba(255,255,255,.6)', maxWidth: '800px', margin: '40px auto 0' }}>
+            VidyaJaya is a skill‑based subscription platform. You pay for access to tests and analytics; rewards are performance bonuses from our subscription revenue – not gambling or betting.
+          </p>
         </div>
       </section>
       
@@ -530,9 +532,9 @@ export default function Landing() {
       <section className="cta-band">
         <div className="container">
           <h2 className="cta-title">Start your streak today 🔥</h2>
-          <p className="cta-sub">Join 2.5 lakh students who study smarter, rank higher, and earn real rewards. Free forever to start.</p>
+          <p className="cta-sub">Join thousands of aspirants who study daily, track their rank, and earn rewards for performance – not luck. Free forever to start, upgrade only when you’re ready.</p>
           <div className="cta-btns">
-            <button onClick={handleCtaClick} className="btn btn-white btn-lg">🔥 Join Now For Free →</button>
+            <button onClick={handleCtaClick} className="btn btn-white btn-lg">Join VidyaJaya – Take Today’s Free Mock →</button>
             <a href="https://t.me/vidyajayaa" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{ background: 'rgba(255,255,255,.15)', color: '#fff', borderColor: 'rgba(255,255,255,.3)' }}>✈️ Join Telegram</a>
           </div>
         </div>
