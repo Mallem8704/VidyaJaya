@@ -5,7 +5,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
 /**
- * Generates UPSC-style MCQs using Gemini API
+ * Generates high-quality MCQs using Gemini API across various Knowledge Sectors
  * @param {string} subject 
  * @param {string} difficulty 
  * @param {string[]} weakTopics 
@@ -13,16 +13,17 @@ const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
  */
 const generateQuestions = async (subject, difficulty = "medium", weakTopics = []) => {
   const prompt = `
-    You are a senior UPSC (Union Public Service Commission) exam setter.
-    Generate 5 high-quality, conceptual, and challenging UPSC-style Multiple Choice Questions (MCQs) for the subject: "${subject}".
+    You are a senior exam setter for professional and competitive examinations.
+    Generate 5 high-quality, conceptual, and challenging Multiple Choice Questions (MCQs) for the category: "${subject}".
     Difficulty level: ${difficulty}.
     ${weakTopics.length > 0 ? `Focus on these specific topics: ${weakTopics.join(", ")}.` : ""}
 
     Requirements for each question:
-    1. Standard UPSC format with 4 options.
+    1. Standard examination format with 4 options.
     2. Only one correct answer.
     3. Detailed explanation for why the answer is correct and why other options are incorrect.
-    4. Categorize by specific topic and difficulty.
+    4. Categorize by specific sub-topic and difficulty.
+    5. If the category is UPSC, maintain extreme academic rigor. If it is Science & Tech or Finance, ensure technical accuracy.
 
     Output format: STRICT JSON ONLY. No extra text, no markdown code blocks.
     Example structure:
