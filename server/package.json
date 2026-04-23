@@ -15,6 +15,7 @@
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.104.0",
     "bcryptjs": "^3.0.3",
+    "cheerio": "^1.2.0",
     "cors": "^2.8.6",
     "date-fns": "^4.1.0",
     "dotenv": "^17.4.1",
@@ -26,6 +27,7 @@
     "node-cron": "^4.2.1",
     "nodemailer": "^8.0.5",
     "openai": "^6.34.0",
+    "rss-parser": "^3.13.0",
     "socket.io": "^4.8.3",
     "uuid": "^14.0.0",
     "winston": "^3.19.0"
