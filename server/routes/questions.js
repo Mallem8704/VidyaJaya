@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { generateQuestions } = require('../utils/openai');
+const { generateQuestions } = require('../utils/groq');
 const supabase = require('../config/supabase');
 const { protect } = require('../middleware/authMiddleware');
 

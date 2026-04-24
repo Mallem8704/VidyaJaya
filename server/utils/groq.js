@@ -1,11 +1,12 @@
 const { OpenAI } = require('openai');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "",
+const groq = new OpenAI({
+  baseURL: "https://api.groq.com/openai/v1",
+  apiKey: process.env.GROQ_API_KEY || "",
 });
 
 /**
- * Generates high-quality MCQs using OpenAI API across various Knowledge Sectors
+ * Generates high-quality MCQs using Groq API across various Knowledge Sectors
  * @param {string} subject 
  * @param {string} difficulty 
  * @param {string[]} weakTopics 
@@ -40,8 +41,8 @@ const generateQuestions = async (subject, difficulty = "medium", weakTopics = []
   `;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: "You are a helpful AI assistant that outputs only valid JSON arrays." },
         { role: "user", content: prompt }
@@ -59,7 +60,7 @@ const generateQuestions = async (subject, difficulty = "medium", weakTopics = []
       throw new Error("AI response format error. Please try again.");
     }
   } catch (error) {
-    console.error("OpenAI Critical Error:", error.message);
+    console.error("Groq Critical Error:", error.message);
     throw new Error("AI engine is currently over capacity or misconfigured. Please try again.");
   }
 };

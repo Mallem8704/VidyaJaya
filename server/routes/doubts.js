@@ -4,8 +4,9 @@ const supabase = require('../config/supabase');
 const { protect } = require('../middleware/authMiddleware');
 const { OpenAI } = require("openai");
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || "",
+const groq = new OpenAI({
+  baseURL: "https://api.groq.com/openai/v1",
+  apiKey: process.env.GROQ_API_KEY || "",
 });
 
 // Solve a doubt
@@ -39,8 +40,8 @@ router.post('/solve', protect, async (req, res) => {
 
     let aiResult;
     try {
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+      const completion = await groq.chat.completions.create({
+        model: "llama-3.3-70b-versatile",
         messages: [
           { role: "system", content: "You are a helpful AI tutor that outputs only valid JSON objects." },
           { role: "user", content: prompt }
