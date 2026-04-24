@@ -3,7 +3,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 // Enhanced configuration with safety bypass for educational content
 const modelConfig = {
-  model: "gemini-1.5-flash",
+  model: "gemini-flash-latest",
   safetySettings: [
     { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
     { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
@@ -58,8 +58,8 @@ const generateQuestions = async (subject, difficulty = "medium", weakTopics = []
     try {
         result = await model.generateContent(prompt);
     } catch (primaryError) {
-        console.warn("Primary AI Model failed, switching to fallback (gemini-pro)...");
-        const fallbackModel = genAI.getGenerativeModel({ ...modelConfig, model: "gemini-pro" });
+        console.warn("Primary AI Model failed, switching to fallback (gemini-pro-latest)...");
+        const fallbackModel = genAI.getGenerativeModel({ ...modelConfig, model: "gemini-pro-latest" });
         result = await fallbackModel.generateContent(prompt);
     }
 
