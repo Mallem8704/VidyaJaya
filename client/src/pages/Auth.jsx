@@ -412,6 +412,8 @@ const Auth = ({ type }) => {
                   </div>
                 </div>
               )}
+            </>
+          )}
 
               {type === 'Signup' && (
                 <div className="flex items-start mb-6">
