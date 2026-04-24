@@ -26,6 +26,11 @@ import DailyAiQuestions from './pages/DailyAiQuestions';
 import Pricing from './pages/Pricing';
 import KYC from './pages/KYC';
 
+// SEO Articles
+import WhatIsVidyajaya from './pages/articles/WhatIsVidyajaya';
+import HowVidyajayaHelps from './pages/articles/HowVidyajayaHelps';
+import WhyVidyajayaIsBest from './pages/articles/WhyVidyajayaIsBest';
+
 function App() {
   const { theme } = useAppStore();
   const { loadUser, token, _hasHydrated } = useAuthStore();
@@ -74,6 +79,11 @@ function App() {
         <Route path="/signup" element={<Auth type="Signup" />} />
         <Route path="/forgot-password" element={<Auth type="Forgot Password" />} />
         <Route path="/reset-password/:token" element={<Auth type="Reset Password" />} />
+        
+        {/* SEO Articles */}
+        <Route path="/what-is-vidyajaya" element={<WhatIsVidyajaya />} />
+        <Route path="/how-it-helps-students" element={<HowVidyajayaHelps />} />
+        <Route path="/why-vidyajaya-is-best" element={<WhyVidyajayaIsBest />} />
         
         {/* Protected Routes inside Layout */}
         <Route element={<PrivateRoute />}>

@@ -157,8 +157,8 @@ export default function Landing() {
               <div className="hero-badge">🚀 Free to Start</div>
             </div>
             <h1 className="hero-title">
-              Where your daily study<br />
-              <span className="accent">turns into ranks and rewards</span>
+              The <span className="accent">Vidyajaya App</span>: Where study<br />
+              turns into ranks and rewards
             </h1>
             <p className="hero-sub">AI-powered daily mock tests, live leaderboards, and real cash rewards for UPSC, SSC, Banking and more. Every question fresh. Every day a new competition.</p>
             <div className="hero-pills">
@@ -226,8 +226,8 @@ export default function Landing() {
       <section className="features" id="features">
         <div className="container text-center">
           <div className="section-tag reveal">✦ Platform Features</div>
-          <h2 className="section-title reveal reveal-delay-1">The only platform where<br /><span style={{ color: 'var(--orange)' }}>daily mock tests can actually pay you</span></h2>
-          <p className="section-sub reveal reveal-delay-2">Built for UPSC, SSC, Banking, RRB, and aptitude exams. VidyaJaya uses AI to generate fresh questions every night, runs daily contests with live leaderboards, and rewards your performance with coins and weekly cash payouts.</p>
+          <h2 className="section-title reveal reveal-delay-1">The only <span style={{ color: 'var(--orange)' }}>Vidyajaya platform</span> feature<br />that actually pays you to study</h2>
+          <p className="section-sub reveal reveal-delay-2">Built for UPSC, SSC, Banking, RRB, and aptitude exams. Vidyajaya uses AI to generate fresh questions every night, runs daily contests with live leaderboards, and rewards your performance with coins and weekly cash payouts.</p>
           <div className="features-grid" style={{ marginTop: '56px' }}>
             <div className="card feat-card feat-card-1 reveal">
               <div className="feat-icon" style={{ background: 'rgba(255,107,0,.12)' }}>🤖</div>
@@ -432,8 +432,8 @@ export default function Landing() {
       <section className="exams-section">
         <div className="container text-center">
           <div className="section-tag reveal">📚 All Exams Covered</div>
-          <h2 className="section-title reveal reveal-delay-1">One platform for <span style={{ color: 'var(--orange)' }}>every competitive exam</span></h2>
-          <p className="section-sub reveal reveal-delay-2">VidyaJaya covers 6 major exam categories with AI-generated questions tailored to each exam's pattern and syllabus.</p>
+          <h2 className="section-title reveal reveal-delay-1">The best <span style={{ color: 'var(--orange)' }}>Vidyajaya app</span> for <br />every competitive exam in India</h2>
+          <p className="section-sub reveal reveal-delay-2">Vidyajaya covers 6 major exam categories with AI-generated questions tailored to each exam's pattern and syllabus.</p>
           <div className="exam-grid">
             <div className="card exam-card reveal" style={{ '--ec-color': '#FF6B00' }}>
               <div className="exam-icon">🏛️</div>
@@ -570,6 +570,12 @@ export default function Landing() {
               <span className="footer-link">About Us</span>
               <span className="footer-link">Contact</span>
               <span className="footer-link">Privacy Policy</span>
+            </div>
+            <div>
+              <div className="footer-col-title">Resources</div>
+              <Link className="footer-link" to="/what-is-vidyajaya">What is Vidyajaya?</Link>
+              <Link className="footer-link" to="/how-it-helps-students">How it Helps</Link>
+              <Link className="footer-link" to="/why-vidyajaya-is-best">Why Vidyajaya is Best</Link>
             </div>
           </div>
           <div className="footer-bottom">
