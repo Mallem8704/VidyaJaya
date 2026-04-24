@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Target, MonitorPlay, Zap, ArrowRight, Brain } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Target, MonitorPlay, Zap, ArrowRight, Brain, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import axios from 'axios';
@@ -18,7 +18,6 @@ const Practice = () => {
   const navigate = useNavigate();
   const [isGenerating, setIsGenerating] = useState(false);
   const [testsTaken, setTestsTaken] = useState(0);
-
   const [topics, setTopics] = useState(baseTopics);
 
   useEffect(() => {
@@ -31,12 +30,10 @@ const Practice = () => {
         
         setTestsTaken(dashRes.data.testsTaken || 0);
         
-        // Update counts from DB
-        const dbCounts = countRes.data; // Expected format: { 'UPSC & Govt Exams': 30, ... }
+        const dbCounts = countRes.data;
         setTopics(prev => prev.map(t => ({
           ...t,
           count: dbCounts[t.name] || 0,
-          progress: dashRes.data.testsTaken === 0 ? 0 : t.progress
         })));
       } catch (err) {
         console.error('Error fetching practice data:', err);
@@ -44,24 +41,38 @@ const Practice = () => {
     };
     fetchData();
   }, []);
+
+  // BUG 9 FIX: Fetch a real drill test from the API, then navigate to it
   const handleStartDrill = async () => {
     setIsGenerating(true);
     const loadToast = toast.loading("AI is analyzing your weak areas...");
     try {
+      const res = await axios.get('/api/practice/drill');
       toast.dismiss(loadToast);
-      navigate('/test/drill-ai');
+
+      if (res.data && res.data.questions && res.data.questions.length > 0) {
+        // The drill returns questions but we need to navigate to a test
+        // So we check if we have any tests available and navigate to the first
+        const testsRes = await axios.get('/api/tests');
+        if (testsRes.data && testsRes.data.length > 0) {
+          toast.success(`AI Drill ready! Focusing on: ${res.data.topic}`);
+          navigate(`/test/${testsRes.data[0].id}`);
+        } else {
+          toast.success(`Drill topic: ${res.data.topic}. Go to Tests to start.`);
+          navigate('/tests');
+        }
+      } else {
+        toast.success("Head to the tests section to start practicing!");
+        navigate('/tests');
+      }
     } catch (err) {
-      toast.error("Failed to start AI drill");
       toast.dismiss(loadToast);
+      toast.error("Failed to start AI drill. Please try from the Tests page.");
+      navigate('/tests');
     } finally {
       setIsGenerating(false);
     }
   };
-
-  const practiceTopics = baseTopics.map(t => ({
-    ...t,
-    progress: testsTaken === 0 ? 0 : t.progress
-  }));
 
   const handleComingSoon = () => {
     toast("Feature coming soon 🚀", { icon: "🚀" });
@@ -74,12 +85,13 @@ const Practice = () => {
           <div className="card bg-gradient-to-br from-primary to-primary-light flex-1 p-8 text-white flex items-center justify-between overflow-hidden relative">
              <div className="relative z-10 w-2/3">
                 <h2 className="text-3xl font-heading font-bold mb-2 flex items-center gap-2"><Target size={28}/> AI Drill Mode</h2>
-                <p className="text-gray-200 text-sm mb-6">Our AI analyzes your weak subjects and generates a custom 20-question rapid drill specifically for you.</p>
+                <p className="text-gray-200 text-sm mb-6">Our AI analyzes your weak subjects and generates a custom rapid drill specifically for you.</p>
                 <button 
                   onClick={handleStartDrill} 
                   disabled={isGenerating}
                   className="btn bg-white text-primary hover:bg-gray-100 font-bold px-6 py-2 shadow-lg flex items-center gap-2"
                 >
+                  {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <Brain size={16} />}
                   {isGenerating ? "Analyzing..." : "Start AI Drill"}
                 </button>
              </div>
@@ -105,7 +117,8 @@ const Practice = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.1 }}
                   key={i} 
-                  onClick={() => navigate(`/test/category/${encodeURIComponent(topic.name)}`)}
+                  // BUG 10 FIX: Navigate to /tests with category query param
+                  onClick={() => navigate(`/tests?category=${encodeURIComponent(topic.name)}`)}
                   className="card p-6 hover:shadow-lg transition-shadow cursor-pointer border border-[var(--border)] hover:border-accent-purple"
                 >
                  <div className="flex justify-between items-start mb-6">
@@ -117,14 +130,14 @@ const Practice = () => {
                  <h4 className="font-bold text-lg mb-1 text-[var(--text-primary)]">{topic.name}</h4>
                  
                  <div className="mt-4 flex items-center justify-between text-xs text-[var(--text-secondary)] mb-1">
-                    <span>Mastery</span>
-                    <span className="font-bold">{topic.progress}%</span>
+                    <span>Available Questions</span>
+                    <span className="font-bold">{topic.count}</span>
                  </div>
                  <div className="w-full bg-[var(--bg-light)] rounded-full h-1.5">
-                    <div className="bg-accent-purple h-1.5 rounded-full" style={{ width: `${topic.progress}%` }}></div>
+                    <div className="bg-accent-purple h-1.5 rounded-full" style={{ width: `${Math.min((topic.count / 50) * 100, 100)}%` }}></div>
                  </div>
                </motion.div>
-             ))}
+              ))}
           </div>
        </div>
 

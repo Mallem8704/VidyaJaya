@@ -91,16 +91,12 @@ export const useAuthStore = create(
         }
       },
 
-      resetPassword: async (token, password) => {
+      resetPassword: async (newPassword) => {
         set({ isloading: true, error: null });
         try {
-          const response = await axios.put(`/api/auth/reset-password/${token}`, { password });
-          set({ 
-            user: response.data.user, 
-            token: response.data.token, 
-            isAuthenticated: true,
-            isloading: false 
-          });
+          // BUG 15 FIX: Use the correct change-password endpoint
+          await axios.put('/api/auth/change-password', { newPassword });
+          set({ isloading: false });
         } catch (error) {
           set({ 
             error: error.response?.data?.message || 'Password reset failed',

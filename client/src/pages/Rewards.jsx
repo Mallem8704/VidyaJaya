@@ -35,6 +35,69 @@ const Rewards = () => {
     fetchRewardsData();
   }, []);
 
+  // BUG 13 FIX: Real Razorpay payment handler
+  const handleSubscribe = async (amount, planName) => {
+    const payToast = toast.loading('Creating your order...');
+    try {
+      // 1. Create order on backend
+      const orderRes = await axios.post('/api/payments/create-order', { amount, planName });
+      const order = orderRes.data;
+      toast.dismiss(payToast);
+
+      // 2. Open Razorpay checkout
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_SgtHYjaxxDOJUk',
+        amount: order.amount,
+        currency: 'INR',
+        name: 'VidyaJaya',
+        description: `${planName} Subscription`,
+        order_id: order.id,
+        handler: async (response) => {
+          // 3. Verify payment on backend
+          const verifyToast = toast.loading('Verifying payment...');
+          try {
+            await axios.post('/api/payments/verify', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              planName
+            });
+            updateUser({ plan: 'premium' });
+            toast.success('🎉 Welcome to VidyaJaya PRO!', { id: verifyToast });
+            // Refresh balance
+            const balRes = await axios.get('/api/rewards/balance');
+            setRealCoins(balRes.data.coins);
+          } catch (err) {
+            toast.error('Payment verification failed. Contact support.', { id: verifyToast });
+          }
+        },
+        prefill: {
+          name: user?.name || '',
+          email: user?.email || ''
+        },
+        theme: { color: '#FF6B00' }
+      };
+
+      // Dynamically load Razorpay script if not loaded
+      if (!window.Razorpay) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.onload = resolve;
+          script.onerror = reject;
+          document.body.appendChild(script);
+        });
+      }
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      toast.dismiss(payToast);
+      toast.error(err.response?.data?.message || 'Failed to initiate payment. Please try again.');
+    }
+  };
+
+
   const coins = realCoins;
 
   const handlePurchase = async (reward) => {
@@ -156,11 +219,18 @@ const Rewards = () => {
                </ul>
                
                <div className="grid grid-cols-2 gap-4">
-                  <button className="btn btn-outline border-2 hover:bg-gray-50 dark:hover:bg-gray-800 flex flex-col items-center p-4 h-auto">
+                  {/* BUG 13 FIX: Added onClick handlers for Razorpay */}
+                  <button 
+                    onClick={() => handleSubscribe(149, 'Weekly Plan')}
+                    className="btn btn-outline border-2 hover:bg-gray-50 dark:hover:bg-gray-800 flex flex-col items-center p-4 h-auto relative"
+                  >
                      <span className="text-xl font-bold mb-1">₹149</span>
                      <span className="text-xs font-bold text-[var(--text-secondary)] uppercase">Weekly Plan</span>
                   </button>
-                  <button className="btn bg-red-600 hover:bg-red-700 text-white flex flex-col items-center p-4 h-auto shadow-lg shadow-red-600/30 border-0">
+                  <button 
+                    onClick={() => handleSubscribe(499, 'Monthly Plan')}
+                    className="btn bg-red-600 hover:bg-red-700 text-white flex flex-col items-center p-4 h-auto shadow-lg shadow-red-600/30 border-0 relative"
+                  >
                      <span className="absolute -top-3 bg-accent-gold text-white text-[10px] px-2 py-0.5 rounded shadow">Save 20%</span>
                      <span className="text-xl font-bold mb-1">₹499</span>
                      <span className="text-xs font-bold text-rose-100 uppercase">Monthly Plan</span>

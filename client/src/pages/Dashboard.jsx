@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Flame, CheckCircle, Target, HelpCircle, Trophy, TrendingUp, Calendar as CalendarIcon, Snowflake } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
@@ -13,6 +13,10 @@ const Dashboard = () => {
   const [isFreezing, setIsFreezing] = useState(false);
   const [dashboard, setDashboard] = useState(null);
   const [loadingStage, setLoadingStage] = useState('spinner');
+  // BUG 6 FIX: Real leaderboard data state
+  const [topWarriors, setTopWarriors] = useState([]);
+  // BUG 7 FIX: Latest test ID state
+  const [latestTestId, setLatestTestId] = useState(null);
 
   React.useEffect(() => {
     const fetchDashboard = async () => {
@@ -26,6 +30,37 @@ const Dashboard = () => {
       }
     };
     fetchDashboard();
+
+    // BUG 6 FIX: Fetch real leaderboard top 4
+    const fetchLeaderboard = async () => {
+      try {
+        const res = await axios.get('/api/leaderboard/global');
+        if (res.data && Array.isArray(res.data)) {
+          setTopWarriors(res.data.slice(0, 4).map((u, i) => ({
+            rank: i + 1,
+            name: u.name || 'Anonymous',
+            score: u.total_score || 0,
+            icon: ['👑', '🥈', '🥉', '🏅'][i]
+          })));
+        }
+      } catch (err) {
+        console.error("Failed to load leaderboard:", err);
+      }
+    };
+    fetchLeaderboard();
+
+    // BUG 7 FIX: Fetch latest available test
+    const fetchLatestTest = async () => {
+      try {
+        const res = await axios.get('/api/tests');
+        if (res.data && res.data.length > 0) {
+          setLatestTestId(res.data[0].id);
+        }
+      } catch (err) {
+        console.error("Failed to fetch latest test:", err);
+      }
+    };
+    fetchLatestTest();
   }, []);
 
   if (loadingStage === 'spinner' || loadingStage === 'waking') {
@@ -60,13 +95,11 @@ const Dashboard = () => {
     try {
       const res = await axios.post('/api/streak/freeze');
       
-      // Update global user state (for other components)
       updateUser({ 
         coins: res.data.coins,
         freezesRemaining: res.data.freezesRemaining
       });
 
-      // Update local dashboard state
       setDashboard(prev => ({
         ...prev,
         coins: res.data.coins
@@ -109,7 +142,7 @@ const Dashboard = () => {
               
               <div className="flex items-center gap-3">
                 <div className="h-2 w-48 bg-primary-light rounded-full overflow-hidden">
-                  <div className="h-full bg-secondary rounded-full" style={{ width: '80%' }}></div>
+                  <div className="h-full bg-secondary rounded-full" style={{ width: `${Math.min((streakAmount % 10) * 10, 100)}%` }}></div>
                 </div>
                 <span className="text-xs font-semibold text-accent-gold">💰 {coinsAmount} coins</span>
               </div>
@@ -123,8 +156,8 @@ const Dashboard = () => {
             <div className="flex gap-1 mb-2">
               {[...Array(7)].map((_, i) => (
                 <div key={i} className={`w-6 h-6 rounded-sm flex items-center justify-center text-[10px] font-bold
-                  ${i < 4 ? 'bg-accent-green text-white' : i === 4 ? 'bg-secondary text-white ring-2 ring-white' : 'bg-primary-light text-gray-400'}`}>
-                  {i === 4 ? 'T' : '✓'}
+                  ${i < Math.min(streakAmount, 7) ? 'bg-accent-green text-white' : 'bg-primary-light text-gray-400'}`}>
+                  {i < Math.min(streakAmount, 7) ? '✓' : '·'}
                 </div>
               ))}
             </div>
@@ -200,11 +233,15 @@ const Dashboard = () => {
 
             {/* Quick Actions */}
             <div className="space-y-3">
-              <Link to="/test/mock-47" className="group block bg-gradient-to-r from-primary to-primary-light p-4 rounded-xl text-white shadow hover:shadow-lg transition-transform hover:-translate-y-1">
+              {/* BUG 7 FIX: Link to real latest test ID */}
+              <Link 
+                to={latestTestId ? `/test/${latestTestId}` : '/tests'} 
+                className="group block bg-gradient-to-r from-primary to-primary-light p-4 rounded-xl text-white shadow hover:shadow-lg transition-transform hover:-translate-y-1"
+              >
                 <div className="flex justify-between items-center">
                   <div>
                     <h4 className="font-bold mb-1 group-hover:text-secondary transition-colors">📝 Today's Mock Test</h4>
-                    <p className="text-xs text-gray-300">UPSC Prelims Set #47 • 120m</p>
+                    <p className="text-xs text-gray-300">{latestTestId ? 'Latest available test • Click to start' : 'Browse all tests →'}</p>
                   </div>
                   <ArrowRightIcon className="group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -228,7 +265,7 @@ const Dashboard = () => {
                 <div className="flex justify-between items-center">
                   <div>
                     <h4 className="font-bold mb-1 text-[var(--text-primary)]">❓ Doubt Solver</h4>
-                    <p className="text-xs text-[var(--text-secondary)]">Upload any question image</p>
+                    <p className="text-xs text-[var(--text-secondary)]">Ask any question — AI answers instantly</p>
                   </div>
                   <ArrowRightIcon className="text-accent-purple group-hover:translate-x-1 transition-transform" />
                 </div>
@@ -246,23 +283,30 @@ const Dashboard = () => {
               </select>
             </div>
             <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={dashboard.chartData || []} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#FF6B00" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#FF6B00" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} dy={10} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} domain={[0, 100]} />
-                  <RechartsTooltip 
-                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow)', backgroundColor: 'var(--bg-card)' }}
-                    itemStyle={{ color: '#FF6B00', fontWeight: 'bold' }}
-                  />
-                  <Area type="monotone" dataKey="score" stroke="#FF6B00" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" />
-                </AreaChart>
-              </ResponsiveContainer>
+              {dashboard.chartData && dashboard.chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={dashboard.chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#FF6B00" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#FF6B00" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} dy={10} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: 'var(--text-secondary)' }} domain={[0, 100]} />
+                    <RechartsTooltip 
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow)', backgroundColor: 'var(--bg-card)' }}
+                      itemStyle={{ color: '#FF6B00', fontWeight: 'bold' }}
+                    />
+                    <Area type="monotone" dataKey="score" stroke="#FF6B00" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-[var(--text-secondary)]">
+                  <TrendingUp size={40} className="opacity-20 mb-3" />
+                  <p className="font-medium">Complete tests to see your score trend</p>
+                </div>
+              )}
             </div>
           </div>
           
@@ -271,7 +315,7 @@ const Dashboard = () => {
         {/* Right Column */}
         <div className="space-y-6">
           
-          {/* Leaderboard Mini */}
+          {/* BUG 6 FIX: Real Leaderboard Mini */}
           <div className="card p-5">
             <h3 className="font-heading font-bold text-lg mb-4 flex items-center justify-between">
               🏅 Top Warriors
@@ -279,25 +323,25 @@ const Dashboard = () => {
             </h3>
             
             <div className="space-y-3 mb-4">
-              {[
-                { rank: 1, name: "Kiran R.", score: 2450, icon: "👑" },
-                { rank: 2, name: "Sneha P.", score: 2310, icon: "🥈" },
-                { rank: 3, name: "Rahul M.", score: 2100, icon: "🥉" },
-                { rank: 4, name: "Priya S.", score: 1950, icon: "🏅" },
-              ].map((lb) => (
+              {topWarriors.length > 0 ? topWarriors.map((lb) => (
                 <div key={lb.rank} className="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--bg-light)] transition-colors">
                   <div className="flex items-center gap-3">
                     <span className="text-lg w-6 text-center">{lb.icon}</span>
-                    <span className="font-medium text-sm">{lb.name}</span>
+                    <span className="font-medium text-sm truncate max-w-[100px]">{lb.name}</span>
                   </div>
                   <span className="text-sm font-bold">{lb.score}</span>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-4 text-[var(--text-secondary)] text-sm">
+                  <Trophy size={24} className="mx-auto mb-2 opacity-30" />
+                  No rankings yet — be the first!
+                </div>
+              )}
             </div>
             
             <div className="p-3 bg-[var(--bg-light)] rounded-xl border border-[var(--border)] mt-4">
               <p className="text-xs text-center">
-                You are <span className="font-bold text-secondary">#{rankAmount}</span> — 45 pts behind #341
+                You are <span className="font-bold text-secondary">#{rankAmount}</span> — keep taking tests to climb!
               </p>
             </div>
           </div>
@@ -314,17 +358,25 @@ const Dashboard = () => {
                    </tr>
                  </thead>
                  <tbody>
-                   {dashboard.recentTests?.map((t) => (
-                      <tr key={t.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--bg-light)] transition-colors group cursor-pointer">
-                        <td className="py-3">
-                          <div className="font-medium text-[var(--text-primary)] group-hover:text-secondary transition-colors truncate w-32 md:w-auto">{t.title}</div>
-                          <div className="text-[10px] text-[var(--text-secondary)] mt-0.5">{t.time}</div>
-                        </td>
-                        <td className="py-3 text-right">
-                          <span className="font-bold text-accent-green">{t.score}%</span>
-                        </td>
-                      </tr>
-                   ))}
+                   {dashboard.recentTests && dashboard.recentTests.length > 0 ? (
+                     dashboard.recentTests.map((t) => (
+                       <tr key={t.id} className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--bg-light)] transition-colors group cursor-pointer">
+                         <td className="py-3">
+                           <div className="font-medium text-[var(--text-primary)] group-hover:text-secondary transition-colors truncate w-32 md:w-auto">{t.title}</div>
+                           <div className="text-[10px] text-[var(--text-secondary)] mt-0.5">{t.time}</div>
+                         </td>
+                         <td className="py-3 text-right">
+                           <span className={`font-bold ${t.score >= 70 ? 'text-accent-green' : t.score >= 40 ? 'text-yellow-500' : 'text-red-500'}`}>{t.score}%</span>
+                         </td>
+                       </tr>
+                     ))
+                   ) : (
+                     <tr>
+                       <td colSpan={2} className="py-8 text-center text-[var(--text-secondary)] text-sm">
+                         No tests taken yet. <Link to="/tests" className="text-secondary font-bold hover:underline">Start one →</Link>
+                       </td>
+                     </tr>
+                   )}
                  </tbody>
                </table>
              </div>
@@ -339,5 +391,6 @@ const Dashboard = () => {
 // Temp simple icons for the dashboard
 const LockIcon = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>;
 const ArrowRightIcon = (props) => <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>;
+const Trophy = ({ size = 24, className = '' }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="11"/><path d="M5 3H19"/><path d="M5 3v5a7 7 0 0014 0V3"/><path d="M3 6h2"/><path d="M19 6h2"/></svg>;
 
 export default Dashboard;

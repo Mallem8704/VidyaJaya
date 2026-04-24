@@ -45,12 +45,13 @@ const Result = () => {
   }
 
   // Progress Circle computation
-  const percentage = submission.accuracy;
+  const percentage = submission.accuracy || 0;
   const radius = 60;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   const formatTime = (seconds) => {
+    if (!seconds) return '0m 0s';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}m ${secs}s`;
@@ -66,11 +67,13 @@ const Result = () => {
     };
   });
 
-  // Sort by score for better visualization
   topicData.sort((a, b) => b.score - a.score);
 
   const bestTopic = topicData[0];
   const worstTopic = topicData[topicData.length - 1];
+
+  // BUG 8 FIX: Build real answer key from submission.answers
+  const realAnswers = submission.answers || [];
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-12 mt-4 px-4 overflow-x-hidden">
@@ -81,7 +84,7 @@ const Result = () => {
         </Link>
         <div className="flex gap-3">
           <button className="btn btn-outline text-sm py-1.5 px-3 flex gap-2"><Share2 size={16}/> Share</button>
-          <button className="btn btn-primary text-sm py-1.5 px-3">Retake</button>
+          <Link to="/tests" className="btn btn-primary text-sm py-1.5 px-3">Take Another</Link>
         </div>
       </div>
 
@@ -95,7 +98,9 @@ const Result = () => {
             className="card p-8 flex flex-col items-center justify-center text-center relative overflow-hidden bg-primary text-white"
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-secondary blur-3xl opacity-30 rounded-full"></div>
-            <h2 className="text-xl font-heading font-medium mb-6 text-gray-200">{submission.testId?.title || 'Practice Set'}</h2>
+            <h2 className="text-xl font-heading font-medium mb-6 text-gray-200">
+              {submission.testId?.title || 'Practice Set'}
+            </h2>
             
             <div className="relative w-40 h-40 flex items-center justify-center mb-6">
               <svg className="transform -rotate-90 w-40 h-40">
@@ -111,17 +116,19 @@ const Result = () => {
               </svg>
               <div className="absolute flex flex-col items-center">
                 <span className="text-4xl font-heading font-bold">{percentage}%</span>
-                <span className="text-xs text-gray-300">Score</span>
+                <span className="text-xs text-gray-300">Accuracy</span>
               </div>
             </div>
 
-            <p className="text-lg font-medium">{percentage > 70 ? 'Great performance!' : percentage > 40 ? 'Good effort!' : 'Keep practicing!'}</p>
-            <p className="text-sm text-gray-300 px-4 mt-2">You scored {submission.score} marks in this session.</p>
+            <p className="text-lg font-medium">
+              {percentage > 70 ? 'Great performance!' : percentage > 40 ? 'Good effort!' : 'Keep practicing!'}
+            </p>
+            <p className="text-sm text-gray-300 px-4 mt-2">You scored {submission.score} marks.</p>
             
             <div className="mt-8 bg-[rgba(0,0,0,0.2)] rounded-xl p-4 w-full flex justify-between items-center border border-[rgba(255,255,255,0.1)]">
                <div>
                   <div className="text-xs text-gray-400">Coins Earned</div>
-                  <div className="text-xl font-bold text-accent-gold flex items-center gap-1"><Award size={18}/> +{submission.coinsEarned}</div>
+                  <div className="text-xl font-bold text-accent-gold flex items-center gap-1"><Award size={18}/> +{submission.coinsEarned || 0}</div>
                </div>
                <div className="text-right">
                   <div className="text-xs text-gray-400">Status</div>
@@ -164,74 +171,117 @@ const Result = () => {
                 <h3 className="font-heading font-bold text-xl text-white">AI Performance Insight</h3>
              </div>
               <p className="text-gray-300 leading-relaxed text-[15px] mb-6">
-                Your strongest area is <strong className="text-white">{bestTopic?.name || 'General'}</strong> ({bestTopic?.score || 0}%). 
-                {worstTopic && worstTopic.name !== bestTopic?.name ? (
-                  <> Focus more on <strong className="text-red-400">{worstTopic.name}</strong> — you got {worstTopic.score}% there.</>
+                {topicData.length > 0 ? (
+                  <>
+                    Your strongest area is <strong className="text-white">{bestTopic?.name || 'General'}</strong> ({bestTopic?.score || 0}%). 
+                    {worstTopic && worstTopic.name !== bestTopic?.name ? (
+                      <> Focus more on <strong className="text-red-400">{worstTopic.name}</strong> — you got {worstTopic.score}% there.</>
+                    ) : (
+                      <> Keep up the consistent performance across all areas!</>
+                    )}
+                    <br/><br/>
+                    <span className="text-accent-gold font-medium">AI Tip:</span> {worstTopic && worstTopic.score < 50 ? `Revisit the basics of ${worstTopic.name} and try 10 practice questions daily.` : "Take a more difficult mock test to challenge your limits!"}
+                  </>
                 ) : (
-                  <> Keep up the consistent performance across all areas!</>
+                  'Complete more tests to unlock personalized AI insights based on your performance.'
                 )}
-                <br/><br/>
-                <span className="text-accent-gold font-medium">AI Tip:</span> {worstTopic && worstTopic.score < 50 ? `Revisit the basics of ${worstTopic.name} and try 10 practice questions daily.` : "Take a more difficult mock test to challenge your limits!"}
               </p>
              <Link to="/analysis" className="btn bg-[rgba(255,255,255,0.1)] text-white hover:bg-[rgba(255,255,255,0.2)] text-sm px-5 py-2">
                Get Complete AI Plan
              </Link>
           </div>
 
-          {/* Topic Brekdown Chart */}
-          <div className="card p-6">
-            <h3 className="font-heading font-bold text-xl mb-6">Topic-Wise Breakdown</h3>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topicData} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 0 }}>
-                  <XAxis type="number" domain={[0, 100]} hide />
-                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: 'var(--text-primary)', fontWeight: 500}} width={80} />
-                  <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '12px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)' }} />
-                  <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={24}>
-                     {topicData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                     ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+          {/* Topic Breakdown Chart */}
+          {topicData.length > 0 && (
+            <div className="card p-6">
+              <h3 className="font-heading font-bold text-xl mb-6">Topic-Wise Breakdown</h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={topicData} layout="vertical" margin={{ top: 0, right: 30, left: 20, bottom: 0 }}>
+                    <XAxis type="number" domain={[0, 100]} hide />
+                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: 'var(--text-primary)', fontWeight: 500}} width={80} />
+                    <Tooltip cursor={{fill: 'transparent'}} contentStyle={{ borderRadius: '12px', border: '1px solid var(--border)', backgroundColor: 'var(--bg-card)' }} />
+                    <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={24}>
+                       {topicData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                       ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Answer Key Preview */}
+          {/* BUG 8 FIX: Real Answer Key from submission data */}
           <div className="card">
              <div className="p-6 border-b border-[var(--border)] flex justify-between items-center">
-                <h3 className="font-heading font-bold text-xl">Answer Key Preview</h3>
-                <span className="text-xs font-bold bg-primary text-white px-3 py-1 rounded-full">PRO features</span>
+                <h3 className="font-heading font-bold text-xl">Answer Review</h3>
+                {realAnswers.length === 0 && (
+                  <span className="text-xs font-bold bg-primary text-white px-3 py-1 rounded-full">PRO feature</span>
+                )}
              </div>
              <div className="divide-y divide-[var(--border)]">
-               
-               {[1, 2, 3].map(q => (
-                 <div key={q} className="p-6 hover:bg-[var(--bg-light)] transition-colors">
-                    <div className="flex gap-4">
-                       <span className="font-bold flex-shrink-0 w-8">Q{q}.</span>
-                       <div>
-                          <p className="font-medium mb-4">The 'Directive Principles of State Policy' in the Indian Constitution are inspired by the constitution of which country?</p>
-                          <div className="grid grid-cols-2 gap-3 mb-4">
-                             <div className="p-3 rounded border border-gray-200 dark:border-gray-700 bg-[var(--bg-card)]">A) USA</div>
-                             <div className="p-3 rounded border border-green-500 bg-green-50 dark:bg-[rgba(0,255,0,0.1)] text-green-700 dark:text-green-400 font-bold flex justify-between items-center">
-                               B) Ireland <CheckCircle size={18}/>
+               {realAnswers.length > 0 ? (
+                 realAnswers.slice(0, 5).map((ans, q) => {
+                   const question = ans.question;
+                   if (!question) return null;
+                   const isCorrect = ans.selectedIndex === question.correct_index;
+                   const isSkipped = ans.selectedIndex === null || ans.selectedIndex === undefined;
+                   return (
+                     <div key={q} className="p-6 hover:bg-[var(--bg-light)] transition-colors">
+                       <div className="flex gap-4">
+                         <span className="font-bold flex-shrink-0 w-8">Q{q + 1}.</span>
+                         <div className="w-full">
+                           <div className="flex items-center gap-2 mb-3">
+                             {isSkipped ? (
+                               <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-bold">SKIPPED</span>
+                             ) : isCorrect ? (
+                               <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded font-bold flex items-center gap-1"><CheckCircle size={10}/> CORRECT</span>
+                             ) : (
+                               <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded font-bold">WRONG</span>
+                             )}
+                           </div>
+                           <p className="font-medium mb-4">{question.text}</p>
+                           <div className="grid grid-cols-2 gap-3 mb-4">
+                             {(question.options || []).map((opt, i) => {
+                               const isCorrectOpt = i === question.correct_index;
+                               const isSelected = i === ans.selectedIndex;
+                               return (
+                                 <div key={i} className={`p-3 rounded border text-sm font-medium flex justify-between items-center
+                                   ${isCorrectOpt ? 'border-green-500 bg-green-50 dark:bg-[rgba(0,255,0,0.1)] text-green-700 dark:text-green-400' : 
+                                     isSelected && !isCorrectOpt ? 'border-red-400 bg-red-50 dark:bg-[rgba(255,0,0,0.1)] text-red-600' :
+                                     'border-gray-200 dark:border-gray-700 bg-[var(--bg-card)] text-gray-500 opacity-60'}`}>
+                                   <span>{String.fromCharCode(65+i)}) {opt}</span>
+                                   {isCorrectOpt && <CheckCircle size={14} className="shrink-0"/>}
+                                 </div>
+                               );
+                             })}
+                           </div>
+                           {question.explanation && (
+                             <div className="bg-blue-50 dark:bg-[rgba(59,130,246,0.1)] p-4 rounded-xl text-sm border border-blue-100 dark:border-blue-900">
+                               <span className="font-bold text-blue-800 dark:text-blue-400 block mb-1">Explanation:</span>
+                               {question.explanation}
                              </div>
-                             <div className="p-3 rounded border border-gray-200 dark:border-gray-700 bg-[var(--bg-card)] text-gray-500 opacity-50">C) UK</div>
-                             <div className="p-3 rounded border border-gray-200 dark:border-gray-700 bg-[var(--bg-card)] text-gray-500 opacity-50">D) Canada</div>
-                          </div>
-                          <div className="bg-blue-50 dark:bg-[rgba(59,130,246,0.1)] p-4 rounded-xl text-sm border border-blue-100 dark:border-blue-900 inline-block w-full">
-                            <span className="font-bold text-blue-800 dark:text-blue-400 block mb-1">Explanation:</span>
-                            The Directive Principles of State Policy are inspired by the Irish Constitution, which had copied it from the Spanish Constitution.
-                          </div>
+                           )}
+                         </div>
                        </div>
-                    </div>
+                     </div>
+                   );
+                 })
+               ) : (
+                 <div className="p-8 text-center text-[var(--text-secondary)]">
+                   <p className="font-medium mb-2">Answer review requires individual question submission data.</p>
+                   <p className="text-sm">Your score and topic breakdown above are accurate.</p>
                  </div>
-               ))}
-               
+               )}
              </div>
-             <div className="p-4 text-center bg-[var(--bg-light)] rounded-b-custom">
-                <button className="text-secondary font-bold text-sm hover:underline">View Detailed Analysis →</button>
-             </div>
+             {realAnswers.length > 5 && (
+               <div className="p-4 text-center bg-[var(--bg-light)] rounded-b-custom">
+                 <button className="text-secondary font-bold text-sm hover:underline">
+                   View All {realAnswers.length} Answers →
+                 </button>
+               </div>
+             )}
           </div>
 
         </div>

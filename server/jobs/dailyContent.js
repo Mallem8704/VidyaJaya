@@ -1,18 +1,8 @@
 const cron = require('node-cron');
-const { generateQuestions } = require('../utils/gemini');
+const { runAiPipeline } = require('../utils/aiPipeline');
 const supabase = require('../config/supabase');
 
-const SECTORS = [
-    'UPSC & Govt Exams', 
-    'Daily Current Affairs', 
-    'Science & Technology', 
-    'Business & Finance', 
-    'Regional & State GK', 
-    'Civic & Electoral'
-];
-
-const { runAiPipeline } = require('../utils/aiPipeline');
-
+// BUG 1 FIX: Removed duplicate SECTORS declaration
 const SECTORS = [
     'UPSC & Govt Exams', 
     'Daily Current Affairs', 
@@ -42,7 +32,7 @@ const startDailyContentJob = () => {
                 total_questions: 180, // 30 questions * 6 sectors
                 total_marks: 1800,
                 negative_marking: 0,
-                duration: 120,
+                duration: 7200, // 2 hours in seconds
                 is_premium: false
             }).select().single();
 
@@ -61,7 +51,7 @@ const startDailyContentJob = () => {
 
                 for (const target of targets) {
                     try {
-                        // Request questions for specific difficulty
+                        // BUG 2 FIX: Pass difficulty to runAiPipeline
                         const batch = await runAiPipeline(sector, target.difficulty);
                         
                         batch.slice(0, target.count).forEach(q => {
@@ -69,7 +59,7 @@ const startDailyContentJob = () => {
                                 test_id: dailyTest.id,
                                 text: q.question || q.text,
                                 options: q.options,
-                                correct_index: q.options.indexOf(q.answer),
+                                correct_index: q.options.indexOf(q.answer) !== -1 ? q.options.indexOf(q.answer) : 0,
                                 explanation: q.explanation,
                                 category: sector,
                                 difficulty: target.difficulty

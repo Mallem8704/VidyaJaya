@@ -99,7 +99,7 @@ router.post('/forgot-password', async (req, res) => {
   try {
     const { email } = req.body;
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password`,
+      redirectTo: `${process.env.FRONTEND_URL || process.env.CLIENT_URL || 'http://localhost:5173'}/reset-password`,
     });
 
     if (error) {
@@ -109,6 +109,32 @@ router.post('/forgot-password', async (req, res) => {
     res.status(200).json({ message: 'Password reset email sent' });
   } catch (error) {
     console.error(error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// @route   PUT /api/auth/change-password
+// @desc    Change password for authenticated user (BUG 11 & 15 FIX)
+router.put('/change-password', protect, async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    }
+
+    // Use Supabase service role to update the user's password
+    const { error } = await supabase.auth.admin.updateUserById(req.user.id, {
+      password: newPassword
+    });
+
+    if (error) {
+      return res.status(400).json({ message: error.message });
+    }
+
+    res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Change Password Error:', error);
     res.status(500).json({ message: 'Server Error' });
   }
 });

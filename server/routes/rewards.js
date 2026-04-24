@@ -64,14 +64,12 @@ router.post('/withdraw', protect, async (req, res) => {
             return res.status(400).json({ message: 'Insufficient balance' });
         }
 
-        // 4. PROCESS WITHDRAWAL (Create transaction and deduct balance)
+        // BUG 4 FIX: Use correct column names (type not transaction_type, no source/status)
         const { error: withdrawError } = await supabase.from('rewards').insert({
             user_id: user.id,
-            transaction_type: 'withdrawn',
+            type: 'withdrawn',
             amount: -amount,
-            source: 'bank_withdrawal',
-            description: `Withdrawal to ${upiId}`,
-            status: 'pending'
+            description: `Withdrawal of ₹${amount} to UPI: ${upiId}`
         });
 
         if (withdrawError) throw withdrawError;

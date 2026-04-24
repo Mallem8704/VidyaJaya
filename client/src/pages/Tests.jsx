@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { BookOpen, Filter, Award, CheckCircle, Clock, Share2 } from 'lucide-react';
+// BUG 10 FIX: Import useSearchParams to read category from URL
+import { Link, useSearchParams } from 'react-router-dom';
+import { BookOpen, Filter, Award, CheckCircle, Clock, Share2, X } from 'lucide-react';
 
 const Tests = () => {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
+  // BUG 10 FIX: Read ?category= query param from Practice page
+  const [searchParams, setSearchParams] = useSearchParams();
 
   React.useEffect(() => {
     const fetchTests = async () => {
@@ -24,10 +27,37 @@ const Tests = () => {
     };
     fetchTests();
   }, []);
+
+  // BUG 10 FIX: Apply category filter from query param on load
+  React.useEffect(() => {
+    const categoryParam = searchParams.get('category');
+    if (categoryParam) {
+      setActiveFilter(categoryParam);
+    }
+  }, [searchParams]);
+
+  const clearCategoryFilter = () => {
+    setActiveFilter('All');
+    setSearchParams({});
+  };
   
   const filteredTests = activeFilter === 'All' 
     ? tests 
-    : tests.filter(t => t.category === activeFilter || (activeFilter === 'PRO' && t.is_premium));
+    : tests.filter(t => 
+        t.category === activeFilter || 
+        (activeFilter === 'PRO' && t.is_premium) ||
+        // BUG 10 FIX: Also match category from practice page (partial match)
+        t.category?.toLowerCase().includes(activeFilter.toLowerCase())
+      );
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="w-12 h-12 border-4 border-primary border-t-white rounded-full animate-spin"></div>
+        <p className="text-secondary font-bold font-heading animate-pulse">Loading Tests...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in pb-10">
@@ -44,7 +74,7 @@ const Tests = () => {
              {['All', 'UPSC', 'SSC', 'PRO'].map(f => (
                <button 
                  key={f}
-                 onClick={() => setActiveFilter(f)}
+                 onClick={() => { setActiveFilter(f); setSearchParams({}); }}
                  className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${activeFilter === f ? 'bg-secondary text-white shadow-md' : 'text-gray-300 hover:text-white'}`}
                >
                  {f}
@@ -55,51 +85,74 @@ const Tests = () => {
       </div>
 
       <div className="flex justify-between items-center px-2">
-         <h3 className="font-heading font-bold text-xl">Available Test Series ({filteredTests.length})</h3>
+         <div className="flex items-center gap-3">
+           <h3 className="font-heading font-bold text-xl">Available Test Series ({filteredTests.length})</h3>
+           {/* BUG 10 FIX: Show active category filter badge with clear button */}
+           {activeFilter !== 'All' && !['UPSC', 'SSC', 'PRO'].includes(activeFilter) && (
+             <span className="flex items-center gap-1 text-xs bg-secondary text-white px-3 py-1 rounded-full font-bold">
+               {activeFilter}
+               <button onClick={clearCategoryFilter} className="hover:opacity-70">
+                 <X size={12} />
+               </button>
+             </span>
+           )}
+         </div>
          <button className="flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]"><Filter size={16}/> Sort By: Newest</button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {filteredTests.map((test, idx) => (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.05 }}
-            key={test.id} 
-            className="card hover:-translate-y-1 transition-all border border-[var(--border)] hover:border-secondary overflow-hidden flex flex-col"
-          >
-            <div className={`p-4 border-b border-[var(--border)] flex justify-between items-start ${test.is_premium ? 'bg-[rgba(255,107,0,0.02)]' : 'bg-[var(--bg-light)]'}`}>
-               <span className={`text-xs font-bold px-2 py-0.5 rounded ${test.category === 'UPSC' ? 'bg-blue-100 text-blue-700 dark:bg-[#07192a] dark:text-blue-400' : 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300'}`}>
-                 {test.category}
-               </span>
-               {test.is_premium ? (
-                 <span className="text-[10px] bg-accent-gold text-white font-bold px-2 py-0.5 rounded shadow flex items-center gap-1"><Award size={10}/> PRO</span>
-               ) : (
-                 <span className="text-[10px] text-accent-green font-bold px-2 py-0.5 flex items-center gap-1"><CheckCircle size={12}/> FREE</span>
-               )}
-            </div>
-            
-            <div className="p-6 flex-1 flex flex-col">
-               <h4 className="font-bold text-lg leading-tight mb-4">{test.title}</h4>
-               
-               <div className="flex gap-4 text-sm text-[var(--text-secondary)] mb-6 mt-auto">
-                 <div className="flex items-center gap-1"><Clock size={16}/> {Math.round(test.duration / 60)}m</div>
-                 <div className="flex items-center gap-1"><BookOpen size={16}/> {test.total_questions} Qs</div>
-                 <div className={`flex items-center gap-1 font-medium ${test.difficulty === 'Hard' ? 'text-red-500' : 'text-yellow-600'}`}>
-                    • {test.difficulty || 'Medium'}
+      {tests.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="text-6xl mb-4">📚</div>
+          <h3 className="text-xl font-bold mb-2">No Tests Available Yet</h3>
+          <p className="text-[var(--text-secondary)] max-w-md mb-6">The daily contest loads automatically at midnight. Check back soon or ask an admin to seed test data.</p>
+        </div>
+      ) : filteredTests.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="text-5xl mb-4">🔍</div>
+          <h3 className="text-xl font-bold mb-2">No Tests Found for "{activeFilter}"</h3>
+          <p className="text-[var(--text-secondary)] mb-6">Try a different category or view all tests.</p>
+          <button onClick={clearCategoryFilter} className="btn btn-primary">View All Tests</button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredTests.map((test, idx) => (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.05 }}
+              key={test.id} 
+              className="card hover:-translate-y-1 transition-all border border-[var(--border)] hover:border-secondary overflow-hidden flex flex-col"
+            >
+              <div className={`p-4 border-b border-[var(--border)] flex justify-between items-start ${test.is_premium ? 'bg-[rgba(255,107,0,0.02)]' : 'bg-[var(--bg-light)]'}`}>
+                 <span className={`text-xs font-bold px-2 py-0.5 rounded ${test.category === 'UPSC' ? 'bg-blue-100 text-blue-700 dark:bg-[#07192a] dark:text-blue-400' : 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300'}`}>
+                   {test.category}
+                 </span>
+                 {test.is_premium ? (
+                   <span className="text-[10px] bg-accent-gold text-white font-bold px-2 py-0.5 rounded shadow flex items-center gap-1"><Award size={10}/> PRO</span>
+                 ) : (
+                   <span className="text-[10px] text-accent-green font-bold px-2 py-0.5 flex items-center gap-1"><CheckCircle size={12}/> FREE</span>
+                 )}
+              </div>
+              
+              <div className="p-6 flex-1 flex flex-col">
+                 <h4 className="font-bold text-lg leading-tight mb-4">{test.title}</h4>
+                 
+                 <div className="flex gap-4 text-sm text-[var(--text-secondary)] mb-6 mt-auto">
+                   <div className="flex items-center gap-1"><Clock size={16}/> {Math.round((test.duration || 0) / 60)}m</div>
+                   <div className="flex items-center gap-1"><BookOpen size={16}/> {test.total_questions} Qs</div>
                  </div>
-               </div>
-               
-               <div className="flex gap-3">
-                 <Link to={`/test/${test.id}`} className={`flex-1 btn ${test.is_premium ? 'btn-outline border-accent-gold text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-[rgba(255,215,0,0.1)]' : 'btn-primary'} text-center py-2 `}>
-                   {test.is_premium ? 'Unlock with PRO' : 'Take Test'}
-                 </Link>
-                 <button className="p-2 border border-[var(--border)] rounded-lg hover:bg-[var(--bg-light)] text-[var(--text-secondary)]"><Share2 size={20}/></button>
-               </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+                 
+                 <div className="flex gap-3">
+                   <Link to={`/test/${test.id}`} className={`flex-1 btn ${test.is_premium ? 'btn-outline border-accent-gold text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-[rgba(255,215,0,0.1)]' : 'btn-primary'} text-center py-2`}>
+                     {test.is_premium ? 'Unlock with PRO' : 'Take Test'}
+                   </Link>
+                   <button className="p-2 border border-[var(--border)] rounded-lg hover:bg-[var(--bg-light)] text-[var(--text-secondary)]"><Share2 size={20}/></button>
+                 </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
       
     </div>
   );

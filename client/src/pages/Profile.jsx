@@ -4,6 +4,7 @@ import { Settings, LogOut, Bell, Shield, CreditCard, ChevronRight, Edit3, User a
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
+import { Link } from 'react-router-dom';
 
 const Profile = () => {
   const { user, logout, updateUser } = useAuthStore();
@@ -15,6 +16,13 @@ const Profile = () => {
     phone: user?.phone || '',
     examGoal: user?.exam_goal || 'UPSC'
   });
+
+  // BUG 11 FIX: Password change state
+  const [passwordData, setPasswordData] = useState({
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   const tabs = [
     { icon: UserIcon, label: 'Account Details' },
@@ -42,6 +50,35 @@ const Profile = () => {
     }
   };
 
+  // BUG 11 FIX: Real password change handler
+  const handlePasswordChange = async () => {
+    if (!passwordData.newPassword) {
+      return toast.error('Please enter a new password');
+    }
+    if (passwordData.newPassword.length < 6) {
+      return toast.error('Password must be at least 6 characters');
+    }
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      return toast.error('Passwords do not match');
+    }
+
+    setIsChangingPassword(true);
+    try {
+      await axios.put('/api/auth/change-password', {
+        newPassword: passwordData.newPassword
+      });
+      toast.success('Password updated successfully!');
+      setPasswordData({ newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update password');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  // BUG 12 FIX: Determine if user is actually premium
+  const isPremium = user?.plan === 'premium';
+
   return (
     <div className="max-w-4xl mx-auto animate-fade-in pb-10 space-y-6">
       
@@ -50,7 +87,7 @@ const Profile = () => {
         
         <div className="relative group cursor-pointer z-10">
           <div className="w-28 h-28 bg-[var(--bg-light)] bg-opacity-20 rounded-full border-4 border-[rgba(255,255,255,0.2)] flex items-center justify-center text-4xl font-bold text-gray-200 overflow-hidden shadow-xl backdrop-blur-md">
-             {user?.name?.charAt(0) || 'U'}
+             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div className="absolute bottom-0 right-0 w-8 h-8 bg-secondary rounded-full flex items-center justify-center text-white border-2 border-primary shadow-md hover:scale-110 transition-transform">
             <Edit3 size={14} />
@@ -62,7 +99,10 @@ const Profile = () => {
            <p className="text-primary-light mb-4">{user?.email}</p>
            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
              <span className="px-3 py-1 bg-[rgba(255,255,255,0.1)] rounded-full text-xs font-bold border border-[rgba(255,255,255,0.2)] backdrop-blur-md">🎯 Goal: {user?.exam_goal || 'UPSC'}</span>
-             <span className="px-3 py-1 bg-accent-gold text-yellow-900 font-bold rounded-full text-xs shadow-md">👑 Plan: {user?.plan || 'Free'}</span>
+             {/* BUG 12 FIX: Show real plan */}
+             <span className={`px-3 py-1 font-bold rounded-full text-xs shadow-md ${isPremium ? 'bg-accent-gold text-yellow-900' : 'bg-gray-200 text-gray-700'}`}>
+               {isPremium ? '👑 Plan: PRO' : '🎓 Plan: Free'}
+             </span>
              <span className="px-3 py-1 bg-accent-green text-green-900 font-bold rounded-full text-xs shadow-md">Verified Student</span>
            </div>
         </div>
@@ -97,7 +137,7 @@ const Profile = () => {
             <h3 className="font-heading font-bold text-2xl border-b border-[var(--border)] pb-4 mb-6">{activeTab}</h3>
             
             <motion.div 
-               key={activeTab} // Forces re-animation when tab changes
+               key={activeTab}
                initial={{ opacity: 0, x: 10 }}
                animate={{ opacity: 1, x: 0 }}
                className="flex-1"
@@ -136,21 +176,40 @@ const Profile = () => {
                 </div>
               )}
 
+              {/* BUG 11 FIX: Password change now has real handler */}
               {activeTab === 'Password & Security' && (
                 <div className="space-y-6">
-                  <div className="space-y-2">
-                     <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide">Current Password</label>
-                     <input type="password" placeholder="••••••••" className="w-full p-3 bg-[var(--bg-light)] border border-[var(--border)] rounded-lg outline-none focus:border-secondary" />
+                  <div className="p-4 bg-blue-50 dark:bg-[rgba(59,130,246,0.1)] rounded-xl border border-blue-100 dark:border-blue-900 text-sm text-blue-700 dark:text-blue-300">
+                    💡 Leave fields blank if you want to keep your current password.
                   </div>
                   <div className="space-y-2">
                      <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide">New Password</label>
-                     <input type="password" placeholder="Enter new password" className="w-full p-3 bg-[var(--bg-light)] border border-[var(--border)] rounded-lg outline-none focus:border-secondary" />
+                     <input 
+                       type="password" 
+                       placeholder="Enter new password (min 6 chars)"
+                       value={passwordData.newPassword}
+                       onChange={e => setPasswordData(p => ({ ...p, newPassword: e.target.value }))}
+                       className="w-full p-3 bg-[var(--bg-light)] border border-[var(--border)] rounded-lg outline-none focus:border-secondary" 
+                     />
                   </div>
                   <div className="space-y-2">
                      <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide">Confirm New Password</label>
-                     <input type="password" placeholder="Confirm new password" className="w-full p-3 bg-[var(--bg-light)] border border-[var(--border)] rounded-lg outline-none focus:border-secondary" />
+                     <input 
+                       type="password" 
+                       placeholder="Confirm new password"
+                       value={passwordData.confirmPassword}
+                       onChange={e => setPasswordData(p => ({ ...p, confirmPassword: e.target.value }))}
+                       className="w-full p-3 bg-[var(--bg-light)] border border-[var(--border)] rounded-lg outline-none focus:border-secondary" 
+                     />
                   </div>
-                  <button className="btn btn-primary px-8 mt-4">Update Password</button>
+                  <button 
+                    onClick={handlePasswordChange} 
+                    disabled={isChangingPassword}
+                    className="btn btn-primary px-8 mt-4 flex items-center gap-2"
+                  >
+                    {isChangingPassword && <Loader className="animate-spin" size={16} />}
+                    {isChangingPassword ? 'Updating...' : 'Update Password'}
+                  </button>
                 </div>
               )}
 
@@ -180,21 +239,41 @@ const Profile = () => {
                 </div>
               )}
 
+              {/* BUG 12 FIX: Subscription tab shows real plan */}
               {activeTab === 'Subscription' && (
                 <div className="text-center space-y-6 pt-4">
-                  <div className="w-20 h-20 bg-accent-gold bg-opacity-20 rounded-full flex items-center justify-center text-4xl mx-auto border-4 border-yellow-200">
-                    👑
-                  </div>
-                  <h4 className="font-bold text-2xl">You are a PRO Member</h4>
-                  <p className="text-[var(--text-secondary)] px-10">Your current plan gives you unlimited access to AI Doubts, Sectional Mocks, and Ad-Free studying.</p>
-                  <div className="p-4 bg-[var(--bg-light)] border border-[var(--border)] rounded-lg inline-block w-full max-w-sm">
-                    <div className="text-sm text-[var(--text-secondary)] mb-1">Next Billing Date</div>
-                    <div className="font-bold font-heading text-lg">April 24, 2026</div>
-                  </div>
-                  <div className="flex gap-4 justify-center mt-6">
-                     <button className="btn btn-outline text-red-500 border-red-200 hover:bg-red-50">Cancel Plan</button>
-                     <button className="btn btn-primary">Upgrade to Yearly</button>
-                  </div>
+                  {isPremium ? (
+                    <>
+                      <div className="w-20 h-20 bg-accent-gold bg-opacity-20 rounded-full flex items-center justify-center text-4xl mx-auto border-4 border-yellow-200">
+                        👑
+                      </div>
+                      <h4 className="font-bold text-2xl">You are a PRO Member!</h4>
+                      <p className="text-[var(--text-secondary)] px-10">Your current plan gives you unlimited access to AI Doubts, Sectional Mocks, and Ad-Free studying.</p>
+                      <div className="flex gap-4 justify-center mt-6">
+                         <button className="btn btn-outline text-red-500 border-red-200 hover:bg-red-50">Cancel Plan</button>
+                         <button className="btn btn-primary">Upgrade to Yearly</button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center text-4xl mx-auto border-4 border-gray-200 dark:border-gray-700">
+                        🎓
+                      </div>
+                      <h4 className="font-bold text-2xl">You're on the Free Plan</h4>
+                      <p className="text-[var(--text-secondary)] px-6">Upgrade to PRO to unlock unlimited tests, AI doubt solving, and priority rankings.</p>
+                      <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto mt-6">
+                        <Link to="/pricing" className="btn btn-outline border-2 flex flex-col items-center p-4 h-auto">
+                           <span className="text-xl font-bold mb-1">₹149</span>
+                           <span className="text-xs font-bold text-[var(--text-secondary)] uppercase">Weekly</span>
+                        </Link>
+                        <Link to="/pricing" className="btn btn-primary flex flex-col items-center p-4 h-auto relative">
+                           <span className="absolute -top-3 bg-accent-gold text-white text-[10px] px-2 py-0.5 rounded shadow">Best Value</span>
+                           <span className="text-xl font-bold mb-1">₹499</span>
+                           <span className="text-xs font-bold uppercase">Monthly</span>
+                        </Link>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 

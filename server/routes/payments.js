@@ -62,11 +62,11 @@ router.post('/verify', protect, async (req, res) => {
             return res.status(400).json({ message: "Invalid payment signature" });
         }
 
-        // 2. Signature is valid, Upgrade User to PRO
+        // BUG 5 FIX: Schema uses plan TEXT, not is_premium BOOLEAN
         const { error } = await supabase
             .from('profiles')
             .update({ 
-                is_premium: true,
+                plan: 'premium',
                 updated_at: new Date()
             })
             .eq('id', req.user.id);

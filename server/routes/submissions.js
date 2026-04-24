@@ -20,12 +20,13 @@ const mapSubmission = (sub) => {
     wrongCount: sub.wrong_count,
     skippedCount: sub.skipped_count,
     topicWise: sub.topic_wise,
-    coinsEarned: sub.coins_earned,
+    coinsEarned: sub.coins_earned_calc || 0, // returned from profile update
     createdAt: sub.created_at,
     answers: sub.submission_answers?.map(ans => ({
       questionId: ans.question_id,
       selectedIndex: ans.selected_index,
-      timeTaken: ans.time_taken
+      timeTaken: ans.time_taken,
+      question: ans.questions // nested question data
     }))
   };
 };
@@ -42,16 +43,13 @@ router.post('/', protect, async (req, res) => {
     // 1. CURFEW CHECK (9:00 PM CLOSURE)
     const now = new Date();
     const currentHour = now.getHours();
-    if (currentHour >= 21) { // 9 PM onwards
+    if (currentHour >= 21) {
        return res.status(403).json({ 
          message: 'Contest Closed! Submissions are only accepted until 9:00 PM IST.' 
        });
     }
 
     // 2. FETCH TEST & QUESTIONS
-    let test;
-    let questionsToGrade;
-    
     const { data: testData, error: testErr } = await supabase
         .from('tests')
         .select('*, questions(*)')
@@ -59,23 +57,21 @@ router.post('/', protect, async (req, res) => {
         .single();
         
     if (testErr || !testData) return res.status(404).json({ message: 'Test not found' });
-    test = testData;
-    questionsToGrade = testData.questions;
+    const test = testData;
+    const questionsToGrade = testData.questions;
 
     // 3. TIER LIMITS CHECK
-    const isPremium = user.is_premium || false;
+    const isPremium = (user.plan === 'premium') || false;
     
-    // Check if today's daily test
     if (test.category === 'Daily Streak') {
         const today = new Date().toISOString().split('T')[0];
         const { data: todaySubs } = await supabase
             .from('submissions')
-            .select('id, test_id')
+            .select('id')
             .eq('user_id', user.id)
             .gte('created_at', today);
 
         if (!isPremium) {
-            // Free Tier: 1 sector/day, 10 questions limit
             if (todaySubs && todaySubs.length >= 1) {
                 return res.status(403).json({ 
                     message: 'Daily Limit Reached! Free tier users can attempt 1 sector per day. Upgrade to Pro for all 6 sectors.' 
@@ -87,17 +83,16 @@ router.post('/', protect, async (req, res) => {
                 });
             }
         } else {
-            // Premium Tier: All 6 sectors (max 6 submissions for the daily test if categorized by sector)
-            // Or if it's one big test, 180 questions.
             if (todaySubs && todaySubs.length >= 6) {
                 return res.status(403).json({ message: 'Daily Limit Reached for all 6 sectors!' });
             }
         }
     }
 
-    // 4. SCORING (Precision Engine)
+    // 4. SCORING
     const result = calculateScore(answers, questionsToGrade, test);
 
+    // BUG 3 FIX: Removed coins_earned from submissions insert (column doesn't exist)
     // 5. SAVE SUBMISSION
     const { data: submission, error: subError } = await supabase
       .from('submissions')
@@ -111,37 +106,55 @@ router.post('/', protect, async (req, res) => {
         correct_count: result.correctCount,
         wrong_count: result.wrongCount,
         skipped_count: result.skippedCount,
-        topic_wise: result.topicWise,
-        coins_earned: result.accuracy > 80 ? 25 : 10 // Basic coin logic, can be refined
+        topic_wise: result.topicWise
       })
       .select()
       .single();
     
     if (subError) throw subError;
 
+    // Calculate coins for this submission
+    const coinsEarned = result.accuracy >= 80 ? 25 : 10;
+
     // 6. UPDATE PROFILE STATS
-    const { data: profile } = await supabase.from('profiles').select('coins, streak, weekly_score').eq('id', user.id).single();
-    
+    // BUG 14 FIX: Only increment streak if user hasn't submitted today already
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('coins, streak, weekly_score, total_score, last_streak_update')
+      .eq('id', user.id)
+      .single();
+
+    const today = new Date().toDateString();
+    const lastUpdate = profile?.last_streak_update 
+      ? new Date(profile.last_streak_update).toDateString() 
+      : null;
+    const shouldIncrementStreak = lastUpdate !== today;
+
     await supabase.from('profiles').update({
-      coins: (profile?.coins || 0) + (submission.coins_earned || 0),
-      streak: (profile?.streak || 0) + 1,
+      coins: (profile?.coins || 0) + coinsEarned,
+      streak: shouldIncrementStreak ? (profile?.streak || 0) + 1 : (profile?.streak || 0),
       weekly_score: (profile?.weekly_score || 0) + result.score,
-      last_streak_update: new Date()
+      total_score: (profile?.total_score || 0) + result.score,
+      accuracy: result.accuracy, // update with latest accuracy
+      last_streak_update: shouldIncrementStreak ? new Date() : profile?.last_streak_update
     }).eq('id', user.id);
 
+    // BUG 4 FIX: Use correct column names (type instead of transaction_type, no source/status)
     // 7. RECORD REWARD
     await supabase.from('rewards').insert({
         user_id: user.id,
-        transaction_type: 'earned',
-        amount: submission.coins_earned || 0,
-        source: 'test_completion',
-        description: `Earned from ${test.title}`
+        type: 'earned',
+        amount: coinsEarned,
+        description: `Earned ${coinsEarned} coins from completing: ${test.title}`
     });
 
-    res.status(201).json(mapSubmission(submission));
+    res.status(201).json({
+      ...mapSubmission(submission),
+      coinsEarned
+    });
   } catch (error) {
     console.error('Submission Error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
@@ -162,7 +175,7 @@ router.get('/my', protect, async (req, res) => {
   }
 });
 
-// Get submission by ID
+// Get submission by ID (with full answer details for Result page)
 router.get('/:id', protect, async (req, res) => {
   try {
     const { data: submission, error } = await supabase

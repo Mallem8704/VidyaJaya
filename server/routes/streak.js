@@ -53,12 +53,11 @@ router.post('/freeze', protect, async (req, res) => {
 
     if (updateError) throw updateError;
     
-    // Record the transaction in the rewards table
+    // BUG 4 FIX: Use correct column names (type, not transaction_type; no source column)
     await supabase.from('rewards').insert({
         user_id: req.user.id,
-        transaction_type: 'spent',
+        type: 'spent',
         amount: 50,
-        source: 'streak_freeze',
         description: 'Purchased a Streak Freeze'
     });
 
