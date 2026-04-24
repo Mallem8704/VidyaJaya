@@ -12,6 +12,15 @@ export default function Landing() {
   const [openFaq, setOpenFaq] = useState(null);
   const [typeWriterText, setTypeWriterText] = useState('Crack UPSC 2026');
 
+  // SEO hook
+  useEffect(() => {
+    document.title = "Vidyajaya — India's #1 AI Exam Platform for UPSC, SSC & Banking";
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute("content", "Vidyajaya is India's leading student platform providing AI-powered study materials, daily mock tests, job updates, and career guidance for UPSC, SSC, Banking, and RRB exams.");
+    }
+  }, []);
+
   // Scroll Listener hook
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);

@@ -1,7 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function WhyVidyajayaIsBest() {
+  useEffect(() => {
+    document.title = "Why Vidyajaya is the Best Platform for UPSC & SSC Prep";
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute("content", "Compare Vidyajaya with traditional coaching apps. Learn why our AI-generated questions and rewards make us the top choice for serious aspirants in India.");
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-[var(--bg-light)] text-[var(--text)]">
       {/* Navbar Minimal */}

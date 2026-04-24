@@ -1,7 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function WhatIsVidyajaya() {
+  useEffect(() => {
+    document.title = "What is Vidyajaya? — India's #1 AI Exam Platform";
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute("content", "Learn what Vidyajaya is and how our AI-powered platform helps students crack UPSC, SSC, Banking and RRB exams with rewards and streaks.");
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-[var(--bg-light)] text-[var(--text)]">
       {/* Navbar Minimal */}

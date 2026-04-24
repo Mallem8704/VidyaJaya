@@ -1,7 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 export default function HowVidyajayaHelps() {
+  useEffect(() => {
+    document.title = "How Vidyajaya Helps Students Crack UPSC, SSC & Banking";
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute("content", "Discover how Vidyajaya helps students stay consistent, analyze their performance with AI, and earn rewards while preparing for competitive exams.");
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-[var(--bg-light)] text-[var(--text)]">
       {/* Navbar Minimal */}
