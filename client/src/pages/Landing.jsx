@@ -514,24 +514,40 @@ export default function Landing() {
       <section className="founder reveal">
         <div className="container">
           <div className="text-center" style={{ marginBottom: '48px' }}>
-            <div className="section-tag" style={{ color: 'rgba(255,107,0,.8)' }}>👤 The Founder</div>
-            <h2 style={{ color: '#fff', marginBottom: 0 }}>The person <span style={{ color: 'var(--orange)' }}>behind VidyaJaya</span></h2>
+            <div className="section-tag" style={{ color: 'rgba(255,107,0,.8)' }}>👤 The Founders</div>
+            <h2 style={{ color: '#fff', marginBottom: 0 }}>The visionaries <span style={{ color: 'var(--orange)' }}>behind VidyaJaya</span></h2>
           </div>
-          <div className="founder-card">
-            <div className="founder-top">
-              <div className="founder-ava">MD</div>
-              <div className="founder-info">
-                <div className="founder-name">Mallem Dheeraj Royal</div>
-                <div className="founder-role">Founder & CEO — VidyaJaya Technologies Pvt Ltd</div>
-                <div className="founder-loc">📍 Kadiri, Sri Sathya Sai District, Andhra Pradesh, India</div>
+          <div className="founders-grid">
+            <div className="founder-card reveal">
+              <div className="founder-top">
+                <div className="founder-ava">MD</div>
+                <div className="founder-info">
+                  <div className="founder-name">Mallem Dheeraj Royal</div>
+                  <div className="founder-role">Founder & CEO</div>
+                  <div className="founder-loc">📍 Kadiri, Andhra Pradesh</div>
+                </div>
+              </div>
+              <blockquote className="founder-quote">"I built VidyaJaya because 2.5 crore students in India study every single day and not one platform was rewarding their consistency. Every test you take, every streak you maintain, every question you answer correctly — it counts. It rewards you. It brings you one step closer to the rank you deserve."</blockquote>
+              <div className="founder-contacts">
+                <div className="fc"><span className="fc-icon">📧</span><span className="fc-val">dheeraj@vidyajaya.in</span></div>
+                <div className="fc"><span className="fc-icon">📸</span><span className="fc-val">@mallemdheerajroyal</span></div>
               </div>
             </div>
-            <blockquote className="founder-quote">"I built VidyaJaya because 2.5 crore students in India study every single day and not one platform was rewarding their consistency. They wake up at 5 AM, they read the newspaper, they practice mock tests — and at the end of the day they have nothing to show for it except hope. VidyaJaya changes that. Every test you take, every streak you maintain, every question you answer correctly — it counts. It rewards you. It brings you one step closer to the rank you deserve."</blockquote>
-            <div className="founder-contacts">
-              <div className="fc"><span className="fc-icon">📧</span><span className="fc-val">hello@vidyajaya.in</span></div>
-              <div className="fc"><span className="fc-icon">📱</span><span className="fc-val">9059061099</span></div>
-              <div className="fc"><span className="fc-icon">📸</span><span className="fc-val">@mallemdheerajroyal</span></div>
-              <div className="fc"><span className="fc-icon">🌐</span><span className="fc-val">vidyajaya.in</span></div>
+
+            <div className="founder-card reveal reveal-delay-2">
+              <div className="founder-top">
+                <div className="founder-ava" style={{ background: 'linear-gradient(135deg, #3B82F6, #7C3AED)', border: '3px solid rgba(59,130,246,.4)', boxShadow: '0 0 40px rgba(59,130,246,.3)' }}>MY</div>
+                <div className="founder-info">
+                  <div className="founder-name">Manjunath Yadav Meesala</div>
+                  <div className="founder-role">Co-Founder & CEO</div>
+                  <div className="founder-loc">📍 Bengaluru, Karnataka</div>
+                </div>
+              </div>
+              <blockquote className="founder-quote" style={{ borderColor: '#3B82F6' }}>"Our mission is to build a platform that doesn't just provide content, but builds a future. By combining AI with habit-building psychology, we're ensuring every aspirant has the best shot at success. VidyaJaya is the ultimate companion for those who are serious about their goals."</blockquote>
+              <div className="founder-contacts">
+                <div className="fc"><span className="fc-icon">📧</span><span className="fc-val">manjunath@vidyajaya.in</span></div>
+                <div className="fc"><span className="fc-icon">📸</span><span className="fc-val">@manjunathyadav</span></div>
+              </div>
             </div>
           </div>
         </div>

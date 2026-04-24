@@ -342,7 +342,9 @@
 /* ── FOUNDER ── */
 .landing-page .founder { padding: 96px 0; background: var(--navy); position: relative; overflow: hidden; }
 .landing-page .founder::before { content: ''; position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(255,107,0,.12), transparent 70%); top: -200px; right: -200px; pointer-events: none; }
-.landing-page .founder-card { max-width: 760px; margin: 0 auto; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: var(--r24); padding: 48px; position: relative; z-index: 1; }
+.landing-page .founders-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; max-width: 1140px; margin: 0 auto; position: relative; z-index: 1; }
+.landing-page .founder-card { background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1); border-radius: var(--r24); padding: 40px; transition: transform .3s, border-color .3s; }
+.landing-page .founder-card:hover { transform: translateY(-8px); border-color: rgba(255,107,0,.3); }
 .landing-page .founder-top { display: flex; align-items: flex-start; gap: 28px; margin-bottom: 32px; }
 .landing-page .founder-ava { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, var(--orange), #ff3d00); display: flex; align-items: center; justify-content: center; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 32px; font-weight: 900; color: #fff; flex-shrink: 0; border: 3px solid rgba(255,107,0,.4); box-shadow: 0 0 40px rgba(255,107,0,.3); }
 .landing-page .founder-name { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 28px; font-weight: 900; color: #fff; margin-bottom: 4px; }
@@ -392,7 +394,7 @@
 @media(max-width: 768px) {
   .landing-page .nav-links, .landing-page .nav-right .btn-ghost { display: none; }
   .landing-page .hamburger { display: flex; }
-  .landing-page .features-grid, .landing-page .grid-3, .landing-page .pricing-grid, .landing-page .stats-grid { grid-template-columns: 1fr; }
+  .landing-page .features-grid, .landing-page .grid-3, .landing-page .pricing-grid, .landing-page .stats-grid, .landing-page .founders-grid { grid-template-columns: 1fr; }
   .landing-page .steps-row { grid-template-columns: 1fr; gap: 32px; }
   .landing-page .steps-row::before { display: none; }
   .landing-page .founder-top { flex-direction: column; align-items: center; text-align: center; }
