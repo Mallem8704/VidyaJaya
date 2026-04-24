@@ -14,7 +14,12 @@ router.post('/register', async (req, res) => {
     }
 
     // 1. Sign up with Supabase Auth
-    const { data: authData, error: authError } = await supabase.auth.signUp({
+    const { createClient } = require('@supabase/supabase-js');
+    const authClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    });
+
+    const { data: authData, error: authError } = await authClient.auth.signUp({
       email,
       password,
       options: {
@@ -67,7 +72,12 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    const { createClient } = require('@supabase/supabase-js');
+    const authClient = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false }
+    });
+
+    const { data: authData, error: authError } = await authClient.auth.signInWithPassword({
       email,
       password
     });

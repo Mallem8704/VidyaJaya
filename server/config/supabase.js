@@ -14,7 +14,13 @@ if (!supabaseUrl || !supabaseKey) {
   console.log('Is it the Service Role Key?', supabaseKey === process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+    detectSessionInUrl: false
+  }
+});
 
 module.exports = supabase;
 
