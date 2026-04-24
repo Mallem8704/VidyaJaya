@@ -1,24 +1,11 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const { OpenAI } = require('openai');
 
-// Enhanced configuration with safety bypass for educational content
-const modelConfig = {
-  model: "gemini-flash-latest",
-  safetySettings: [
-    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
-  ],
-  generationConfig: {
-    responseMimeType: "application/json",
-  }
-};
-
-let model = genAI.getGenerativeModel(modelConfig);
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || "",
+});
 
 /**
- * Generates high-quality MCQs using Gemini API across various Knowledge Sectors
+ * Generates high-quality MCQs using OpenAI API across various Knowledge Sectors
  * @param {string} subject 
  * @param {string} difficulty 
  * @param {string[]} weakTopics 
@@ -38,7 +25,7 @@ const generateQuestions = async (subject, difficulty = "medium", weakTopics = []
     4. Categorize by specific sub-topic and difficulty.
     5. If the category is UPSC, maintain extreme academic rigor. If it is Science & Tech or Finance, ensure technical accuracy.
 
-    Output format: STRICT JSON ONLY. No extra text, no markdown code blocks.
+    Output format: STRICT JSON ARRAY. No extra text, no markdown code blocks.
     Example structure:
     [
       {
@@ -53,18 +40,15 @@ const generateQuestions = async (subject, difficulty = "medium", weakTopics = []
   `;
 
   try {
-    // Attempt generation with Primary Model
-    let result;
-    try {
-        result = await model.generateContent(prompt);
-    } catch (primaryError) {
-        console.warn("Primary AI Model failed, switching to fallback (gemini-pro-latest)...");
-        const fallbackModel = genAI.getGenerativeModel({ ...modelConfig, model: "gemini-pro-latest" });
-        result = await fallbackModel.generateContent(prompt);
-    }
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are a helpful AI assistant that outputs only valid JSON arrays." },
+        { role: "user", content: prompt }
+      ]
+    });
 
-    const response = await result.response;
-    const text = response.text();
+    const text = completion.choices[0].message.content;
     
     try {
       const cleanedText = text.replace(/```json/g, "").replace(/```/g, "").trim();
@@ -75,8 +59,8 @@ const generateQuestions = async (subject, difficulty = "medium", weakTopics = []
       throw new Error("AI response format error. Please try again.");
     }
   } catch (error) {
-    console.error("Gemini Critical Error:", error.message);
-    throw new Error("AI engine is currently over capacity. Please try again in 5 seconds.");
+    console.error("OpenAI Critical Error:", error.message);
+    throw new Error("AI engine is currently over capacity or misconfigured. Please try again.");
   }
 };
 

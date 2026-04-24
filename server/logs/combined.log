@@ -111,3 +111,16 @@
 [2026-04-22 22:36:30] INFO: Server running heavily on port 3000
 [2026-04-22 22:36:34] INFO: ::1 - - [22/Apr/2026:17:06:34 +0000] "POST /api/auth/register HTTP/1.1" 201 1483 "-" "-"
 [2026-04-23 13:28:21] INFO: Server running heavily on port 3000
+[2026-04-25 00:08:30] INFO: Server running heavily on port 3000
+[2026-04-25 00:15:30] INFO: ::1 - - [24/Apr/2026:18:45:30 +0000] "POST /api/auth/login HTTP/1.1" 401 39 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+[2026-04-25 00:16:17] INFO: ::1 - - [24/Apr/2026:18:46:17 +0000] "POST /api/auth/login HTTP/1.1" 401 39 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+[2026-04-25 00:17:57] INFO: ::1 - - [24/Apr/2026:18:47:57 +0000] "POST /api/auth/login HTTP/1.1" 401 39 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+[2026-04-25 00:18:51] INFO: ::1 - - [24/Apr/2026:18:48:51 +0000] "POST /api/auth/login HTTP/1.1" 401 39 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+[2026-04-25 00:19:25] INFO: ::1 - - [24/Apr/2026:18:49:25 +0000] "POST /api/auth/login HTTP/1.1" 401 39 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+[2026-04-25 00:33:33] INFO: ::1 - - [24/Apr/2026:19:03:33 +0000] "POST /api/auth/login HTTP/1.1" 401 39 "http://localhost:5173/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+[2026-04-25 00:34:06] INFO: ::1 - - [24/Apr/2026:19:04:06 +0000] "GET /api/auth/me HTTP/1.1" 401 42 "http://localhost:5174/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+[2026-04-25 00:34:06] INFO: ::1 - - [24/Apr/2026:19:04:06 +0000] "GET /api/auth/me HTTP/1.1" - - "http://localhost:5174/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+[2026-04-25 00:34:18] INFO: ::1 - - [24/Apr/2026:19:04:18 +0000] "POST /api/auth/login HTTP/1.1" 401 39 "http://localhost:5174/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+[2026-04-25 00:34:45] INFO: ::1 - - [24/Apr/2026:19:04:45 +0000] "POST /api/auth/login HTTP/1.1" 401 39 "http://localhost:5174/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+[2026-04-25 00:35:44] INFO: ::1 - - [24/Apr/2026:19:05:44 +0000] "POST /api/auth/login HTTP/1.1" 401 39 "http://localhost:5174/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+[2026-04-25 00:36:12] INFO: ::1 - - [24/Apr/2026:19:06:12 +0000] "POST /api/auth/login HTTP/1.1" 401 39 "http://localhost:5174/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"

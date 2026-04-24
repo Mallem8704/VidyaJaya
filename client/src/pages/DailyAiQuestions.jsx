@@ -55,7 +55,7 @@ const DailyAiQuestions = () => {
       toast.success('Successfully generated 5 new UPSC-style questions!', { id: loadingToast });
     } catch (err) {
       console.error('Generation error:', err);
-      toast.error(err.response?.data?.message || 'Failed to generate questions. Gemini might be busy.', { id: loadingToast });
+      toast.error(err.response?.data?.message || 'Failed to generate questions. OpenAI might be busy.', { id: loadingToast });
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ const DailyAiQuestions = () => {
         <div className="relative z-10">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="text-secondary" size={20} />
-            <span className="text-xs font-bold uppercase tracking-widest text-secondary-light">Powered by Gemini 1.5 Flash</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-secondary-light">Powered by OpenAI GPT-4o</span>
           </div>
           <h1 className="text-3xl font-heading font-bold mb-2">Daily AI Question Generator</h1>
           <p className="text-blue-100 max-w-md">Generate fresh, UPSC-standard MCQs on any subject. Practice daily to build your streak and master complex concepts.</p>

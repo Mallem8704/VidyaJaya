@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
 const { protect } = require('../middleware/authMiddleware');
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { OpenAI } = require("openai");
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || "",
+});
 
 // Solve a doubt
 router.post('/solve', protect, async (req, res) => {
@@ -25,7 +27,7 @@ router.post('/solve', protect, async (req, res) => {
       return res.status(400).json({ message: 'Insufficient coins! You need 10 coins to solve a doubt.' });
     }
 
-    // 2. Call Gemini with Safety Bypass and Fallback
+    // 2. Call OpenAI
     const prompt = `
       You are VidyaJaya AI, an expert tutor for UPSC, SSC and other competitive exams. 
       Provide a concise answer, a detailed step-by-step explanation, and related concepts for the given question.
@@ -37,29 +39,21 @@ router.post('/solve', protect, async (req, res) => {
 
     let aiResult;
     try {
-      // Use the stable 1.5 Flash model
-      const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
-        safetySettings: [
-          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-          { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-        ]
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "You are a helpful AI tutor that outputs only valid JSON objects." },
+          { role: "user", content: prompt }
+        ],
+        response_format: { type: "json_object" }
       });
-
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      let text = response.text().replace(/```json/g, "").replace(/```/g, "").trim();
-      aiResult = JSON.parse(text);
+      
+      const text = completion.choices[0].message.content;
+      const cleanedText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+      aiResult = JSON.parse(cleanedText);
     } catch (aiErr) {
-      console.warn("Primary AI failed, trying fallback...", aiErr.message);
-      // Fallback to Pro model if Flash is busy
-      const fallbackModel = genAI.getGenerativeModel({ model: "gemini-pro" });
-      const result = await fallbackModel.generateContent(prompt);
-      const response = await result.response;
-      let text = response.text().replace(/```json/g, "").replace(/```/g, "").trim();
-      aiResult = JSON.parse(text);
+      console.error("OpenAI failed:", aiErr.message);
+      throw new Error("AI engine is currently over capacity. Please try again.");
     }
 
     // 3. Save to database

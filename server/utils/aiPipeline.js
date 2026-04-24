@@ -1,4 +1,4 @@
-const { generateQuestions } = require('./gemini');
+const { generateQuestions } = require('./openai');
 const { ingestLatestNews } = require('./scraper');
 
 /**
