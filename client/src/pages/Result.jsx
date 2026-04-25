@@ -11,6 +11,7 @@ const Result = () => {
   const { id } = useParams();
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showAllAnswers, setShowAllAnswers] = useState(false);
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -212,7 +213,7 @@ const Result = () => {
             </div>
           )}
 
-          {/* BUG 8 FIX: Real Answer Key from submission data */}
+          {/* Answer Review */}
           <div className="card">
              <div className="p-6 border-b border-[var(--border)] flex justify-between items-center">
                 <h3 className="font-heading font-bold text-xl">Answer Review</h3>
@@ -221,9 +222,8 @@ const Result = () => {
                 )}
              </div>
              <div className="divide-y divide-[var(--border)]">
-           <div className="divide-y divide-[var(--border)]">
                {realAnswers.length > 0 ? (
-                 realAnswers.map((ans, q) => {
+                 (showAllAnswers ? realAnswers : realAnswers.slice(0, 5)).map((ans, q) => {
                    const question = ans.question;
                    if (!question) return null;
                    const isCorrect = ans.selectedIndex === question.correct_index;
