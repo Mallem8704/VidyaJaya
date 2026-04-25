@@ -39,7 +39,6 @@ const submissionRoutes = require('./routes/submissions');
 const aiRoutes = require('./routes/ai');
 const leaderboardRoutes = require('./routes/leaderboard');
 const doubtRoutes = require('./routes/doubts');
-const rewardRoutes = require('./routes/rewards');
 const streakRoutes = require('./routes/streak');
 const dashboardRoutes = require('./routes/dashboard');
 const profileRoutes = require('./routes/profiles');

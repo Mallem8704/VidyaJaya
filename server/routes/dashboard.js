@@ -63,27 +63,30 @@ router.get('/', protect, async (req, res) => {
     // 3. Coins
     const coins = user.coins || 0;
 
-    // 4. Streak logic
-    const dates = [...new Set(submissions.map(sub => new Date(sub.submitted_at).toDateString()))];
+    // 4. Streak logic (fixed: no mutable Date mutation in loop)
+    const dateSet = new Set(
+      submissions.map(sub => new Date(sub.submitted_at).toISOString().split('T')[0])
+    );
     let streak = 0;
     const today = new Date();
-    const yesterday = new Date();
-    yesterday.setDate(today.getDate() - 1);
-    
-    let checkDate = new Date();
-    if (!dates.includes(today.toDateString()) && dates.includes(yesterday.toDateString())) {
-        checkDate = yesterday;
-    }
+    const todayStr = today.toISOString().split('T')[0];
+    const yesterdayDate = new Date(today);
+    yesterdayDate.setDate(today.getDate() - 1);
+    const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
 
-    for (let d of dates) {
-      const dString = new Date(d).toDateString();
-      if (dString === checkDate.toDateString()) {
-        streak++;
-        checkDate.setDate(checkDate.getDate() - 1);
-      } else if (new Date(d) > checkDate) {
-        continue;
-      } else {
-        break;
+    // Start from today if submitted today, otherwise from yesterday
+    let startOffset = dateSet.has(todayStr) ? 0 : (dateSet.has(yesterdayStr) ? 1 : -1);
+    
+    if (startOffset >= 0) {
+      for (let i = startOffset; ; i++) {
+        const checkDate = new Date(today);
+        checkDate.setDate(today.getDate() - i);
+        const checkStr = checkDate.toISOString().split('T')[0];
+        if (dateSet.has(checkStr)) {
+          streak++;
+        } else {
+          break;
+        }
       }
     }
 
