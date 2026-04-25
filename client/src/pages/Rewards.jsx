@@ -16,6 +16,9 @@ const Rewards = () => {
   const [transactions, setTransactions] = useState([]);
   const [loadingTransactions, setLoadingTransactions] = useState(true);
   const [realCoins, setRealCoins] = useState(user?.coins || 0);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [upiId, setUpiId] = useState('');
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
 
   useEffect(() => {
     const fetchRewardsData = async () => {
@@ -124,6 +127,43 @@ const Rewards = () => {
       }
     } else {
       toast.error("This reward is currently out of stock!");
+    }
+  };
+
+  const handleWithdraw = async (e) => {
+    e.preventDefault();
+    if (!user?.is_verified) {
+      return toast.error("Please complete KYC verification first!");
+    }
+    const amountNum = Number(withdrawAmount);
+    if (amountNum < 50) {
+      return toast.error("Minimum withdrawal is ₹50");
+    }
+    if (amountNum > coins) {
+      return toast.error("Insufficient coin balance!");
+    }
+    if (!upiId.includes('@')) {
+      return toast.error("Please enter a valid UPI ID");
+    }
+
+    setIsWithdrawing(true);
+    try {
+      const res = await axios.post('/api/rewards/withdraw', {
+        amount: amountNum,
+        upiId: upiId
+      });
+      toast.success(res.data.message);
+      setWithdrawAmount('');
+      setUpiId('');
+      // Refresh balance
+      const balRes = await axios.get('/api/rewards/balance');
+      setRealCoins(balRes.data.coins);
+      const transRes = await axios.get('/api/rewards');
+      setTransactions(transRes.data);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Withdrawal failed");
+    } finally {
+      setIsWithdrawing(false);
     }
   };
 

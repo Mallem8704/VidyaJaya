@@ -51,6 +51,32 @@ const Doubts = () => {
     }
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('image', file);
+
+    setIsUploading(true);
+    setSolution(null);
+    const loadToast = toast.loading("AI is scanning your image...");
+
+    try {
+      const res = await axios.post('/api/doubts/solve-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      setSolution(res.data);
+      toast.success("Image scanned successfully!", { id: loadToast });
+      fetchHistory();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to scan image", { id: loadToast });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto animate-fade-in pb-10 space-y-8">
       
@@ -102,12 +128,22 @@ const Doubts = () => {
                   <div className="w-16 h-16 bg-secondary bg-opacity-20 rounded-full flex items-center justify-center text-secondary mb-4">
                      <Camera size={32} />
                   </div>
-                  <h3 className="text-lg font-bold mb-1">Upload doubt image</h3>
-                  <p className="text-xs text-[var(--text-secondary)] mb-6">Coming Soon: Snap & Solve</p>
-                  <button className="btn btn-outline border-secondary text-secondary flex items-center gap-2 opacity-50 cursor-not-allowed">
-                    <CloudUploadIcon /> Browse Files
-                  </button>
-                </>
+                   <h3 className="text-lg font-bold mb-1">Upload doubt image</h3>
+                   <p className="text-xs text-[var(--text-secondary)] mb-6">Take a photo of the question to get an instant breakdown.</p>
+                   <input 
+                     type="file" 
+                     id="doubt-upload" 
+                     hidden 
+                     accept="image/*" 
+                     onChange={handleImageUpload} 
+                   />
+                   <label 
+                     htmlFor="doubt-upload" 
+                     className="btn btn-primary flex items-center gap-2 cursor-pointer"
+                   >
+                     <UploadCloud size={18} /> Choose Image
+                   </label>
+                 </>
               )}
           </div>
         </div>
