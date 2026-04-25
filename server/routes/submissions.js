@@ -113,6 +113,18 @@ router.post('/', protect, async (req, res) => {
     
     if (subError) throw subError;
 
+    // 5b. SAVE INDIVIDUAL ANSWERS to submission_answers table
+    if (answers && answers.length > 0) {
+      const answerRows = answers.map(ans => ({
+        submission_id: submission.id,
+        question_id: ans.questionId,
+        selected_index: ans.selectedIndex !== undefined ? ans.selectedIndex : null,
+        time_taken: ans.timeTaken || 0
+      }));
+      const { error: ansErr } = await supabase.from('submission_answers').insert(answerRows);
+      if (ansErr) console.error('Warning: Failed to save answer details:', ansErr.message);
+    }
+
     // Calculate coins for this submission
     const coinsEarned = result.accuracy >= 80 ? 25 : 10;
 

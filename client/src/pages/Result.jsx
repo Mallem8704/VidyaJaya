@@ -221,8 +221,9 @@ const Result = () => {
                 )}
              </div>
              <div className="divide-y divide-[var(--border)]">
+           <div className="divide-y divide-[var(--border)]">
                {realAnswers.length > 0 ? (
-                 realAnswers.slice(0, 5).map((ans, q) => {
+                 realAnswers.map((ans, q) => {
                    const question = ans.question;
                    if (!question) return null;
                    const isCorrect = ans.selectedIndex === question.correct_index;
@@ -242,23 +243,27 @@ const Result = () => {
                              )}
                            </div>
                            <p className="font-medium mb-4">{question.text}</p>
-                           <div className="grid grid-cols-2 gap-3 mb-4">
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                              {(question.options || []).map((opt, i) => {
                                const isCorrectOpt = i === question.correct_index;
                                const isSelected = i === ans.selectedIndex;
                                return (
-                                 <div key={i} className={`p-3 rounded border text-sm font-medium flex justify-between items-center
-                                   ${isCorrectOpt ? 'border-green-500 bg-green-50 dark:bg-[rgba(0,255,0,0.1)] text-green-700 dark:text-green-400' : 
-                                     isSelected && !isCorrectOpt ? 'border-red-400 bg-red-50 dark:bg-[rgba(255,0,0,0.1)] text-red-600' :
-                                     'border-gray-200 dark:border-gray-700 bg-[var(--bg-card)] text-gray-500 opacity-60'}`}>
+                                 <div key={i} className={`p-3 rounded-lg border text-sm font-medium flex justify-between items-center gap-2
+                                   ${isCorrectOpt ? 'border-green-500 bg-green-50 dark:bg-[rgba(0,200,83,0.1)] text-green-700 dark:text-green-400' :
+                                     isSelected && !isCorrectOpt ? 'border-red-400 bg-red-50 dark:bg-[rgba(255,0,0,0.08)] text-red-600 dark:text-red-400' :
+                                     'border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-secondary)] opacity-60'}`}>
                                    <span>{String.fromCharCode(65+i)}) {opt}</span>
-                                   {isCorrectOpt && <CheckCircle size={14} className="shrink-0"/>}
+                                   <span className="shrink-0">
+                                     {isSelected && isCorrectOpt && <CheckCircle size={14} className="text-green-600"/>}
+                                     {isSelected && !isCorrectOpt && <span className="text-xs font-bold text-red-500">Your Ans</span>}
+                                     {!isSelected && isCorrectOpt && <span className="text-xs font-bold text-green-600">Correct</span>}
+                                   </span>
                                  </div>
                                );
                              })}
                            </div>
                            {question.explanation && (
-                             <div className="bg-blue-50 dark:bg-[rgba(59,130,246,0.1)] p-4 rounded-xl text-sm border border-blue-100 dark:border-blue-900">
+                             <div className="bg-blue-50 dark:bg-[rgba(59,130,246,0.08)] p-4 rounded-xl text-sm border border-blue-100 dark:border-blue-900">
                                <span className="font-bold text-blue-800 dark:text-blue-400 block mb-1">Explanation:</span>
                                {question.explanation}
                              </div>
@@ -277,8 +282,8 @@ const Result = () => {
              </div>
              {realAnswers.length > 5 && (
                <div className="p-4 text-center bg-[var(--bg-light)] rounded-b-custom">
-                 <button className="text-secondary font-bold text-sm hover:underline">
-                   View All {realAnswers.length} Answers →
+                 <button onClick={() => setShowAllAnswers(!showAllAnswers)} className="text-secondary font-bold text-sm hover:underline">
+                   {showAllAnswers ? 'Show Less' : `View All ${realAnswers.length} Answers`} →
                  </button>
                </div>
              )}
