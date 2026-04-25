@@ -23,6 +23,10 @@ const Profile = () => {
     confirmPassword: ''
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  
+  // Premium Avatar Editing State
+  const [isEditingAvatar, setIsEditingAvatar] = useState(false);
+  const [newAvatarUrl, setNewAvatarUrl] = useState(user?.avatar || '');
 
   const tabs = [
     { icon: UserIcon, label: 'Account Details' },
@@ -101,23 +105,49 @@ const Profile = () => {
         <div className="flex-1 text-center md:text-left z-10">
            <h2 className="text-3xl font-heading font-bold mb-1">{user?.name || 'Warrior'}</h2>
            <p className="text-primary-light mb-4">{user?.email}</p>
-           {/* Simple Avatar Update Link */}
-           <button 
-             onClick={() => {
-               const url = prompt("Enter Avatar Image URL:", user?.avatar || "");
-               if (url) {
-                 axios.put('/api/profiles/avatar', { avatarUrl: url })
-                   .then(res => {
+           
+           {/* Integrated Avatar Editor */}
+           {!isEditingAvatar ? (
+             <button 
+               onClick={() => setIsEditingAvatar(true)}
+               className="text-[10px] font-bold bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full mb-3 transition-all flex items-center gap-1.5 border border-white/10"
+             >
+               <Edit3 size={10} /> Update Profile Picture
+             </button>
+           ) : (
+             <div className="flex items-center gap-2 mb-3 animate-fade-in">
+               <input 
+                 type="text" 
+                 placeholder="Paste Image URL..." 
+                 value={newAvatarUrl}
+                 onChange={(e) => setNewAvatarUrl(e.target.value)}
+                 className="bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-[10px] outline-none focus:ring-1 focus:ring-secondary w-48 placeholder:text-white/40"
+               />
+               <button 
+                 onClick={async () => {
+                   if (!newAvatarUrl) return setIsEditingAvatar(false);
+                   try {
+                     const res = await axios.put('/api/profiles/avatar', { avatarUrl: newAvatarUrl });
                      updateUser(res.data.user);
                      toast.success("Avatar updated!");
-                   })
-                   .catch(() => toast.error("Failed to update avatar"));
-               }
-             }}
-             className="text-[10px] bg-white bg-opacity-20 hover:bg-opacity-30 px-2 py-1 rounded mb-2 transition-colors"
-           >
-             Change Avatar
-           </button>
+                     setIsEditingAvatar(false);
+                   } catch (err) {
+                     toast.error("Failed to update avatar");
+                   }
+                 }}
+                 className="bg-secondary text-white px-3 py-1.5 rounded-lg text-[10px] font-bold"
+               >
+                 Save
+               </button>
+               <button 
+                 onClick={() => setIsEditingAvatar(false)}
+                 className="bg-white/10 text-white px-3 py-1.5 rounded-lg text-[10px]"
+               >
+                 Cancel
+               </button>
+             </div>
+           )}
+
            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
              <span className="px-3 py-1 bg-[rgba(255,255,255,0.1)] rounded-full text-xs font-bold border border-[rgba(255,255,255,0.2)] backdrop-blur-md">🎯 Goal: {user?.exam_goal || 'UPSC'}</span>
              {/* BUG 12 FIX: Show real plan */}

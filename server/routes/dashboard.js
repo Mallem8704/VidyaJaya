@@ -180,10 +180,18 @@ router.get('/', protect, async (req, res) => {
 
     // 11. Today's Tasks
     const tasks = [
-      { id: 1, title: "Take Daily Current Affairs Quiz", completed: dateSet.has(todayStr), type: 'test' },
-      { id: 2, title: `Practice ${weakestTopic || 'General Studies'}`, completed: false, type: 'practice' }, // Logic for this can be more complex
-      { id: 3, title: "Solve 1 AI Doubt", completed: false, type: 'doubt' }, // Check if user has doubts today
+      { id: 1, title: "Take Daily Mock Test", completed: dateSet.has(todayStr), type: 'test' },
+      { id: 2, title: `Practice ${weakestTopic || 'General Studies'}`, completed: false, type: 'practice' },
+      { id: 3, title: "Solve 1 AI Doubt", completed: false, type: 'doubt' },
+      { id: 4, title: "Attempt Daily AI Questions", completed: false, type: 'ai_questions' }
     ];
+
+    // Check if any submission today matches the weakest topic
+    const practicedToday = submissions.some(sub => 
+      new Date(sub.submitted_at).toISOString().split('T')[0] === todayStr &&
+      sub.topic_wise?.some(t => t.topic === weakestTopic)
+    );
+    if (practicedToday) tasks[1].completed = true;
 
     // Check if user solved a doubt today
     const { data: todayDoubts } = await supabase
@@ -195,6 +203,13 @@ router.get('/', protect, async (req, res) => {
     if (todayDoubts && todayDoubts.length > 0) {
       tasks[2].completed = true;
     }
+
+    // Check if user attempted AI questions today (assuming they are stored in submissions with a special category)
+    const attemptedAiQs = submissions.some(sub => 
+      new Date(sub.submitted_at).toISOString().split('T')[0] === todayStr &&
+      sub.tests?.category === 'AI Daily' // Adjust this category name as needed
+    );
+    if (attemptedAiQs) tasks[3].completed = true;
 
     res.json({
       accuracy,
