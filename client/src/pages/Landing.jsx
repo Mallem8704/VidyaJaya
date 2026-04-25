@@ -520,7 +520,9 @@ export default function Landing() {
           <div className="founders-grid">
             <div className="founder-card reveal">
               <div className="founder-top">
-                <div className="founder-ava">MD</div>
+                <div className="founder-ava" style={{ padding: 0, overflow: 'hidden', background: 'none', border: '3px solid rgba(255,107,0,.5)', boxShadow: '0 0 40px rgba(255,107,0,.3)' }}>
+                  <img src="/founder-dheeraj.jpg" alt="Mallem Dheeraj Royal" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                </div>
                 <div className="founder-info">
                   <div className="founder-name">Mallem Dheeraj Royal</div>
                   <div className="founder-role">Founder & CEO</div>
@@ -539,7 +541,7 @@ export default function Landing() {
                 <div className="founder-ava" style={{ background: 'linear-gradient(135deg, #3B82F6, #7C3AED)', border: '3px solid rgba(59,130,246,.4)', boxShadow: '0 0 40px rgba(59,130,246,.3)' }}>MY</div>
                 <div className="founder-info">
                   <div className="founder-name">Manjunath Yadav Meesala</div>
-                  <div className="founder-role">Co-Founder & CEO</div>
+                  <div className="founder-role" style={{ color: '#3B82F6' }}>Co-Founder</div>
                   <div className="founder-loc">📍 Bengaluru, Karnataka</div>
                 </div>
               </div>
