@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Clock, Bookmark, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -8,6 +8,7 @@ import axios from 'axios';
 const TestInterface = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [test, setTest] = useState(null);
   const [questions, setQuestions] = useState([]);
@@ -30,7 +31,23 @@ const TestInterface = () => {
 
   // Load test data
   useEffect(() => {
+    if (location.state?.questions) {
+      setTest({ 
+        title: location.state.title || 'AI Drill Session',
+        duration: 1800, // 30 mins for drill
+        category: 'AI Drill'
+      });
+      setQuestions(location.state.questions);
+      setTimeLeft(1800);
+      setLoading(false);
+      return;
+    }
+
     const fetchTestData = async () => {
+      if (id === 'drill') {
+        setLoading(false);
+        return;
+      }
       try {
         const res = await axios.get(`/api/tests/${id}`);
         setTest(res.data);
@@ -44,7 +61,7 @@ const TestInterface = () => {
       }
     };
     fetchTestData();
-  }, [id]);
+  }, [id, location.state]);
 
   // Overall countdown timer
   useEffect(() => {
@@ -156,6 +173,17 @@ const TestInterface = () => {
     recordTimeForCurrent();
 
     try {
+      // If it's a drill, we might not have a real testId in the database
+      // For now, let's just show results locally if it's a drill, 
+      // or we can implement a 'practice' submission.
+      if (location.state?.isDrill) {
+        toast.success("Drill completed! Review your performance.");
+        // We can still try to submit with a 'null' or 'drill' testId if backend supports it
+        // but for now let's just go back to practice or dashboard
+        navigate('/practice');
+        return;
+      }
+
       // Build answer array — include all questions, skipped ones get selectedIndex: null
       const formattedAnswers = questions.map((q, idx) => ({
         questionId: q.id,

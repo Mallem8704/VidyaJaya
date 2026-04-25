@@ -51,16 +51,15 @@ const Practice = () => {
       toast.dismiss(loadToast);
 
       if (res.data && res.data.questions && res.data.questions.length > 0) {
-        // The drill returns questions but we need to navigate to a test
-        // So we check if we have any tests available and navigate to the first
-        const testsRes = await axios.get('/api/tests');
-        if (testsRes.data && testsRes.data.length > 0) {
-          toast.success(`AI Drill ready! Focusing on: ${res.data.topic}`);
-          navigate(`/test/${testsRes.data[0].id}`);
-        } else {
-          toast.success(`Drill topic: ${res.data.topic}. Go to Tests to start.`);
-          navigate('/tests');
-        }
+        toast.success(`AI Drill ready! Focusing on: ${res.data.topic}`);
+        // Navigate to a special drill route or just TestInterface with state
+        navigate(`/test/drill`, { 
+          state: { 
+            questions: res.data.questions, 
+            title: `AI Drill: ${res.data.topic}`,
+            isDrill: true 
+          } 
+        });
       } else {
         toast.success("Head to the tests section to start practicing!");
         navigate('/tests');

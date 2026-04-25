@@ -2,8 +2,11 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Landmark, Smartphone, FileText, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import axios from 'axios';
+import { useAuthStore } from '../store/authStore';
 
 const KYC = () => {
+    const { updateUser } = useAuthStore();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [aadhaar, setAadhaar] = useState('');
@@ -18,13 +21,23 @@ const KYC = () => {
         }, 2000);
     };
 
-    const handleFinalSubmit = () => {
+    const handleFinalSubmit = async () => {
         setLoading(true);
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            const res = await axios.post('/api/profiles/kyc', {
+                fullName: 'Simulated User', // Could be from an input
+                upiId: 'simulated@upi'
+            });
+            
+            updateUser(res.data.user);
             setStep(3);
             toast.success('KYC Completed! Reward eligibility unlocked.');
-        }, 1500);
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || 'Failed to complete KYC');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (

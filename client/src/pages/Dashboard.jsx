@@ -211,23 +211,22 @@ const Dashboard = () => {
                 <CalendarIcon size={18} className="text-secondary" /> Today's Tasks
               </h3>
               <ul className="space-y-3">
-                <li className="flex items-start gap-3">
-                  <CheckCircle size={20} className="text-accent-green shrink-0 mt-0.5" />
-                  <span className="text-sm text-[var(--text-secondary)] line-through">Take Daily Current Affairs Quiz</span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="w-5 h-5 rounded border-2 border-secondary shrink-0 mt-0.5"></div>
-                  <span className="text-sm font-medium">Complete UPSC Polity Practice Set</span>
-                </li>
-                <li className="flex items-start gap-3 opacity-60">
-                  <div className="w-5 h-5 rounded border-2 border-[var(--border)] shrink-0 mt-0.5"></div>
-                  <span className="text-sm">Review Yesterday's Mistakes</span>
-                </li>
-                <li className="flex items-start gap-3 opacity-50 relative group">
-                  <LockIcon className="w-5 h-5 text-[var(--text-secondary)] shrink-0 mt-0.5" />
-                  <span className="text-sm line-through">Attempt Weekly Mock Test</span>
-                  <div className="absolute right-0 top-0 text-[10px] bg-accent-gold text-white px-2 py-0.5 rounded shadow">PRO</div>
-                </li>
+                {dashboard.tasks && dashboard.tasks.length > 0 ? (
+                  dashboard.tasks.map((task) => (
+                    <li key={task.id} className="flex items-start gap-3">
+                      {task.completed ? (
+                        <CheckCircle size={20} className="text-accent-green shrink-0 mt-0.5" />
+                      ) : (
+                        <div className="w-5 h-5 rounded border-2 border-secondary shrink-0 mt-0.5"></div>
+                      )}
+                      <span className={`text-sm ${task.completed ? 'text-[var(--text-secondary)] line-through' : 'font-medium'}`}>
+                        {task.title}
+                      </span>
+                    </li>
+                  ))
+                ) : (
+                  <li className="text-sm text-[var(--text-secondary)] italic">No tasks for today!</li>
+                )}
               </ul>
             </div>
 

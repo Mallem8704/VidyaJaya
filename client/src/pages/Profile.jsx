@@ -87,7 +87,11 @@ const Profile = () => {
         
         <div className="relative group cursor-pointer z-10">
           <div className="w-28 h-28 bg-[var(--bg-light)] bg-opacity-20 rounded-full border-4 border-[rgba(255,255,255,0.2)] flex items-center justify-center text-4xl font-bold text-gray-200 overflow-hidden shadow-xl backdrop-blur-md">
-             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+             {user?.avatar ? (
+               <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+             ) : (
+               user?.name?.charAt(0)?.toUpperCase() || 'U'
+             )}
           </div>
           <div className="absolute bottom-0 right-0 w-8 h-8 bg-secondary rounded-full flex items-center justify-center text-white border-2 border-primary shadow-md hover:scale-110 transition-transform">
             <Edit3 size={14} />
@@ -97,13 +101,32 @@ const Profile = () => {
         <div className="flex-1 text-center md:text-left z-10">
            <h2 className="text-3xl font-heading font-bold mb-1">{user?.name || 'Warrior'}</h2>
            <p className="text-primary-light mb-4">{user?.email}</p>
+           {/* Simple Avatar Update Link */}
+           <button 
+             onClick={() => {
+               const url = prompt("Enter Avatar Image URL:", user?.avatar || "");
+               if (url) {
+                 axios.put('/api/profiles/avatar', { avatarUrl: url })
+                   .then(res => {
+                     updateUser(res.data.user);
+                     toast.success("Avatar updated!");
+                   })
+                   .catch(() => toast.error("Failed to update avatar"));
+               }
+             }}
+             className="text-[10px] bg-white bg-opacity-20 hover:bg-opacity-30 px-2 py-1 rounded mb-2 transition-colors"
+           >
+             Change Avatar
+           </button>
            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
              <span className="px-3 py-1 bg-[rgba(255,255,255,0.1)] rounded-full text-xs font-bold border border-[rgba(255,255,255,0.2)] backdrop-blur-md">🎯 Goal: {user?.exam_goal || 'UPSC'}</span>
              {/* BUG 12 FIX: Show real plan */}
              <span className={`px-3 py-1 font-bold rounded-full text-xs shadow-md ${isPremium ? 'bg-accent-gold text-yellow-900' : 'bg-gray-200 text-gray-700'}`}>
                {isPremium ? '👑 Plan: PRO' : '🎓 Plan: Free'}
              </span>
-             <span className="px-3 py-1 bg-accent-green text-green-900 font-bold rounded-full text-xs shadow-md">Verified Student</span>
+             <span className={`px-3 py-1 font-bold rounded-full text-xs shadow-md ${user?.is_verified ? 'bg-accent-green text-green-900' : 'bg-gray-300 text-gray-700'}`}>
+               {user?.is_verified ? '✓ Verified Student' : '⚠ Unverified'}
+             </span>
            </div>
         </div>
       </div>

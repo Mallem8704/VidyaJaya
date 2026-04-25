@@ -178,6 +178,24 @@ router.get('/', protect, async (req, res) => {
       status: 'Completed'
     })) || [];
 
+    // 11. Today's Tasks
+    const tasks = [
+      { id: 1, title: "Take Daily Current Affairs Quiz", completed: dateSet.has(todayStr), type: 'test' },
+      { id: 2, title: `Practice ${weakestTopic || 'General Studies'}`, completed: false, type: 'practice' }, // Logic for this can be more complex
+      { id: 3, title: "Solve 1 AI Doubt", completed: false, type: 'doubt' }, // Check if user has doubts today
+    ];
+
+    // Check if user solved a doubt today
+    const { data: todayDoubts } = await supabase
+      .from('doubts')
+      .select('id')
+      .eq('user_id', userId)
+      .gte('created_at', todayStr);
+    
+    if (todayDoubts && todayDoubts.length > 0) {
+      tasks[2].completed = true;
+    }
+
     res.json({
       accuracy,
       testsTaken: totalTests,
@@ -189,6 +207,7 @@ router.get('/', protect, async (req, res) => {
       recommendation,
       chartData,
       recentTests,
+      tasks,
       lastUpdated: new Date().toISOString()
     });
 
