@@ -1,4 +1,25 @@
 require('dotenv').config();
+
+// ── Critical environment variable check ────────────────────────────────────────
+// If any of these are missing the server will fail silently. Log loudly and early.
+const REQUIRED_ENV_VARS = [
+  'SUPABASE_URL',
+  'SUPABASE_ANON_KEY',
+  'SUPABASE_SERVICE_ROLE_KEY',
+];
+const missingVars = REQUIRED_ENV_VARS.filter(v => !process.env[v]);
+if (missingVars.length > 0) {
+  console.error('═══════════════════════════════════════════════════════');
+  console.error('[FATAL] Missing required environment variables:');
+  missingVars.forEach(v => console.error(`  ✗ ${v} is NOT SET`));
+  console.error('Login and all authenticated routes will FAIL.');
+  console.error('Add these variables in your Render dashboard → Environment.');
+  console.error('═══════════════════════════════════════════════════════');
+} else {
+  console.log('[ENV] All required environment variables are present ✓');
+}
+// ──────────────────────────────────────────────────────────────────────────────
+
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
