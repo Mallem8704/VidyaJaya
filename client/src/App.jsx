@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAppStore } from './store/appStore';
 import { useAuthStore } from './store/authStore';
@@ -28,11 +28,22 @@ import KYC from './pages/KYC';
 import Wallet from './pages/Wallet';
 import ProDashboard from './pages/ProDashboard';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminUserManagement from './pages/AdminUserManagement';
+import AdminWithdrawals from './pages/AdminWithdrawals';
+import AdminLogin from './pages/AdminLogin';
 
 // SEO Articles
 import WhatIsVidyajaya from './pages/articles/WhatIsVidyajaya';
 import HowVidyajayaHelps from './pages/articles/HowVidyajayaHelps';
 import WhyVidyajayaIsBest from './pages/articles/WhyVidyajayaIsBest';
+
+const AdminRoute = ({ children }) => {
+    const { user, isAuthenticated } = useAuthStore();
+    if (!isAuthenticated || user?.role !== 'admin') {
+        return <Navigate to="/admin/login" replace />;
+    }
+    return children;
+};
 
 function App() {
   const { theme } = useAppStore();
@@ -98,9 +109,19 @@ function App() {
             <Route path="/analysis" element={<AiAnalysis />} />
             <Route path="/doubts" element={<Doubts />} />
             <Route path="/rewards" element={<Rewards />} />
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin" element={
+              <AdminRoute>
+                <AdminLayout />
+              </AdminRoute>
+            }>
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUserManagement />} />
+              <Route path="withdrawals" element={<AdminWithdrawals />} />
+            </Route>
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/pro-dashboard" element={<ProDashboard />} />
-            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/ai-questions" element={<DailyAiQuestions />} />
             <Route path="/pricing" element={<Pricing />} />

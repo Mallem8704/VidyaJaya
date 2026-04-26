@@ -176,6 +176,10 @@ router.post('/login', async (req, res) => {
       .eq('id', authData.user.id)
       .single();
 
+    if (profile?.is_blocked) {
+      return res.status(403).json({ message: 'Your account has been suspended. Please contact support.' });
+    }
+
     res.json({
       user: profile || { id: authData.user.id, email: authData.user.email },
       token: authData.session.access_token
