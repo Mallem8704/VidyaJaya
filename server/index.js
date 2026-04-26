@@ -93,7 +93,14 @@ app.use('/api/questions', questionRoutes);
 
 // Placeholder routes
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', version: '1.0.1-fixed-auth' });
+  const envStatus = {
+    SUPABASE_URL: !!process.env.SUPABASE_URL,
+    SUPABASE_ANON_KEY: !!process.env.SUPABASE_ANON_KEY,
+    SUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    GEMINI_API_KEY: !!process.env.GEMINI_API_KEY,
+    GROQ_API_KEY: !!process.env.GROQ_API_KEY,
+  };
+  res.status(200).json({ status: 'ok', version: '1.0.2-env-check', env: envStatus });
 });
 
 // Error Handling Middleware
