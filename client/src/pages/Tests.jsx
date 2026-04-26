@@ -48,7 +48,10 @@ const Tests = () => {
   const handleTestClick = (e, test) => {
     if (test.is_premium && !isUserPro) {
       e.preventDefault();
+      // Option 1: Show modal (current behavior)
       setShowUpgradeModal(true);
+      // Option 2: Redirect to pricing (as per new requirement)
+      // window.location.href = '/pricing'; 
     }
   };
   
@@ -181,8 +184,7 @@ const Tests = () => {
                    
                    <div className="flex gap-3">
                      <Link 
-                       to={`/test/${test.id}`} 
-                       onClick={(e) => handleTestClick(e, test)}
+                       to={isLocked ? '/pricing' : `/test/${test.id}`} 
                        className={`flex-1 btn ${isLocked ? 'bg-gradient-to-r from-accent-gold to-yellow-600 text-white' : 'btn-primary'} text-center py-2 flex items-center justify-center gap-2`}
                      >
                        {isLocked ? (

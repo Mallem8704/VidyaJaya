@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { Sparkles, Trophy, Target, Star, Clock, BookOpen, Share2, Award, ArrowRight, Zap, Gem } from 'lucide-react';
+import { Sparkles, Trophy, Target, Star, Clock, BookOpen, Share2, Award, ArrowRight, Zap, Gem, Lock } from 'lucide-react';
+
 import { useAuthStore } from '../store/authStore';
 
 const ProTests = () => {
@@ -160,11 +161,20 @@ const ProTests = () => {
 
                   <div className="mt-auto space-y-3">
                     <Link
-                      to={`/test/${test.id}`}
+                      to={!user?.is_pro ? '/pricing' : `/test/${test.id}`}
                       className="flex items-center justify-center gap-2 w-full py-3.5 bg-gradient-to-r from-secondary to-[#4361ee] text-white font-bold rounded-xl shadow-lg shadow-secondary/20 hover:shadow-secondary/40 hover:-translate-y-0.5 transition-all active:scale-95 group/btn"
                     >
-                      Start Premium Mock
-                      <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                      {!user?.is_pro ? (
+                        <>
+                          <Lock size={18} />
+                          Unlock with PRO
+                        </>
+                      ) : (
+                        <>
+                          Start Premium Mock
+                          <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                        </>
+                      )}
                     </Link>
                     
                     <div className="flex justify-center items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest py-1">

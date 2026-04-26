@@ -143,16 +143,19 @@ router.post('/', protect, async (req, res) => {
       if (ansErr) console.error('Warning: Failed to save answer details:', ansErr.message);
     }
 
-    // Calculate coins for this submission
+    // Calculate coins for this submission (Only for PRO tests)
     let coinsEarned = 0;
     
-    if (isPremium || user.role === 'admin') {
-      coinsEarned = result.accuracy >= 80 ? 25 : 10;
-      // Bonus for high performance
-      if (result.accuracy === 100) coinsEarned += 15;
+    if (test.is_premium) {
+      if (isPremium || user.role === 'admin') {
+        coinsEarned = result.accuracy >= 80 ? 25 : 10;
+        // Bonus for high performance
+        if (result.accuracy === 100) coinsEarned += 15;
+      }
     } else {
-      // Free users don't earn coins that can be withdrawn
+      // Free tests don't earn coins
       coinsEarned = 0; 
+      console.log(`Free test ${test.id} completed. No rewards issued.`);
     }
 
     // 6. UPDATE PROFILE STATS & ANTI-CHEAT
@@ -191,17 +194,27 @@ router.post('/', protect, async (req, res) => {
       if (newStreak === 30) milestoneBonus = 1000;
     }
 
-    await supabase.from('profiles').update({
-      coins: (profile?.coins || 0) + coinsEarned + milestoneBonus,
-      streak: newStreak,
-      weekly_score: (profile?.weekly_score || 0) + result.score,
-      monthly_score: (profile?.monthly_score || 0) + result.score,
-      total_score: (profile?.total_score || 0) + result.score,
+    // Update Profile Stats
+    const profileUpdate = {
       accuracy: result.accuracy,
       last_streak_update: shouldIncrementStreak ? new Date() : profile?.last_streak_update,
       daily_reward_accumulated: currentDailyTotal + coinsEarned,
-      last_reward_reset: new Date()
-    }).eq('id', user.id);
+      last_reward_reset: new Date(),
+      streak: newStreak,
+      coins: (profile?.coins || 0) + coinsEarned + milestoneBonus
+    };
+
+    // Only PRO test results go to PRO leaderboard (total_score, weekly_score, monthly_score)
+    if (test.is_premium) {
+      profileUpdate.weekly_score = (profile?.weekly_score || 0) + result.score;
+      profileUpdate.monthly_score = (profile?.monthly_score || 0) + result.score;
+      profileUpdate.total_score = (profile?.total_score || 0) + result.score;
+      console.log(`PRO test result added to user ${user.id} leaderboard scores.`);
+    } else {
+      console.log(`Free test result. Leaderboard scores not updated for user ${user.id}.`);
+    }
+
+    await supabase.from('profiles').update(profileUpdate).eq('id', user.id);
 
     // 7. RECORD REWARDS
     if (coinsEarned > 0) {
