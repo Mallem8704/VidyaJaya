@@ -443,6 +443,31 @@ const Auth = ({ type }) => {
                 )}
               </button>
 
+              {(type === 'Login' || type === 'Signup') && (
+                <>
+                  <div className="relative my-8">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-[var(--border)]"></div>
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-4 bg-[var(--bg-light)] text-[var(--text-secondary)] font-medium">OR</span>
+                    </div>
+                  </div>
+
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      const { loginWithGoogle } = useAuthStore.getState();
+                      loginWithGoogle();
+                    }}
+                    className="w-full flex items-center justify-center gap-3 py-3.5 px-4 bg-white dark:bg-gray-800 border border-[var(--border)] rounded-xl text-[var(--text-primary)] font-bold shadow-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-all"
+                  >
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+                    <span>Continue with Google</span>
+                  </button>
+                </>
+              )}
+
               {/* Toggle links */}
               <div className="text-center mt-6 text-[var(--text-secondary)]">
                 {type === 'Login' ? (
