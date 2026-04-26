@@ -90,6 +90,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/profiles', profileRoutes);
 app.use('/api/practice', practiceRoutes);
 app.use('/api/questions', questionRoutes);
+app.use('/api/wallet', require('./routes/wallet'));
 
 // Placeholder routes
 app.get('/health', (req, res) => {

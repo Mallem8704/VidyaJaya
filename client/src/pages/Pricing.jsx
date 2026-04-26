@@ -10,7 +10,7 @@ const Pricing = () => {
     const [loading, setLoading] = useState(false);
     const [isAnnual, setIsAnnual] = useState(false);
 
-    const handlePayment = async (plan) => {
+    const handlePayment = async (plan, planType) => {
         if (!user) {
             toast.error("Please login to upgrade to PRO");
             return;
@@ -21,29 +21,29 @@ const Pricing = () => {
 
         try {
             // 1. Create Order on Server
-            const amount = isAnnual ? plan.annualPrice : plan.monthlyPrice;
             const { data: order } = await axios.post('/api/payments/create-order', {
-                amount,
-                planName: plan.name
+                planType
             });
 
             // 2. Open Razorpay Checkout
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder', // Should be in client .env
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_SgtHYjaxxDOJUk',
                 amount: order.amount,
                 currency: order.currency,
                 name: "VidyaJaya PRO",
-                description: `Upgrade to ${plan.name}`,
+                description: `Upgrade to PRO ${planType.toUpperCase()} Plan`,
                 order_id: order.id,
                 handler: async (response) => {
                     try {
                         // 3. Verify Payment on Server
                         const verifyRes = await axios.post('/api/payments/verify', {
                             ...response,
-                            planName: plan.name
+                            planType
                         });
                         toast.success(verifyRes.data.message);
-                        loadUser(); // Refresh user status
+                        setTimeout(() => {
+                            window.location.href = '/dashboard';
+                        }, 2000);
                     } catch (err) {
                         toast.error("Payment verification failed!");
                     }
@@ -72,83 +72,122 @@ const Pricing = () => {
 
     const plans = [
         {
-            name: "Pro",
-            monthlyPrice: 99,
-            annualPrice: 69,
-            description: "Everything you need to clear UPSC/SSC.",
+            id: 'weekly',
+            name: "PRO Weekly",
+            price: 99,
+            duration: "week",
+            description: "Perfect for quick exam revision.",
             features: [
-                "Unlimited Daily Tests",
-                "UPSC & 5 other sectors",
-                "Weekly Cash Rewards (Top 3)",
-                "AI Performance Analysis",
+                "Unlock PRO Leaderboard",
+                "Advanced AI Performance Analytics",
+                "Double Rewards for Accuracy",
                 "Unlimited AI Doubt Solving",
-                "Coin Earning + Streak Freeze"
+                "UPSC, SSC & Banking mock tests",
+                "Premium 'PRO' Badge"
+            ],
+            popular: false
+        },
+        {
+            id: 'monthly',
+            name: "PRO Monthly",
+            price: 299,
+            duration: "month",
+            description: "Best for serious UPSC aspirants.",
+            features: [
+                "All Weekly Plan Features",
+                "Eligibility for Cash Rewards",
+                "Monthly Performance Report",
+                "3x Coins on Daily Streaks",
+                "Early access to new tests",
+                "Priority Support"
             ],
             popular: true
         }
     ];
 
     return (
-        <div className="max-w-4xl mx-auto py-12 px-4 animate-fade-in">
-            <div className="text-center mb-12">
-                <h2 className="text-4xl font-heading font-bold mb-4">Simple, Transparent Pricing</h2>
-                <p className="text-[var(--text-secondary)]">Start free. Upgrade when you're ready to win.</p>
-                
-                <div className="flex items-center justify-center gap-4 mt-8">
-                    <span className={`text-sm ${!isAnnual ? 'font-bold text-primary' : 'text-gray-500'}`}>Monthly</span>
-                    <button 
-                        onClick={() => setIsAnnual(!isAnnual)}
-                        className={`w-12 h-6 rounded-full p-1 transition-colors ${isAnnual ? 'bg-primary' : 'bg-gray-300'}`}
-                    >
-                        <div className={`w-4 h-4 bg-white rounded-full transition-transform ${isAnnual ? 'translate-x-6' : ''}`} />
-                    </button>
-                    <span className={`text-sm ${isAnnual ? 'font-bold text-primary' : 'text-gray-500'}`}>Annual <span className="text-green-500 font-bold">(Save 30%)</span></span>
+        <div className="max-w-6xl mx-auto py-12 px-4 animate-fade-in">
+            <div className="text-center mb-16">
+                <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-xs font-bold mb-4">
+                    <Zap size={14} className="fill-primary" /> LIMITED TIME OFFER
                 </div>
+                <h2 className="text-4xl md:text-5xl font-heading font-bold mb-4">Unlock Your <span className="text-primary">True Potential</span></h2>
+                <p className="text-[var(--text-secondary)] max-w-xl mx-auto">Join thousands of students using VidyaJaya PRO to clear India's toughest exams.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-8 max-w-md mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 {plans.map((plan, idx) => (
                     <motion.div 
-                        whileHover={{ y: -5 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        whileHover={{ y: -8 }}
                         key={idx} 
-                        className={`card p-8 border-2 ${plan.popular ? 'border-primary' : 'border-[var(--border)]'} relative`}
+                        className={`card p-8 border-2 transition-all duration-300 ${plan.popular ? 'border-primary shadow-xl shadow-primary/10' : 'border-[var(--border)] hover:border-primary/50'} relative`}
                     >
-                        {plan.popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full">MOST POPULAR</span>}
-                        <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-                        <div className="text-4xl font-bold mb-4">
-                            ₹{isAnnual ? plan.annualPrice : plan.monthlyPrice}
-                            <span className="text-lg text-gray-500 font-normal"> / month</span>
-                        </div>
-                        <p className="text-sm text-gray-500 mb-8">{plan.description}</p>
+                        {plan.popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full tracking-widest uppercase">BEST VALUE</span>}
                         
-                        <div className="space-y-4 mb-8">
+                        <div className="mb-6">
+                            <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
+                                {plan.name} 
+                                {plan.popular && <Award className="text-yellow-500" size={20} />}
+                            </h3>
+                            <p className="text-sm text-gray-500">{plan.description}</p>
+                        </div>
+
+                        <div className="text-5xl font-bold mb-8">
+                            ₹{plan.price}
+                            <span className="text-lg text-gray-500 font-normal"> / {plan.duration}</span>
+                        </div>
+                        
+                        <div className="space-y-4 mb-10">
                             {plan.features.map((f, i) => (
-                                <div key={i} className="flex items-center gap-3 text-sm">
-                                    <div className="bg-green-100 text-green-600 p-1 rounded-full"><Check size={12}/></div>
-                                    <span>{f}</span>
+                                <div key={i} className="flex items-start gap-3 text-sm">
+                                    <div className="bg-green-100 dark:bg-green-900/30 text-green-600 p-1 rounded-full mt-0.5 shrink-0"><Check size={12}/></div>
+                                    <span className="text-[var(--text-secondary)]">{f}</span>
                                 </div>
                             ))}
                         </div>
 
-                        {user?.is_premium ? (
+                        {user?.is_pro ? (
                             <button className="btn btn-primary w-full bg-green-500 border-none flex items-center justify-center gap-2 cursor-default">
                                 <ShieldCheck size={20}/> Active PRO Member
                             </button>
                         ) : (
                             <button 
-                                onClick={() => handlePayment(plan)}
+                                onClick={() => handlePayment(plan, plan.id)}
                                 disabled={loading}
-                                className="btn btn-primary w-full pulse-glow flex items-center justify-center gap-2"
+                                className={`btn w-full flex items-center justify-center gap-2 font-bold py-4 rounded-xl transition-all active:scale-95 ${plan.popular ? 'btn-primary pulse-glow' : 'bg-gray-100 dark:bg-gray-800 text-[var(--text-primary)] hover:bg-gray-200'}`}
                             >
-                                <Zap size={18}/> Upgrade to PRO Now
+                                <Zap size={18} className={plan.popular ? 'fill-white' : 'fill-primary'} /> 
+                                {loading ? 'Processing...' : `Get ${plan.name}`}
                             </button>
                         )}
                     </motion.div>
                 ))}
             </div>
             
-            <div className="mt-12 text-center text-xs text-gray-500 flex items-center justify-center gap-2">
-                <Award size={14}/> 100% Secure Payments via Razorpay
+            <div className="mt-16 bg-[var(--bg-light)] rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-8 border border-[var(--border)]">
+                <div className="flex items-center gap-6">
+                    <div className="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500">
+                        <ShieldCheck size={40} />
+                    </div>
+                    <div>
+                        <h4 className="font-bold text-lg">Money-Back Guarantee</h4>
+                        <p className="text-sm text-[var(--text-secondary)]">Not satisfied? Get a full refund within 24 hours.</p>
+                    </div>
+                </div>
+                <div className="flex gap-4">
+                    <div className="text-center">
+                        <p className="text-2xl font-bold">100%</p>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest">Secure</p>
+                    </div>
+                    <div className="w-[1px] h-10 bg-[var(--border)]"></div>
+                    <div className="text-center">
+                        <p className="text-2xl font-bold">Razorpay</p>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest">Partner</p>
+                    </div>
+                </div>
             </div>
         </div>
     );

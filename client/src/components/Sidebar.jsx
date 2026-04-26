@@ -23,13 +23,14 @@ const Sidebar = () => {
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+    ...(user?.is_pro ? [{ name: 'PRO Analysis', icon: Sparkles, path: '/pro-dashboard' }] : []),
     { name: 'Tests', icon: BookOpen, path: '/tests' },
     { name: 'AI Questions', icon: Sparkles, path: '/ai-questions' },
     { name: 'Practice', icon: Target, path: '/practice' },
     { name: 'Leaderboard', icon: Trophy, path: '/leaderboard' },
     { name: 'Analysis', icon: BarChart2, path: '/analysis' },
     { name: 'Doubts', icon: HelpCircle, path: '/doubts' },
-    { name: 'Rewards', icon: Gift, path: '/rewards' },
+    { name: 'Wallet', icon: Gift, path: '/wallet' },
     { name: 'Pricing', icon: Sparkles, path: '/pricing' },
     { name: 'Profile', icon: User, path: '/profile' },
   ];
@@ -53,7 +54,7 @@ const Sidebar = () => {
         {/* Logo area */}
         <div className="flex items-center justify-between p-4 border-b border-primary-light">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-secondary rounded flex items-center justify-center overflow-hidden shadow-lg">
+            <div className="w-8 h-8 bg-secondary rounded flex items-center justify-center overflow-hidden shadow-lg border border-secondary/20">
               <img src="/logo.png" alt="V" className="w-full h-full object-contain" />
             </div>
             <span className="font-heading font-bold text-xl tracking-wide">VidyaJaya</span>
@@ -67,7 +68,7 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4">
+        <nav className="flex-1 overflow-y-auto py-4 scrollbar-thin scrollbar-thumb-white/10">
           <ul className="space-y-1 px-3">
             {navItems.map((item) => (
               <li key={item.name}>
@@ -75,27 +76,28 @@ const Sidebar = () => {
                   to={item.path}
                   onClick={() => setSidebarOpen(false)}
                   className={({ isActive }) => `
-                    flex items-center gap-3 px-3 py-3 rounded-lg transition-colors duration-200
-                    ${isActive ? 'bg-secondary text-white' : 'hover:bg-primary-light text-gray-300 hover:text-white'}
+                    flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
+                    ${isActive ? 'bg-secondary text-white shadow-lg shadow-secondary/20' : 'hover:bg-primary-light text-gray-300 hover:text-white'}
                   `}
                 >
-                  <item.icon size={20} />
-                  <span className="font-medium">{item.name}</span>
+                  <item.icon size={18} />
+                  <span className="font-medium text-sm">{item.name}</span>
                 </NavLink>
               </li>
             ))}
           </ul>
 
           {/* Upgrade Card */}
-          {!user?.is_premium && (
-            <div className="mx-4 mt-6 p-4 rounded-xl bg-gradient-to-br from-secondary/40 to-accent-gold/40 border border-secondary/30">
-              <p className="text-xs font-bold text-accent-gold mb-1 flex items-center gap-1">
+          {!user?.is_pro && (
+            <div className="mx-4 mt-6 p-4 rounded-xl bg-gradient-to-br from-secondary/40 to-accent-gold/40 border border-secondary/30 relative overflow-hidden group">
+              <div className="absolute -right-4 -bottom-4 w-12 h-12 bg-white/5 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
+              <p className="text-xs font-bold text-accent-gold mb-1 flex items-center gap-1 relative z-10">
                 <Sparkles size={12}/> UPGRADE TO PRO
               </p>
-              <p className="text-[10px] text-gray-100 mb-3">Unlock unlimited AI doubt solving & premium tests.</p>
+              <p className="text-[10px] text-gray-100 mb-3 relative z-10">Unlock unlimited AI doubt solving & cash rewards.</p>
               <NavLink 
                 to="/pricing" 
-                className="block w-full py-2 text-center text-[10px] font-bold bg-white text-secondary rounded-lg hover:bg-opacity-90 transition-all shadow-sm"
+                className="block w-full py-2 text-center text-[10px] font-bold bg-white text-secondary rounded-lg hover:bg-opacity-90 transition-all shadow-sm relative z-10"
               >
                 GET PRO NOW
               </NavLink>
@@ -107,12 +109,14 @@ const Sidebar = () => {
         <div className="p-4 border-t border-primary-light bg-primary-light bg-opacity-30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-accent-gold flex items-center justify-center text-white font-bold uppercase shadow-md">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-accent-gold flex items-center justify-center text-white font-bold uppercase shadow-md border-2 border-white/10">
                 {user?.name?.charAt(0) || 'U'}
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-semibold truncate w-24">{user?.name || 'Student'}</span>
-                <span className="text-xs text-accent-gold capitalize">{user?.plan || 'Free'} Plan</span>
+                <span className="text-[10px] text-accent-gold font-bold uppercase tracking-wider">
+                  {user?.is_pro ? 'PRO MEMBER' : 'Free Plan'}
+                </span>
               </div>
             </div>
             <button title="Settings" className="text-gray-300 hover:text-white transition-colors">

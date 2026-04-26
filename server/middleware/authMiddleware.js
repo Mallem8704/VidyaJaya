@@ -28,6 +28,13 @@ const protect = async (req, res, next) => {
         // Fallback to basic auth user info if profile isn't found
         req.user = { id: user.id, email: user.email, ...user.user_metadata };
       } else {
+        // Auto-expire PRO plan if needed
+        if (profile.is_pro && profile.pro_expiry && new Date(profile.pro_expiry) < new Date()) {
+          console.log(`Plan expired for user ${profile.id}. Downgrading to free.`);
+          await supabase.from('profiles').update({ is_pro: false, plan: 'free' }).eq('id', profile.id);
+          profile.is_pro = false;
+          profile.plan = 'free';
+        }
         req.user = profile;
       }
 
@@ -49,5 +56,16 @@ const admin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin };
+const isPro = (req, res, next) => {
+  if (req.user && (req.user.is_pro || req.user.plan === 'admin')) {
+    next();
+  } else {
+    res.status(403).json({ 
+      message: 'This feature is for PRO members only.',
+      code: 'PRO_REQUIRED'
+    });
+  }
+};
+
+module.exports = { protect, admin, isPro };
 

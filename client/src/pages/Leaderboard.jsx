@@ -6,6 +6,7 @@ import { Trophy, Flame, Crown, Medal } from 'lucide-react';
 
 const Leaderboard = () => {
   const [tab, setTab] = useState('global'); // 'global' or 'weekly'
+  const [tier, setTier] = useState('all'); // 'all', 'pro', 'free'
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,13 +15,16 @@ const Leaderboard = () => {
       setLoading(true);
       try {
         const endpoint = tab === 'global' ? '/api/leaderboard/global' : '/api/leaderboard/weekly';
-        const res = await axios.get(endpoint);
+        const res = await axios.get(endpoint, {
+          params: { tier: tier !== 'all' ? tier : undefined }
+        });
+        
         if (res.data && Array.isArray(res.data)) {
           setLeaderboard(res.data.map((u, i) => ({
             ...u,
             rank: i + 1,
             score: (tab === 'global' ? u.total_score : u.weekly_score) || 0,
-            plan: u.exam_goal || 'Basic'
+            plan: u.is_pro ? 'PRO' : 'Basic'
           })));
         } else {
           setLeaderboard([]);
@@ -33,7 +37,7 @@ const Leaderboard = () => {
       }
     };
     fetchLeaderboard();
-  }, [tab]);
+  }, [tab, tier]);
 
   if (loading) {
     return (
@@ -52,7 +56,7 @@ const Leaderboard = () => {
     <div className="max-w-5xl mx-auto space-y-8 animate-fade-in pb-10">
       
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="flex flex-col lg:flex-row justify-between items-center gap-6">
         <div>
           <h2 className="text-3xl font-heading font-bold flex items-center gap-2">
             <Trophy className="text-accent-gold" size={32} /> Live Leaderboard
@@ -60,19 +64,35 @@ const Leaderboard = () => {
           <p className="text-[var(--text-secondary)] mt-1">Compete based on skill. Earn based on performance.</p>
         </div>
         
-        <div className="flex bg-[var(--bg-light)] p-1 rounded-xl border border-[var(--border)]">
-          <button 
-            className={`px-6 py-2 rounded-lg font-bold text-sm transition-all ${tab === 'global' ? 'bg-[var(--bg-card)] shadow-sm text-secondary' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-            onClick={() => setTab('global')}
-          >
-            All-Time Global
-          </button>
-          <button 
-            className={`px-6 py-2 rounded-lg font-bold text-sm transition-all ${tab === 'weekly' ? 'bg-[var(--bg-card)] shadow-sm text-secondary' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-            onClick={() => setTab('weekly')}
-          >
-            This Week
-          </button>
+        <div className="flex flex-col md:flex-row gap-4 items-center">
+          {/* Tier Toggle */}
+          <div className="flex bg-[var(--bg-light)] p-1 rounded-xl border border-[var(--border)]">
+            {['all', 'pro', 'free'].map((t) => (
+              <button 
+                key={t}
+                className={`px-4 py-1.5 rounded-lg font-bold text-xs transition-all uppercase tracking-wider ${tier === t ? 'bg-secondary text-white shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                onClick={() => setTier(t)}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          {/* Time Tab Toggle */}
+          <div className="flex bg-[var(--bg-light)] p-1 rounded-xl border border-[var(--border)]">
+            <button 
+              className={`px-6 py-2 rounded-lg font-bold text-sm transition-all ${tab === 'global' ? 'bg-[var(--bg-card)] shadow-sm text-secondary' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+              onClick={() => setTab('global')}
+            >
+              Global
+            </button>
+            <button 
+              className={`px-6 py-2 rounded-lg font-bold text-sm transition-all ${tab === 'weekly' ? 'bg-[var(--bg-card)] shadow-sm text-secondary' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+              onClick={() => setTab('weekly')}
+            >
+              Weekly
+            </button>
+          </div>
         </div>
       </div>
 
@@ -159,7 +179,7 @@ const Leaderboard = () => {
                   <span className="font-bold truncate">{user.name}</span>
                 </div>
                 <div className="col-span-2 hidden md:flex justify-center">
-                  {user.plan === 'PRO' || user.is_premium
+                  {user.is_pro
                     ? <span className="text-[10px] bg-accent-gold bg-opacity-20 text-yellow-600 dark:text-yellow-400 font-bold px-2 py-0.5 rounded-full border border-yellow-200 dark:border-yellow-900">PRO</span>
                     : <span className="text-[10px] text-gray-400">Basic</span>
                   }
