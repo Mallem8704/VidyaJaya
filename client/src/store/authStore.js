@@ -122,6 +122,19 @@ export const useAuthStore = create(
           });
           throw error;
         }
+      },
+
+      loginWithGoogle: async () => {
+        try {
+          const { data, error } = await axios.post('/api/auth/google-url');
+          if (error) throw error;
+          if (data.url) {
+            window.location.href = data.url;
+          }
+        } catch (error) {
+          set({ error: 'Google login failed' });
+          throw error;
+        }
       }
     }),
     {

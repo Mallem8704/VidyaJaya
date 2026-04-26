@@ -285,6 +285,30 @@ router.put('/change-password', protect, async (req, res) => {
   }
 });
 
+// @route   POST /api/auth/google-url
+// @desc    Get Google OAuth URL
+router.post('/google-url', async (req, res) => {
+  try {
+    const authClient = getAuthClient();
+    const { data, error } = await authClient.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${process.env.CLIENT_URL || 'http://localhost:5173'}/dashboard`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      }
+    });
+
+    if (error) throw error;
+    res.json({ url: data.url });
+  } catch (error) {
+    console.error('[Google Auth] Error:', error.message);
+    res.status(500).json({ message: 'Failed to initiate Google login' });
+  }
+});
+
 // @route   GET /api/auth/me
 // @desc    Get user profile data
 router.get('/me', protect, async (req, res) => {

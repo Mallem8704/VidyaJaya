@@ -9,13 +9,13 @@ const Auth = ({ type }) => {
   const navigate = useNavigate();
   const { token } = useParams();
   const { login, register, isloading, forgotPassword, resetPassword, isAuthenticated } = useAuthStore();
-  
+
   React.useEffect(() => {
     if (isAuthenticated && type !== 'Reset Password') {
       navigate('/dashboard');
     }
   }, [isAuthenticated, type, navigate]);
-  
+
   // States
   const [formData, setFormData] = useState({
     name: '', email: '', phone: '', password: '', confirmPassword: '', examGoal: 'UPSC'
@@ -70,9 +70,9 @@ const Auth = ({ type }) => {
           toast.success('OTP sent to your mobile number!');
           return;
         }
-        
+
         if (otp !== '1234') { // Mock OTP check
-           return toast.error('Invalid OTP. Please enter 1234 for simulation.');
+          return toast.error('Invalid OTP. Please enter 1234 for simulation.');
         }
 
         await register(formData);
@@ -91,10 +91,10 @@ const Auth = ({ type }) => {
       }
     } catch (error) {
       const serverError = error.response?.data;
-      const errorMessage = serverError?.error 
-        ? `${serverError.message}: ${serverError.error}` 
+      const errorMessage = serverError?.error
+        ? `${serverError.message}: ${serverError.error}`
         : (serverError?.message || error.message || 'Authentication failed');
-      
+
       toast.error(errorMessage, {
         duration: 5000,
         style: { maxWidth: '500px' }
@@ -107,7 +107,7 @@ const Auth = ({ type }) => {
     <div className="hidden lg:flex flex-col justify-center w-1/2 bg-primary p-12 text-white relative overflow-hidden">
       <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-primary-light rounded-full blur-3xl opacity-50"></div>
       <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 bg-secondary rounded-full blur-3xl opacity-20"></div>
-      
+
       <div className="z-10 relative">
         <Link to="/" className="flex items-center gap-3 mb-16">
           <div className="w-10 h-10 bg-secondary rounded flex items-center justify-center overflow-hidden shadow-lg">
@@ -115,20 +115,20 @@ const Auth = ({ type }) => {
           </div>
           <span className="font-heading font-bold text-3xl tracking-wide">VidyaJaya</span>
         </Link>
-        
-        <motion.div 
+
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-4xl md:text-5xl font-heading font-bold mb-6 leading-tight">
-            Where Knowledge <br/>
+            Where Knowledge <br />
             <span className="text-secondary">Pays Off</span>
           </h1>
           <p className="text-lg text-gray-300 mb-10 max-w-md">
             Join 2.5L+ students building their streaks and conquering UPSC, SSC, and Banking exams with AI-powered practice.
           </p>
-          
+
           <div className="space-y-4">
             <div className="flex items-center gap-4 bg-primary-light bg-opacity-40 p-4 rounded-xl backdrop-blur-sm border border-primary-light">
               <div className="p-3 bg-secondary bg-opacity-20 rounded-lg text-secondary">
@@ -139,7 +139,7 @@ const Auth = ({ type }) => {
                 <p className="text-sm text-gray-400">Zero friction, zero credit card needed.</p>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-4 bg-primary-light bg-opacity-40 p-4 rounded-xl backdrop-blur-sm border border-primary-light">
               <div className="p-3 bg-accent-green bg-opacity-20 rounded-lg text-accent-green">
                 <CheckCircle size={24} />
@@ -178,7 +178,7 @@ const Auth = ({ type }) => {
   return (
     <div className="flex min-h-screen bg-[var(--bg-light)]">
       <LeftPanel />
-      
+
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12">
         <div className="w-full max-w-md">
           {/* Mobile Logo */}
@@ -197,22 +197,22 @@ const Auth = ({ type }) => {
             {/* Header */}
             <div className="mb-8 text-center sm:text-left">
               <h2 className="text-3xl font-heading font-bold mb-2 text-[var(--text-primary)]">
-                {type === 'Login' ? 'Welcome Back!' : 
-                 type === 'Signup' ? 'Create Account' : 
-                 type === 'Forgot Password' ? 'Reset Password' :
-                 'Set New Password'}
+                {type === 'Login' ? 'Welcome Back!' :
+                  type === 'Signup' ? 'Create Account' :
+                    type === 'Forgot Password' ? 'Reset Password' :
+                      'Set New Password'}
               </h2>
               <p className="text-[var(--text-secondary)]">
-                {type === 'Login' ? 'Enter your details to access your dashboard.' : 
-                 type === 'Signup' ? 'Start your journey to success today.' : 
-                 type === 'Forgot Password' ? 'Enter your email to receive a reset link.' :
-                 'Enter your new password below.'}
+                {type === 'Login' ? 'Enter your details to access your dashboard.' :
+                  type === 'Signup' ? 'Start your journey to success today.' :
+                    type === 'Forgot Password' ? 'Enter your email to receive a reset link.' :
+                      'Enter your new password below.'}
               </p>
             </div>
 
             {type === 'Login' && (
               <div className="flex bg-[var(--bg-light)] p-1 rounded-xl mb-8 border border-[var(--border)] relative z-10">
-                <button 
+                <button
                   type="button"
                   onClick={() => { setLoginMethod('email'); setIsOtpSent(false); setShowOtpField(false); }}
                   className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${loginMethod === 'email' ? 'bg-white shadow-md text-primary translate-y-0' : 'text-[var(--text-secondary)] hover:text-primary'}`}
@@ -221,7 +221,7 @@ const Auth = ({ type }) => {
                     <Mail size={16} /> Email Login
                   </div>
                 </button>
-                <button 
+                <button
                   type="button"
                   onClick={() => setLoginMethod('phone')}
                   className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${loginMethod === 'phone' ? 'bg-white shadow-md text-primary translate-y-0' : 'text-[var(--text-secondary)] hover:text-primary'}`}
@@ -243,8 +243,8 @@ const Auth = ({ type }) => {
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                         <Phone size={18} />
                       </div>
-                      <input 
-                        type="tel" name="phone" 
+                      <input
+                        type="tel" name="phone"
                         value={formData.phone} onChange={handleChange}
                         className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                         placeholder="+91 9059061099" required
@@ -254,7 +254,7 @@ const Auth = ({ type }) => {
                   {showOtpField && (
                     <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-4">
                       <label className="block text-sm font-medium mb-1 text-secondary">Enter OTP</label>
-                      <input 
+                      <input
                         type="text" value={otp} onChange={(e) => setOtp(e.target.value)}
                         className="w-full p-3 text-center text-2xl tracking-[1em] rounded-xl border-2 border-secondary bg-[var(--bg-card)] focus:ring-2 focus:ring-secondary outline-none transition-all"
                         placeholder="0000" maxLength={4} required
@@ -268,152 +268,151 @@ const Auth = ({ type }) => {
                   {type === 'Signup' && (
                     <>
                       {/* ... existing Signup fields ... */}
-                  <div>
-                    <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Full Name</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                        <User size={18} />
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Full Name</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <User size={18} />
+                          </div>
+                          <input
+                            type="text" name="name"
+                            value={formData.name} onChange={handleChange}
+                            className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                            placeholder="Rahul Kumar" required
+                          />
+                        </div>
                       </div>
-                      <input 
-                        type="text" name="name" 
-                        value={formData.name} onChange={handleChange}
-                        className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                        placeholder="Rahul Kumar" required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Phone Number</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                        <Phone size={18} />
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Phone Number</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <Phone size={18} />
+                          </div>
+                          <input
+                            type="tel" name="phone"
+                            value={formData.phone} onChange={handleChange}
+                            className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                            placeholder="+91 9876543210" required
+                          />
+                        </div>
                       </div>
-                      <input 
-                        type="tel" name="phone" 
-                        value={formData.phone} onChange={handleChange}
-                        className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                        placeholder="+91 9876543210" required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Exam Goal</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                        <BookOpen size={18} />
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Exam Goal</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <BookOpen size={18} />
+                          </div>
+                          <select
+                            name="examGoal"
+                            value={formData.examGoal} onChange={handleChange}
+                            className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                          >
+                            <option value="UPSC">UPSC</option>
+                            <option value="SSC">SSC</option>
+                            <option value="RRB">RRB</option>
+                            <option value="Banking">Banking</option>
+                            <option value="Reasoning">Reasoning</option>
+                            <option value="Aptitude">Aptitude</option>
+                          </select>
+                        </div>
                       </div>
-                      <select 
-                        name="examGoal"
-                        value={formData.examGoal} onChange={handleChange}
-                        className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                      >
-                        <option value="UPSC">UPSC</option>
-                        <option value="SSC">SSC</option>
-                        <option value="RRB">RRB</option>
-                        <option value="Banking">Banking</option>
-                        <option value="Reasoning">Reasoning</option>
-                        <option value="Aptitude">Aptitude</option>
-                      </select>
+
+                      {showOtpField && (
+                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-4 mb-4">
+                          <label className="block text-sm font-medium mb-1 text-secondary">Verification Code (OTP)</label>
+                          <input
+                            type="text" value={otp} onChange={(e) => setOtp(e.target.value)}
+                            className="w-full p-4 text-center text-2xl tracking-widest rounded-xl border-2 border-secondary bg-[var(--bg-card)] focus:ring-2 focus:ring-secondary outline-none transition-all"
+                            placeholder="0000" maxLength={4}
+                          />
+                          <p className="text-xs text-[var(--text-secondary)] mt-2">Enter the 4-digit code sent to {formData.phone} (Try 1234)</p>
+                        </motion.div>
+                      )}
+                    </>
+                  )}
+
+                  {(type === 'Login' || type === 'Signup' || type === 'Forgot Password') && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Email Address</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <Mail size={18} />
+                          </div>
+                          <input
+                            type="email" name="email"
+                            value={formData.email} onChange={handleChange}
+                            className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                            placeholder="you@example.com" required
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {(type === 'Login' || type === 'Signup' || type === 'Reset Password') && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)] flex justify-between">
+                          <span>{type === 'Reset Password' ? 'New Password' : 'Password'}</span>
+                          {type === 'Login' && (
+                            <Link to="/forgot-password" className="text-secondary hover:underline text-xs">Forgot Password?</Link>
+                          )}
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <Lock size={18} />
+                          </div>
+                          <input
+                            type={showPassword ? "text" : "password"} name="password"
+                            value={formData.password} onChange={handleChange}
+                            className="pl-10 pr-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                            placeholder="••••••••" required
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                          >
+                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          </button>
+                        </div>
+                        {/* Password Strength Indicator */}
+                        {(type === 'Signup' || type === 'Reset Password') && formData.password && (
+                          <div className="mt-2 flex gap-1">
+                            {[1, 2, 3, 4].map((level) => (
+                              <div
+                                key={level}
+                                className={`h-1.5 w-full rounded-full ${getPasswordStrength() >= level
+                                    ? (getPasswordStrength() <= 2 ? 'bg-red-400' : getPasswordStrength() === 3 ? 'bg-yellow-400' : 'bg-green-500')
+                                    : 'bg-gray-200 dark:bg-gray-700'
+                                  }`}
+                              ></div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {type === 'Reset Password' && (
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Confirm Password</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                          <Lock size={18} />
+                        </div>
+                        <input
+                          type={showPassword ? "text" : "password"} name="confirmPassword"
+                          value={formData.confirmPassword} onChange={handleChange}
+                          className="pl-10 pr-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                          placeholder="••••••••" required
+                        />
+                      </div>
                     </div>
-                  </div>
-                  
-                  {showOtpField && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-4 mb-4">
-                      <label className="block text-sm font-medium mb-1 text-secondary">Verification Code (OTP)</label>
-                      <input 
-                        type="text" value={otp} onChange={(e) => setOtp(e.target.value)}
-                        className="w-full p-4 text-center text-2xl tracking-widest rounded-xl border-2 border-secondary bg-[var(--bg-card)] focus:ring-2 focus:ring-secondary outline-none transition-all"
-                        placeholder="0000" maxLength={4}
-                      />
-                      <p className="text-xs text-[var(--text-secondary)] mt-2">Enter the 4-digit code sent to {formData.phone} (Try 1234)</p>
-                    </motion.div>
                   )}
                 </>
               )}
-
-              {(type === 'Login' || type === 'Signup' || type === 'Forgot Password') && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Email Address</label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                        <Mail size={18} />
-                      </div>
-                      <input 
-                        type="email" name="email" 
-                        value={formData.email} onChange={handleChange}
-                        className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                        placeholder="you@example.com" required
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {(type === 'Login' || type === 'Signup' || type === 'Reset Password') && (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)] flex justify-between">
-                      <span>{type === 'Reset Password' ? 'New Password' : 'Password'}</span>
-                      {type === 'Login' && (
-                        <Link to="/forgot-password" className="text-secondary hover:underline text-xs">Forgot Password?</Link>
-                      )}
-                    </label>
-                    <div className="relative">
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                        <Lock size={18} />
-                      </div>
-                      <input 
-                        type={showPassword ? "text" : "password"} name="password" 
-                        value={formData.password} onChange={handleChange}
-                        className="pl-10 pr-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                        placeholder="••••••••" required
-                      />
-                      <button 
-                        type="button" 
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                      >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
-                    </div>
-                    {/* Password Strength Indicator */}
-                    {(type === 'Signup' || type === 'Reset Password') && formData.password && (
-                      <div className="mt-2 flex gap-1">
-                        {[1, 2, 3, 4].map((level) => (
-                          <div 
-                            key={level} 
-                            className={`h-1.5 w-full rounded-full ${
-                              getPasswordStrength() >= level 
-                                ? (getPasswordStrength() <= 2 ? 'bg-red-400' : getPasswordStrength() === 3 ? 'bg-yellow-400' : 'bg-green-500')
-                                : 'bg-gray-200 dark:bg-gray-700'
-                            }`}
-                          ></div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-
-              {type === 'Reset Password' && (
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Confirm Password</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                      <Lock size={18} />
-                    </div>
-                    <input 
-                      type={showPassword ? "text" : "password"} name="confirmPassword" 
-                      value={formData.confirmPassword} onChange={handleChange}
-                      className="pl-10 pr-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                      placeholder="••••••••" required
-                    />
-                  </div>
-                </div>
-              )}
-            </>
-          )}
 
               {type === 'Signup' && (
                 <div className="flex items-start mb-6">
@@ -426,8 +425,8 @@ const Auth = ({ type }) => {
                 </div>
               )}
 
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isloading}
                 className="w-full btn btn-primary flex justify-center items-center gap-2 py-3.5 text-lg truncate relative group"
               >
@@ -435,10 +434,10 @@ const Auth = ({ type }) => {
                   <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></span>
                 ) : (
                   <>
-                    {type === 'Login' ? 'Log In' : 
-                     type === 'Signup' ? 'Create Account' : 
-                     type === 'Forgot Password' ? 'Send Reset Link' : 
-                     'Reset Password'}
+                    {type === 'Login' ? 'Log In' :
+                      type === 'Signup' ? 'Create Account' :
+                        type === 'Forgot Password' ? 'Send Reset Link' :
+                          'Reset Password'}
                     <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
