@@ -37,6 +37,8 @@ import WhatIsVidyajaya from './pages/articles/WhatIsVidyajaya';
 import HowVidyajayaHelps from './pages/articles/HowVidyajayaHelps';
 import WhyVidyajayaIsBest from './pages/articles/WhyVidyajayaIsBest';
 
+import AdminLayout from './components/AdminLayout';
+
 const AdminRoute = ({ children }) => {
     const { user, isAuthenticated } = useAuthStore();
     if (!isAuthenticated || user?.role !== 'admin') {
@@ -71,6 +73,7 @@ function App() {
     );
   }
 
+  return (
     <Router>
       {/* Toast notifications */}
       <Toaster 
