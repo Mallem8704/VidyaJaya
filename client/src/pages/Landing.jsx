@@ -123,12 +123,14 @@ export default function Landing() {
             </div>
             <span className="nav-brand">Vidya<span>Jaya</span></span>
           </div>
+          
           <div className="nav-links">
             <button className="nav-link" onClick={() => scrollToSection('features')}>Features</button>
             <button className="nav-link" onClick={() => scrollToSection('how')}>How It Works</button>
             <button className="nav-link" onClick={() => scrollToSection('pricing')}>Pricing</button>
             <button className="nav-link" onClick={() => scrollToSection('leaderboard-section')}>Leaderboard</button>
           </div>
+
           <div className="nav-right">
             <button className="theme-btn" onClick={toggleTheme} title="Toggle dark mode" aria-label="Toggle dark mode">
               {theme === 'dark' ? (
@@ -144,8 +146,9 @@ export default function Landing() {
             <Link to="/login" className="btn btn-ghost btn-sm">Log In</Link>
             <button onClick={handleCtaClick} className="btn btn-primary btn-sm pulse-glow">Get Early Access</button>
           </div>
+
           <button className="hamburger" onClick={() => setIsMobileMenuOpen(true)} aria-label="Open menu">
-            <span /><span /><span />
+            <Menu size={24} />
           </button>
         </div>
       </nav>
@@ -188,23 +191,24 @@ export default function Landing() {
         <div className="hero-content">
           <div className="hero-left">
             <div className="hero-badge-row">
-              <div className="hero-badge"><Star size={14} fill="currentColor" className="text-accent-gold" /> India's #1 AI Exam Platform</div>
-              <div className="hero-badge"><Rocket size={14} className="text-primary" /> Free to Start</div>
+              <div className="hero-badge">India's #1 AI Exam Platform</div>
             </div>
             <h1 className="hero-title">
-              The <span className="accent">Vidyajaya App</span>: Where study<br className="hidden md:block" />
-              turns into ranks and rewards
+              Turn Study Into<br />
+              Ranks & Rewards
             </h1>
             <p className="hero-sub">AI-powered daily mock tests, live leaderboards, and real cash rewards for UPSC, SSC, Banking and more. Every question fresh. Every day a new competition.</p>
-            <p className="hero-mobile-text">Daily AI mock tests + real cash rewards</p>
+            <p className="hero-mobile-text">Daily mock tests + real rewards</p>
+            
             <div className="hero-pills">
               <div className="hero-pill"><div className="dot" style={{ background: '#FF6B00' }}></div>AI-generated daily mock tests across UPSC, SSC, Banking, RRB and more – never the same question twice.</div>
               <div className="hero-pill"><div className="dot" style={{ background: '#FFD700' }}></div>Live leaderboard that ranks you against serious aspirants across India in real time.</div>
               <div className="hero-pill"><div className="dot" style={{ background: '#00C853' }}></div>Weekly cash rewards and streak bonuses for top performers – pure skill, no gambling.</div>
             </div>
+
             <div className="hero-ctas">
               <button onClick={handleCtaClick} className="btn btn-primary btn-lg pulse-glow">
-                <Play size={20} fill="currentColor" /> Start Free Test
+                Start Free Test
               </button>
               <button className="btn btn-ghost btn-lg" onClick={() => scrollToSection('leaderboard-section')}>View Leaderboard</button>
             </div>
@@ -305,22 +309,14 @@ export default function Landing() {
             {[
               { icon: Bot, title: 'AI Mock Tests', desc: 'Fresh questions daily', color: '#FF6B00', bg: 'rgba(255,107,0,.1)' },
               { icon: Trophy, title: 'Leaderboard', desc: 'Compete nationwide', color: '#7C3AED', bg: 'rgba(124,58,237,.1)' },
-              { icon: Coins, title: 'Rewards', desc: 'Earn based on rank', color: '#00C853', bg: 'rgba(0,200,83,.1)' },
-              { icon: BarChart, title: 'AI Analysis', desc: 'Pinpoint weak areas', color: '#3B82F6', bg: 'rgba(59,130,246,.1)', isPro: true }
+              { icon: Coins, title: 'Rewards', desc: 'Earn based on rank', color: '#00C853', bg: 'rgba(0,200,83,.1)' }
             ].map((f, i) => (
               <div key={i} className="feature-item-mobile reveal">
                 <div className="feature-icon-mobile" style={{ background: f.bg, color: f.color }}>
                   <f.icon size={20} />
                 </div>
-                <div className="feature-content-mobile" style={{ width: '100%' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h4>{f.title}</h4>
-                    {f.isPro && (
-                      <span className="badge badge-orange" style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px' }}>
-                        PRO
-                      </span>
-                    )}
-                  </div>
+                <div className="feature-content-mobile">
+                  <h4>{f.title}</h4>
                   <p>{f.desc}</p>
                 </div>
               </div>
@@ -348,19 +344,25 @@ export default function Landing() {
           <p className="section-sub reveal reveal-delay-2">No complicated setup. No credit card. Start your first test in under 2 minutes.</p>
           <div className="steps-row">
             <div className="step reveal">
-              <div className="step-num" style={{ background: '#FF6B00', boxShadow: '0 8px 24px rgba(255,107,0,.4)' }}>01</div>
-              <h3 className="step-title">Create Free Account</h3>
-              <p className="step-desc">Sign up with email in 30 seconds. Pick your exam goal — UPSC, SSC, RRB, Banking, Reasoning or Aptitude. No credit card needed ever.</p>
+              <div className="step-num" style={{ background: '#FF6B00' }}>01</div>
+              <div className="step-content">
+                <h3 className="step-title">Create Free Account</h3>
+                <p className="step-desc">Sign up with email in 30 seconds.</p>
+              </div>
             </div>
-            <div className="step reveal reveal-delay-2">
-              <div className="step-num" style={{ background: '#00C853', boxShadow: '0 8px 24px rgba(0,200,83,.4)' }}>02</div>
-              <h3 className="step-title">Take Daily AI Tests</h3>
-              <p className="step-desc">Every day at 9 AM, fresh AI-generated questions are waiting for you. Complete the test, see your rank, get instant AI feedback on your weak areas.</p>
+            <div className="step reveal">
+              <div className="step-num" style={{ background: '#00C853' }}>02</div>
+              <div className="step-content">
+                <h3 className="step-title">Take Daily AI Tests</h3>
+                <p className="step-desc">Fresh questions waiting at 9 AM.</p>
+              </div>
             </div>
-            <div className="step reveal reveal-delay-4">
-              <div className="step-num" style={{ background: '#7C3AED', boxShadow: '0 8px 24px rgba(124,58,237,.4)' }}>03</div>
-              <h3 className="step-title">Build Streak and Earn</h3>
-              <p className="step-desc">Come back tomorrow. Build your streak. Climb the leaderboard. Top 3 weekly performers win real cash every Sunday. Your consistency is finally being rewarded.</p>
+            <div className="step reveal">
+              <div className="step-num" style={{ background: '#7C3AED' }}>03</div>
+              <div className="step-content">
+                <h3 className="step-title">Build Streak and Earn</h3>
+                <p className="step-desc">Climb the leaderboard for Sunday rewards.</p>
+              </div>
             </div>
           </div>
         </div>
