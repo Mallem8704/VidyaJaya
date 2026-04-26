@@ -116,7 +116,7 @@ router.post('/register', async (req, res) => {
     }
 
     // 3. Track Device & Duplicate Accounts
-    const deviceId = req.body.deviceId;
+    // Fixed: Removed duplicate deviceId declaration
     const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const browserFingerprint = req.headers['user-agent'];
 
