@@ -2,14 +2,14 @@ const express = require('express');
 const router = express.Router();
 const { generateQuestions } = require('../utils/groq');
 const supabase = require('../config/supabase');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, checkAiLimit } = require('../middleware/authMiddleware');
 
 /**
  * @route   POST /api/generate-questions
  * @desc    Generate questions using AI and store them
  * @access  Private
  */
-router.post('/generate-questions', protect, async (req, res) => {
+router.post('/generate-questions', protect, checkAiLimit, async (req, res) => {
   const { subject, difficulty, weakTopics } = req.body;
 
   if (!subject) {
@@ -43,14 +43,15 @@ router.post('/generate-questions', protect, async (req, res) => {
     }
     */
 
-    // 3. Format for Supabase and Store (Only using verified existing columns)
+    // 3. Format for Supabase and Store
     const questionsToInsert = questions.map(q => ({
       text: q.question,
       options: q.options,
       correct_index: q.options.indexOf(q.answer) !== -1 ? q.options.indexOf(q.answer) : 0,
       explanation: q.explanation,
       category: subject,
-      difficulty: q.difficulty?.toLowerCase() || 'medium'
+      difficulty: q.difficulty?.toLowerCase() || 'medium',
+      user_id: req.user.id // Attribution
     }));
 
     const { data, error } = await supabase
@@ -58,7 +59,40 @@ router.post('/generate-questions', protect, async (req, res) => {
       .insert(questionsToInsert)
       .select();
 
-    if (error) throw error;
+    if (error) {
+        // Fallback if user_id column doesn't exist
+        if (error.message.includes('user_id')) {
+            console.warn('user_id column missing in questions table. Inserting without it.');
+            const fallbackInsert = questionsToInsert.map(({user_id, ...rest}) => rest);
+            const { data: fallbackData, error: fallbackError } = await supabase
+                .from('questions')
+                .insert(fallbackInsert)
+                .select();
+            if (fallbackError) throw fallbackError;
+
+            // Increment usage count for free users
+            if (!req.user.is_pro && req.user.role !== 'admin') {
+                await supabase
+                .from('profiles')
+                .update({ ai_practice_count: (req.user.ai_practice_count || 0) + 1 })
+                .eq('id', req.user.id);
+            }
+
+            return res.status(201).json({
+                message: 'Questions generated (no user_id)',
+                questions: fallbackData
+            });
+        }
+        throw error;
+    }
+
+    // Increment usage count for free users
+    if (!req.user.is_pro && req.user.role !== 'admin') {
+        await supabase
+        .from('profiles')
+        .update({ ai_practice_count: (req.user.ai_practice_count || 0) + 1 })
+        .eq('id', req.user.id);
+    }
 
     res.status(201).json({
       message: 'Questions generated and stored successfully',
@@ -77,24 +111,26 @@ router.post('/generate-questions', protect, async (req, res) => {
 
 /**
  * @route   GET /api/questions/daily
- * @desc    Get daily questions for a subject
+ * @desc    Get daily questions for a subject (Recent 20)
  * @access  Private
  */
 router.get('/daily', protect, async (req, res) => {
-  const { subject } = req.query;
+  const { subject, difficulty } = req.query;
   
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
     let query = supabase
       .from('questions')
       .select('*')
-      .gte('created_at', today.toISOString())
-      .order('created_at', { ascending: false });
+      .is('test_id', null) // Only AI questions
+      .order('created_at', { ascending: false })
+      .limit(20);
 
     if (subject) {
       query = query.eq('category', subject);
+    }
+    
+    if (difficulty) {
+      query = query.eq('difficulty', difficulty.toLowerCase());
     }
 
     const { data, error } = await query;
@@ -103,7 +139,7 @@ router.get('/daily', protect, async (req, res) => {
 
     res.json(data);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch daily questions' });
+    res.status(500).json({ message: 'Failed to fetch recent questions' });
   }
 });
 

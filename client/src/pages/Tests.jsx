@@ -1,17 +1,16 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import toast from 'react-hot-toast';
-import { motion } from 'framer-motion';
-// BUG 10 FIX: Import useSearchParams to read category from URL
-import { Link, useSearchParams } from 'react-router-dom';
-import { BookOpen, Filter, Award, CheckCircle, Clock, Share2, X } from 'lucide-react';
+import ProUpgradeModal from '../components/ProUpgradeModal';
+import { useAuthStore } from '../store/authStore';
+import { Lock } from 'lucide-react';
 
 const Tests = () => {
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All');
-  // BUG 10 FIX: Read ?category= query param from Practice page
   const [searchParams, setSearchParams] = useSearchParams();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { user } = useAuthStore();
+
+  const isUserPro = user?.is_pro || user?.role === 'admin';
 
   React.useEffect(() => {
     const fetchTests = async () => {
@@ -39,6 +38,13 @@ const Tests = () => {
   const clearCategoryFilter = () => {
     setActiveFilter('All');
     setSearchParams({});
+  };
+
+  const handleTestClick = (e, test) => {
+    if (test.is_premium && !isUserPro) {
+      e.preventDefault();
+      setShowUpgradeModal(true);
+    }
   };
   
   const filteredTests = activeFilter === 'All' 
@@ -115,44 +121,71 @@ const Tests = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredTests.map((test, idx) => (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              key={test.id} 
-              className="card hover:-translate-y-1 transition-all border border-[var(--border)] hover:border-secondary overflow-hidden flex flex-col"
-            >
-              <div className={`p-4 border-b border-[var(--border)] flex justify-between items-start ${test.is_premium ? 'bg-[rgba(255,107,0,0.02)]' : 'bg-[var(--bg-light)]'}`}>
-                 <span className={`text-xs font-bold px-2 py-0.5 rounded ${test.category === 'UPSC' ? 'bg-blue-100 text-blue-700 dark:bg-[#07192a] dark:text-blue-400' : 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300'}`}>
-                   {test.category}
-                 </span>
-                 {test.is_premium ? (
-                   <span className="text-[10px] bg-accent-gold text-white font-bold px-2 py-0.5 rounded shadow flex items-center gap-1"><Award size={10}/> PRO</span>
-                 ) : (
-                   <span className="text-[10px] text-accent-green font-bold px-2 py-0.5 flex items-center gap-1"><CheckCircle size={12}/> FREE</span>
-                 )}
-              </div>
-              
-              <div className="p-6 flex-1 flex flex-col">
-                 <h4 className="font-bold text-lg leading-tight mb-4">{test.title}</h4>
-                 
-                 <div className="flex gap-4 text-sm text-[var(--text-secondary)] mb-6 mt-auto">
-                   <div className="flex items-center gap-1"><Clock size={16}/> {Math.round((test.duration || 0) / 60)}m</div>
-                   <div className="flex items-center gap-1"><BookOpen size={16}/> {test.total_questions} Qs</div>
-                 </div>
-                 
-                 <div className="flex gap-3">
-                   <Link to={`/test/${test.id}`} className={`flex-1 btn ${test.is_premium ? 'btn-outline border-accent-gold text-yellow-600 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-[rgba(255,215,0,0.1)]' : 'btn-primary'} text-center py-2`}>
-                     {test.is_premium ? 'Unlock with PRO' : 'Take Test'}
-                   </Link>
-                   <button className="p-2 border border-[var(--border)] rounded-lg hover:bg-[var(--bg-light)] text-[var(--text-secondary)]"><Share2 size={20}/></button>
-                 </div>
-              </div>
-            </motion.div>
-          ))}
+          {filteredTests.map((test, idx) => {
+            const isLocked = test.is_premium && !isUserPro;
+            
+            return (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                key={test.id} 
+                className={`card group hover:-translate-y-1 transition-all border border-[var(--border)] ${isLocked ? 'hover:border-accent-gold' : 'hover:border-primary'} overflow-hidden flex flex-col relative`}
+              >
+                {isLocked && (
+                  <div className="absolute top-2 right-2 z-20">
+                    <div className="p-1.5 bg-accent-gold/10 text-accent-gold rounded-full backdrop-blur-sm border border-accent-gold/20">
+                      <Lock size={14} />
+                    </div>
+                  </div>
+                )}
+
+                <div className={`p-4 border-b border-[var(--border)] flex justify-between items-start ${test.is_premium ? 'bg-amber-50/10' : 'bg-[var(--bg-light)]'}`}>
+                   <span className={`text-xs font-bold px-2 py-0.5 rounded ${test.category === 'UPSC' ? 'bg-blue-100 text-blue-700 dark:bg-[#07192a] dark:text-blue-400' : 'bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300'}`}>
+                     {test.category}
+                   </span>
+                   {test.is_premium ? (
+                     <span className="text-[10px] bg-accent-gold text-white font-bold px-2 py-0.5 rounded shadow flex items-center gap-1"><Award size={10}/> PRO</span>
+                   ) : (
+                     <span className="text-[10px] text-accent-green font-bold px-2 py-0.5 flex items-center gap-1"><CheckCircle size={12}/> FREE</span>
+                   )}
+                </div>
+                
+                <div className="p-6 flex-1 flex flex-col">
+                   <h4 className="font-bold text-lg leading-tight mb-4">{test.title}</h4>
+                   
+                   <div className="flex gap-4 text-sm text-[var(--text-secondary)] mb-6 mt-auto">
+                     <div className="flex items-center gap-1"><Clock size={16}/> {Math.round((test.duration || 0) / 60)}m</div>
+                     <div className="flex items-center gap-1"><BookOpen size={16}/> {test.total_questions} Qs</div>
+                   </div>
+                   
+                   <div className="flex gap-3">
+                     <Link 
+                       to={`/test/${test.id}`} 
+                       onClick={(e) => handleTestClick(e, test)}
+                       className={`flex-1 btn ${isLocked ? 'bg-gradient-to-r from-accent-gold to-yellow-600 text-white' : 'btn-primary'} text-center py-2 flex items-center justify-center gap-2`}
+                     >
+                       {isLocked ? (
+                         <>
+                           <Lock size={16} />
+                           Unlock with PRO
+                         </>
+                       ) : 'Take Test'}
+                     </Link>
+                     <button className="p-2 border border-[var(--border)] rounded-lg hover:bg-[var(--bg-light)] text-[var(--text-secondary)]"><Share2 size={20}/></button>
+                   </div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
       )}
+
+      <ProUpgradeModal 
+        isOpen={showUpgradeModal} 
+        onClose={() => setShowUpgradeModal(false)} 
+        feature="tests"
+      />
       
     </div>
   );

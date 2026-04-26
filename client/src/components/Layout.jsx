@@ -72,7 +72,7 @@ const Layout = () => {
                   </div>
                 </div>
               )}
-            </button>
+            </div>
             
             <Link to="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-white text-xs font-bold overflow-hidden border-2 border-white/20 shadow-sm">

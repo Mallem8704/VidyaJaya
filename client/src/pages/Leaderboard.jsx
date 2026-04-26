@@ -1,20 +1,29 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import toast from 'react-hot-toast';
-import { motion } from 'framer-motion';
-import { Trophy, Flame, Crown, Medal } from 'lucide-react';
+import ProUpgradeModal from '../components/ProUpgradeModal';
+import { useAuthStore } from '../store/authStore';
+import { Lock, Diamond } from 'lucide-react';
 
 const Leaderboard = () => {
-  const [tab, setTab] = useState('global'); // 'global' or 'weekly'
+  const [tab, setTab] = useState('global'); // 'global', 'weekly', 'monthly'
   const [tier, setTier] = useState('all'); // 'all', 'pro', 'free'
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const { user } = useAuthStore();
+
+  const isUserPro = user?.is_pro || user?.role === 'admin';
 
   React.useEffect(() => {
     const fetchLeaderboard = async () => {
+      // Check if trying to access Pro-only tabs
+      if ((tab === 'weekly' || tab === 'monthly') && !isUserPro) {
+        setLeaderboard([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
-        const endpoint = tab === 'global' ? '/api/leaderboard/global' : '/api/leaderboard/weekly';
+        const endpoint = `/api/leaderboard/${tab}`;
         const res = await axios.get(endpoint, {
           params: { tier: tier !== 'all' ? tier : undefined }
         });
@@ -23,7 +32,7 @@ const Leaderboard = () => {
           setLeaderboard(res.data.map((u, i) => ({
             ...u,
             rank: i + 1,
-            score: (tab === 'global' ? u.total_score : u.weekly_score) || 0,
+            score: (tab === 'global' ? u.total_score : tab === 'weekly' ? u.weekly_score : u.monthly_score) || 0,
             plan: u.is_pro ? 'PRO' : 'Basic'
           })));
         } else {
@@ -37,7 +46,15 @@ const Leaderboard = () => {
       }
     };
     fetchLeaderboard();
-  }, [tab, tier]);
+  }, [tab, tier, isUserPro]);
+
+  const handleTabChange = (newTab) => {
+    if ((newTab === 'weekly' || newTab === 'monthly') && !isUserPro) {
+      setShowUpgradeModal(true);
+      return;
+    }
+    setTab(newTab);
+  };
 
   if (loading) {
     return (
@@ -48,7 +65,7 @@ const Leaderboard = () => {
     );
   }
 
-  // Ensure we have at least 3 for podium, even if mock
+  // Ensure we have at least 3 for podium
   const topThree = leaderboard.slice(0, 3);
   const others = leaderboard.slice(3);
 
@@ -80,18 +97,20 @@ const Leaderboard = () => {
 
           {/* Time Tab Toggle */}
           <div className="flex bg-[var(--bg-light)] p-1 rounded-xl border border-[var(--border)]">
-            <button 
-              className={`px-6 py-2 rounded-lg font-bold text-sm transition-all ${tab === 'global' ? 'bg-[var(--bg-card)] shadow-sm text-secondary' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-              onClick={() => setTab('global')}
-            >
-              Global
-            </button>
-            <button 
-              className={`px-6 py-2 rounded-lg font-bold text-sm transition-all ${tab === 'weekly' ? 'bg-[var(--bg-card)] shadow-sm text-secondary' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
-              onClick={() => setTab('weekly')}
-            >
-              Weekly
-            </button>
+            {[
+              { id: 'global', label: 'Global' },
+              { id: 'weekly', label: 'Weekly', isPro: true },
+              { id: 'monthly', label: 'Monthly', isPro: true }
+            ].map(item => (
+              <button 
+                key={item.id}
+                className={`px-6 py-2 rounded-lg font-bold text-sm transition-all flex items-center gap-2 ${tab === item.id ? 'bg-[var(--bg-card)] shadow-sm text-secondary' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                onClick={() => handleTabChange(item.id)}
+              >
+                {item.label}
+                {item.isPro && !isUserPro && <Lock size={12} className="text-accent-gold" />}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -212,6 +231,11 @@ const Leaderboard = () => {
         </div>
       </div>
       
+      <ProUpgradeModal 
+        isOpen={showUpgradeModal} 
+        onClose={() => setShowUpgradeModal(false)} 
+        feature="leaderboard"
+      />
     </div>
   );
 };

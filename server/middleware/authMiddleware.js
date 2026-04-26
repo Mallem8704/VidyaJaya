@@ -49,7 +49,7 @@ const protect = async (req, res, next) => {
 };
 
 const admin = (req, res, next) => {
-  if (req.user && (req.user.isAdmin || req.user.plan === 'admin')) {
+  if (req.user && (req.user.role === 'admin' || req.user.plan === 'admin' || req.user.isAdmin)) {
     next();
   } else {
     res.status(401).json({ message: 'Not authorized as an admin' });
@@ -57,7 +57,7 @@ const admin = (req, res, next) => {
 };
 
 const isPro = (req, res, next) => {
-  if (req.user && (req.user.is_pro || req.user.plan === 'admin')) {
+  if (req.user && (req.user.is_pro || req.user.role === 'admin' || req.user.plan === 'admin')) {
     next();
   } else {
     res.status(403).json({ 
@@ -67,5 +67,40 @@ const isPro = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin, isPro };
+const checkAiLimit = async (req, res, next) => {
+  const userId = req.user.id;
+  const isProUser = req.user.is_pro || req.user.role === 'admin' || req.user.plan === 'admin';
+
+  if (isProUser) {
+    return next();
+  }
+
+  try {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*') // Select all to avoid column-specific error if missing
+      .eq('id', userId)
+      .single();
+
+    if (error) throw error;
+
+    const limit = 3;
+    const currentUsage = profile.ai_practice_count || 0;
+
+    if (currentUsage >= limit) {
+      return res.status(403).json({ 
+        message: 'Free AI Practice limit reached',
+        code: 'AI_LIMIT_REACHED',
+        limit: limit
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error('AI Limit Check Error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+module.exports = { protect, admin, isPro, checkAiLimit };
 
