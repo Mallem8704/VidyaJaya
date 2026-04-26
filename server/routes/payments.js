@@ -59,11 +59,20 @@ router.post('/verify', protect, async (req, res) => {
     planType 
   } = req.body;
 
+  if (!process.env.RAZORPAY_KEY_SECRET) {
+    console.error('[PAYMENT] Missing RAZORPAY_KEY_SECRET in environment!');
+    return res.status(500).json({ message: 'Server configuration error' });
+  }
+
   const sign = razorpay_order_id + "|" + razorpay_payment_id;
   const expectedSign = crypto
     .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
     .update(sign.toString())
     .digest("hex");
+
+  console.log(`[PAYMENT] Verifying Order: ${razorpay_order_id}`);
+  console.log(`[PAYMENT] Expected: ${expectedSign.substring(0, 10)}...`);
+  console.log(`[PAYMENT] Received: ${razorpay_signature.substring(0, 10)}...`);
 
   if (razorpay_signature === expectedSign) {
     // Payment verified
