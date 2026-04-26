@@ -5,7 +5,7 @@ import {
   TrendingUp, Trophy, Coins, Rocket, Star, Target, 
   Hand, Flame, Play, CheckCircle, ShieldCheck, 
   Bot, BarChart, HelpCircle, History, Landmark, 
-  Newspaper, Map, Scale, BookOpen, Clock, 
+  Newspaper, Map, Scale, BookOpen, Clock, Shield,
   ArrowRight, Search, Menu, X, Mail, Instagram, 
   Youtube, Linkedin, Send 
 } from 'lucide-react';
@@ -535,6 +535,14 @@ export default function Landing() {
               <div className="exam-icon text-green-500"><Rocket size={32} /></div>
               <div className="exam-name">RRB NTPC / Group D</div>
               <div className="exam-desc">Railway exam preparation with affordable access. CBT-1 and CBT-2 patterns. Mobile-friendly daily practice tests.</div>
+            </div>
+            <div className="card exam-card reveal reveal-delay-3" style={{ '--ec-color': '#7C3AED' }}>
+              <div className="exam-icon text-purple-500"><Shield size={32} /></div>
+              <div className="exam-name">Defence Exams (NDA & CDS)</div>
+              <div className="exam-desc">Prepare for NDA & CDS with daily AI mock tests. Covers Maths, English, GK, and defence exam patterns.</div>
+              <div className="exam-meta">
+                <span className="exam-tag">NDA</span><span className="exam-tag">CDS</span><span className="exam-tag">Maths</span><span className="exam-tag">GK</span>
+              </div>
             </div>
           </div>
         </div>
