@@ -20,9 +20,9 @@ router.post('/create-order', protect, async (req, res) => {
   
   let amount;
   if (planType === 'weekly') {
-    amount = 99 * 100; // Rs. 99
+    amount = 49 * 100; // Rs. 49
   } else if (planType === 'monthly') {
-    amount = 299 * 100; // Rs. 299
+    amount = 99 * 100; // Rs. 99
   } else {
     return res.status(400).json({ message: 'Invalid plan type' });
   }
@@ -88,7 +88,7 @@ router.post('/verify', protect, async (req, res) => {
       await supabase.from('subscriptions').insert({
         user_id: req.user.id,
         plan_type: planType,
-        amount: planType === 'weekly' ? 99 : 299,
+        amount: planType === 'weekly' ? 49 : 99,
         razorpay_order_id,
         razorpay_payment_id,
         status: 'active',

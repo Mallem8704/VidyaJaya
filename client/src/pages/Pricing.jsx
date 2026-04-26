@@ -74,7 +74,7 @@ const Pricing = () => {
         {
             id: 'weekly',
             name: "PRO Weekly",
-            price: 99,
+            price: 49,
             duration: "week",
             description: "Perfect for quick exam revision.",
             features: [
@@ -90,7 +90,7 @@ const Pricing = () => {
         {
             id: 'monthly',
             name: "PRO Monthly",
-            price: 299,
+            price: 99,
             duration: "month",
             description: "Best for serious UPSC aspirants.",
             features: [

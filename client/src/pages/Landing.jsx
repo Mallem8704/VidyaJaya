@@ -401,34 +401,35 @@ export default function Landing() {
               <button onClick={handleCtaClick} className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center' }}>Start Free — No Card</button>
             </div>
 
-            <div className="price-card popular">
-              <div className="popular-badge">MOST POPULAR</div>
-              <div className="price-name" style={{ color: 'var(--orange)' }}>Pro</div>
-              <div className="price-amount"><sup>₹</sup>{isAnnual ? '69' : '99'} <span>/ month</span></div>
-              <div className="price-desc">Everything you need to compete seriously. Unlimited tests across all sectors, AI analysis and doubt solving, coin rewards, and eligibility for weekly cash payouts from the reward pool.</div>
+            <div className="price-card">
+              <div className="price-name">PRO Weekly</div>
+              <div className="price-amount"><sup>₹</sup>49 <span>/ week</span></div>
+              <div className="price-desc">Perfect for quick exam revision. Unlock leaderboards, AI performance analytics, and double rewards for a full week.</div>
               <div className="price-features">
-                <div className="pf yes"><div className="pf-check">✓</div><span>Unlimited daily tests</span></div>
-                <div className="pf yes"><div className="pf-check">✓</div><span>All 6 exam sectors</span></div>
-                <div className="pf yes"><div className="pf-check">✓</div><span>Weekly cash rewards (Top 3)</span></div>
-                <div className="pf yes"><div className="pf-check">✓</div><span>AI performance analysis + study plan</span></div>
-                <div className="pf yes"><div className="pf-check">✓</div><span>Unlimited AI doubt solving</span></div>
-                <div className="pf yes"><div className="pf-check">✓</div><span>Coin earning + streak freeze</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Unlock PRO Leaderboard</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>AI Performance Analytics</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Double Reward Coins</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Unlimited AI Doubts</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>UPSC, SSC & Banking Tests</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Premium 'PRO' Badge</span></div>
               </div>
-              <button onClick={handleCtaClick} className="btn btn-primary pulse-glow" style={{ width: '100%', justifyContent: 'center' }}>Start PRO Now →</button>
+              <button onClick={handleCtaClick} className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center' }}>Get PRO Weekly</button>
             </div>
 
-            <div className="price-card">
-              <div className="price-name">Pro+</div>
-              <div className="price-amount"><sup>₹</sup>{isAnnual ? '139' : '199'} <span>/ month</span></div>
-              <div className="price-desc">For serious aspirants who want maximum support.</div>
+            <div className="price-card popular">
+              <div className="popular-badge">BEST VALUE</div>
+              <div className="price-name" style={{ color: 'var(--orange)' }}>PRO Monthly</div>
+              <div className="price-amount"><sup>₹</sup>99 <span>/ month</span></div>
+              <div className="price-desc">Best for serious UPSC aspirants. Everything in Weekly, plus eligibility for cash rewards, 3x coin multipliers, and priority support.</div>
               <div className="price-features">
-                <div className="pf yes"><div className="pf-check">✓</div><span>Everything in Pro</span></div>
-                <div className="pf yes"><div className="pf-check">✓</div><span>1:1 AI personalised study plan</span></div>
-                <div className="pf yes"><div className="pf-check">✓</div><span>Download test certificates</span></div>
-                <div className="pf yes"><div className="pf-check">✓</div><span>Priority support response</span></div>
-                <div className="pf yes"><div className="pf-check">✓</div><span>Early access to new features</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>All Weekly Features</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Eligible for Cash Rewards</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>3x Coins on Daily Streaks</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Monthly Performance Report</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Early Access to Mock Tests</span></div>
+                <div className="pf yes"><div className="pf-check">✓</div><span>Priority Admin Support</span></div>
               </div>
-              <button onClick={handleCtaClick} className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center' }}>Upgrade to Pro+</button>
+              <button onClick={handleCtaClick} className="btn btn-primary pulse-glow" style={{ width: '100%', justifyContent: 'center' }}>Get PRO Monthly →</button>
             </div>
           </div>
           <p className="pricing-disclaimer" style={{ marginTop: '40px', fontSize: '14px', color: 'rgba(255,255,255,.6)', maxWidth: '800px', margin: '40px auto 0' }}>
@@ -492,7 +493,7 @@ export default function Landing() {
           <h2 className="section-title reveal reveal-delay-1">Frequently asked <span style={{ color: 'var(--orange)' }}>questions</span></h2>
           <div className="faq-list">
             {[
-              { q: "Is VidyaJaya really free? What's the catch?", a: "Yes, the Free plan is genuinely free forever — no credit card required, no hidden trial. You get 5 tests per week, daily current affairs (10 questions), streak tracking, and leaderboard access. The paid Pro plan (₹99/month) unlocks unlimited tests, AI analysis, coin rewards, and weekly cash prizes. We made the free plan useful enough to start, and the Pro plan valuable enough to upgrade." },
+              { q: "Is VidyaJaya really free? What's the catch?", a: "Yes, the Free plan is genuinely free forever — no credit card required, no hidden trial. You get 5 tests per week, daily current affairs (10 questions), streak tracking, and leaderboard access. The paid Pro plan (starts at ₹49/week) unlocks unlimited tests, AI analysis, coin rewards, and weekly cash prizes. We made the free plan useful enough to start, and the Pro plan valuable enough to upgrade." },
               { q: "How is VidyaJaya different from Testbook or Unacademy?", a: "Three things no other platform does: (1) AI-generated fresh questions every single day using GPT-4o — questions are never recycled. (2) A streak + coin reward system that pays you for consistency — top 3 weekly students win real cash every Sunday. (3) Genuine AI analysis that tells you which specific chapter to study next, not a generic percentage. VidyaJaya is built to be addictive in the best way — you'll want to come back every day." },
               { q: "Are the weekly cash rewards real? How do I receive them?", a: "Yes, 100% real. Every Sunday midnight, the top 3 students on the weekly leaderboard receive ₹500, ₹250, and ₹100 respectively. Rewards are credited as coins first and can be withdrawn to your UPI ID or bank account. To be eligible, you must be on a Pro plan. Free users can view the leaderboard but are not eligible for cash rewards." },
               { q: "What happens if I miss a day and my streak breaks?", a: "Missing a day resets your streak to 0 — this is intentional, it creates urgency and habit. However, Pro users get 2 \"Streak Freeze\" credits per month. Use a freeze on a day you can't study and your streak is protected. You can also earn extra streak freezes by spending coins. We'll send you a reminder notification at 8 PM if you haven't completed a test that day." },
