@@ -10,27 +10,32 @@ const { protect } = require('../middleware/authMiddleware');
  */
 router.get('/balance', protect, async (req, res) => {
   try {
-    // 1. Get balance from profiles (synced)
-    const { data: profile, error: pErr } = await supabase
-      .from('profiles')
-      .select('coins')
-      .eq('id', req.user.id)
+    // 1. Get balance from user_wallets
+    const { data: wallet, error: wErr } = await supabase
+      .from('user_wallets')
+      .select('*')
+      .eq('user_id', req.user.id)
       .single();
 
-    if (pErr) throw pErr;
+    if (wErr) {
+      // If wallet doesn't exist, create it (fallback)
+      const { data: newWallet } = await supabase.from('user_wallets').insert({ user_id: req.user.id }).select().single();
+      return res.json({ balance: 0, wallet: newWallet, transactions: [] });
+    }
 
     // 2. Get recent transactions
     const { data: transactions, error: tErr } = await supabase
-      .from('rewards') // We reuse the rewards table as the transaction log
+      .from('transactions')
       .select('*')
       .eq('user_id', req.user.id)
       .order('created_at', { ascending: false })
-      .limit(20);
+      .limit(30);
 
     if (tErr) throw tErr;
 
     res.json({
-      balance: profile.coins || 0,
+      balance: wallet.available_balance || 0,
+      wallet,
       transactions
     });
   } catch (error) {
@@ -41,63 +46,42 @@ router.get('/balance', protect, async (req, res) => {
 
 /**
  * @route   POST /api/wallet/withdraw
- * @desc    Request a withdrawal (Min ₹100 / 1000 coins)
+ * @desc    Request a withdrawal (Min ₹50)
  * @access  Private
  */
 router.post('/withdraw', protect, async (req, res) => {
-  const { amount, upiId } = req.body; // Amount in Rupees
-  const coinAmount = amount * 10; // 10 coins = ₹1
+  const { amount, upiId } = req.body; 
+  const coinAmount = parseInt(amount) * 10; // ₹1 = 10 coins
 
   try {
-    if (amount < 100) {
-      return res.status(400).json({ message: 'Minimum withdrawal amount is ₹100' });
+    if (!amount || isNaN(amount) || amount < 50) {
+      return res.status(400).json({ message: 'Minimum withdrawal amount is ₹50' });
     }
 
-    // 1. Check current balance
-    const { data: profile } = await supabase.from('profiles').select('coins, is_verified').eq('id', req.user.id).single();
-    
-    if ((profile?.coins || 0) < coinAmount) {
-      return res.status(400).json({ message: 'Insufficient balance' });
+    if (!upiId || !upiId.includes('@')) {
+      return res.status(400).json({ message: 'Invalid UPI ID' });
     }
 
-    // 2. Check for existing pending requests
-    const { data: existing } = await supabase
-      .from('withdrawals')
-      .select('id')
-      .eq('user_id', req.user.id)
-      .eq('status', 'pending')
-      .limit(1);
-
-    if (existing && existing.length > 0) {
-      return res.status(400).json({ message: 'You already have a pending withdrawal request.' });
-    }
-
-    // 3. Create withdrawal record
-    const { error: wErr } = await supabase.from('withdrawals').insert({
-      user_id: req.user.id,
-      amount: amount,
-      upi_id: upiId,
-      status: 'pending'
+    // Call the atomic RPC function
+    const { error: rpcErr } = await supabase.rpc('request_withdrawal', {
+      p_user_id: req.user.id,
+      p_amount_inr: parseInt(amount),
+      p_upi_id: upiId,
+      p_coin_amount: coinAmount
     });
 
-    if (wErr) throw wErr;
+    if (rpcErr) {
+      console.error('RPC Error:', rpcErr);
+      return res.status(400).json({ message: rpcErr.message || 'Withdrawal failed' });
+    }
 
-    // 4. Deduct coins and log transaction
-    await supabase.from('profiles').update({
-      coins: profile.coins - coinAmount
-    }).eq('id', req.user.id);
-
-    await supabase.from('rewards').insert({
-      user_id: req.user.id,
-      amount: -coinAmount,
-      description: `Withdrawal request for ₹${amount} (UPI: ${upiId})`,
-      type: 'withdrawal'
+    res.json({ 
+      success: true,
+      message: 'Withdrawal request submitted! You will receive ₹' + amount + ' once approved.' 
     });
-
-    res.json({ message: 'Withdrawal request submitted! It will be reviewed within 48 hours.' });
   } catch (error) {
     console.error('Withdrawal Request Error:', error);
-    res.status(500).json({ message: 'Failed to process withdrawal' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

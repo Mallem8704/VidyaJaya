@@ -14,7 +14,7 @@ router.get('/stats', protect, adminProtect, async (req, res) => {
         const { count: proUsers } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_pro', true);
         const { data: withdrawals } = await supabase.from('withdrawals').select('amount, status');
         
-        const totalPaid = withdrawals.filter(w => w.status === 'approved').reduce((sum, w) => sum + Number(w.amount), 0);
+        const totalPaid = withdrawals.filter(w => w.status === 'paid').reduce((sum, w) => sum + Number(w.amount), 0);
         const pendingPayouts = withdrawals.filter(w => w.status === 'pending').length;
 
         res.json({
@@ -99,59 +99,42 @@ router.get('/withdrawals', protect, adminProtect, async (req, res) => {
         const stats = {
             pending: allReqs.filter(r => r.status === 'pending').length,
             approved: allReqs.filter(r => r.status === 'approved').length,
-            rejected: allReqs.filter(r => r.status === 'rejected').length
+            rejected: allReqs.filter(r => r.status === 'rejected').length,
+            paid: allReqs.filter(r => r.status === 'paid').length
         };
 
         res.json({ requests, stats });
     } catch (err) {
+        console.error('Fetch Withdrawals Error:', err);
         res.status(500).json({ message: 'Failed to fetch withdrawals' });
     }
 });
 
 /**
- * @route   POST /api/admin/withdrawals/:id/:action
- * @desc    Approve or Reject a withdrawal
+ * @route   POST /api/admin/withdrawals/:id/update-status
+ * @desc    Approve, Reject or Mark as Paid a withdrawal
  */
-router.post('/withdrawals/:id/:action', protect, adminProtect, async (req, res) => {
-    const { id, action } = req.params; // action: 'approved' or 'rejected'
-    const { notes } = req.body;
+router.post('/withdrawals/:id/update-status', protect, adminProtect, async (req, res) => {
+    const { id } = req.params;
+    const { status, notes } = req.body; // status: 'approved', 'rejected', 'paid'
 
     try {
-        if (!['approved', 'rejected'].includes(action)) {
-            return res.status(400).json({ message: 'Invalid action' });
+        if (!['approved', 'rejected', 'paid'].includes(status)) {
+            return res.status(400).json({ message: 'Invalid status' });
         }
 
-        const { data: withdrawal } = await supabase.from('withdrawals').select('*').eq('id', id).single();
-        if (!withdrawal) return res.status(404).json({ message: 'Request not found' });
+        const { error: rpcErr } = await supabase.rpc('update_withdrawal_status', {
+            p_withdrawal_id: id,
+            p_status: status,
+            p_admin_notes: notes || `Request updated to ${status} by admin.`
+        });
 
-        // Update withdrawal status
-        await supabase.from('withdrawals').update({
-            status: action,
-            admin_notes: notes || `Request ${action} by admin.`
-        }).eq('id', id);
+        if (rpcErr) throw rpcErr;
 
-        // If rejected, refund the coins?
-        // User request said: "Prevent withdrawing fake rewards"
-        // If rejected due to fraud, maybe DON'T refund. 
-        // But for safety/fairness, let's refund if it's just a regular rejection.
-        if (action === 'rejected') {
-            const coinAmount = withdrawal.amount * 10;
-            const { data: profile } = await supabase.from('profiles').select('coins').eq('id', withdrawal.user_id).single();
-            await supabase.from('profiles').update({
-                coins: (profile?.coins || 0) + coinAmount
-            }).eq('id', withdrawal.user_id);
-
-            await supabase.from('rewards').insert({
-                user_id: withdrawal.user_id,
-                amount: coinAmount,
-                description: `Refund for rejected withdrawal request (Ref: ${id})`,
-                type: 'refund'
-            });
-        }
-
-        res.json({ message: `Withdrawal ${action} successfully.` });
+        res.json({ message: `Withdrawal status updated to ${status} successfully.` });
     } catch (err) {
-        res.status(500).json({ message: 'Failed to process action' });
+        console.error('Update Withdrawal Error:', err);
+        res.status(500).json({ message: 'Failed to update status' });
     }
 });
 
