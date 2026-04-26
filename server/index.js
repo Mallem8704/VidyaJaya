@@ -93,7 +93,7 @@ app.use('/api/questions', questionRoutes);
 
 // Placeholder routes
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.status(200).json({ status: 'ok', version: '1.0.1-fixed-auth' });
 });
 
 // Error Handling Middleware
