@@ -157,6 +157,22 @@ export default function Landing() {
         <button className="mobile-link" onClick={() => scrollToSection('how')}>How It Works</button>
         <button className="mobile-link" onClick={() => scrollToSection('pricing')}>Pricing</button>
         <button className="mobile-link" onClick={() => scrollToSection('leaderboard-section')}>Leaderboard</button>
+        
+        <div className="theme-toggle-row">
+          <span style={{ fontWeight: 600 }}>Dark Mode</span>
+          <button className="theme-btn" onClick={toggleTheme} title="Toggle dark mode" aria-label="Toggle dark mode">
+            {theme === 'dark' ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+              </svg>
+            )}
+          </button>
+        </div>
+
         <button onClick={() => { setIsMobileMenuOpen(false); handleCtaClick(); }} className="btn btn-primary btn-lg" style={{ marginTop: '16px', justifyContent: 'center' }}>
           <Flame size={20} /> Start for Free
         </button>
@@ -176,18 +192,21 @@ export default function Landing() {
               <div className="hero-badge"><Rocket size={14} className="text-primary" /> Free to Start</div>
             </div>
             <h1 className="hero-title">
-              The <span className="accent">Vidyajaya App</span>: Where study<br />
+              The <span className="accent">Vidyajaya App</span>: Where study<br className="hidden md:block" />
               turns into ranks and rewards
             </h1>
             <p className="hero-sub">AI-powered daily mock tests, live leaderboards, and real cash rewards for UPSC, SSC, Banking and more. Every question fresh. Every day a new competition.</p>
+            <p className="hero-mobile-text">Daily AI mock tests + real cash rewards</p>
             <div className="hero-pills">
               <div className="hero-pill"><div className="dot" style={{ background: '#FF6B00' }}></div>AI-generated daily mock tests across UPSC, SSC, Banking, RRB and more – never the same question twice.</div>
               <div className="hero-pill"><div className="dot" style={{ background: '#FFD700' }}></div>Live leaderboard that ranks you against serious aspirants across India in real time.</div>
               <div className="hero-pill"><div className="dot" style={{ background: '#00C853' }}></div>Weekly cash rewards and streak bonuses for top performers – pure skill, no gambling.</div>
             </div>
             <div className="hero-ctas">
-              <button onClick={handleCtaClick} className="btn btn-primary btn-lg pulse-glow">Start Free – Take Today’s Mock Test</button>
-              <button className="btn btn-ghost btn-lg" onClick={() => scrollToSection('how')}>See How VidyaJaya Works →</button>
+              <button onClick={handleCtaClick} className="btn btn-primary btn-lg pulse-glow">
+                <Play size={20} fill="currentColor" /> Start Free Test
+              </button>
+              <button className="btn btn-ghost btn-lg" onClick={() => scrollToSection('leaderboard-section')}>View Leaderboard</button>
             </div>
             <div className="hero-trust">
               <span className="stars">★★★★★</span>
@@ -279,6 +298,43 @@ export default function Landing() {
               <div className="feat-icon" style={{ background: 'rgba(239,68,68,.12)', color: '#EF4444' }}><Coins size={32} /></div>
               <div className="feat-title">Coin Rewards System</div>
               <div className="feat-desc">Earn coins for every test, every streak milestone, every referral. Redeem coins for streak freezes, premium access, or weekly cash payouts.</div>
+            </div>
+          </div>
+
+          <div className="features-grid-mobile">
+            {[
+              { icon: Bot, title: 'AI Mock Tests', desc: 'Fresh questions daily', color: '#FF6B00', bg: 'rgba(255,107,0,.1)' },
+              { icon: Trophy, title: 'Leaderboard', desc: 'Compete nationwide', color: '#7C3AED', bg: 'rgba(124,58,237,.1)' },
+              { icon: Coins, title: 'Rewards', desc: 'Earn based on rank', color: '#00C853', bg: 'rgba(0,200,83,.1)' },
+              { icon: BarChart, title: 'AI Analysis', desc: 'Pinpoint weak areas', color: '#3B82F6', bg: 'rgba(59,130,246,.1)', isPro: true }
+            ].map((f, i) => (
+              <div key={i} className="feature-item-mobile reveal">
+                <div className="feature-icon-mobile" style={{ background: f.bg, color: f.color }}>
+                  <f.icon size={20} />
+                </div>
+                <div className="feature-content-mobile" style={{ width: '100%' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h4>{f.title}</h4>
+                    {f.isPro && (
+                      <span className="badge badge-orange" style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px' }}>
+                        PRO
+                      </span>
+                    )}
+                  </div>
+                  <p>{f.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="trust-mobile reveal">
+            <div className="trust-mobile-item">
+              <span className="trust-mobile-val">1,200+</span>
+              <span className="trust-mobile-lbl">Students attempted today</span>
+            </div>
+            <div className="trust-mobile-item">
+              <span className="trust-mobile-val">₹2,500</span>
+              <span className="trust-mobile-lbl">Rewards distributed today</span>
             </div>
           </div>
         </div>
