@@ -195,6 +195,7 @@ router.post('/', protect, async (req, res) => {
       coins: (profile?.coins || 0) + coinsEarned + milestoneBonus,
       streak: newStreak,
       weekly_score: (profile?.weekly_score || 0) + result.score,
+      monthly_score: (profile?.monthly_score || 0) + result.score,
       total_score: (profile?.total_score || 0) + result.score,
       accuracy: result.accuracy,
       last_streak_update: shouldIncrementStreak ? new Date() : profile?.last_streak_update,

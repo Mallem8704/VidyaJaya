@@ -9,7 +9,7 @@ router.get('/global', protect, async (req, res) => {
   try {
     let query = supabase
       .from('profiles')
-      .select('name, avatar, avatar_url, total_score, streak, coins, exam_goal, is_pro')
+      .select('name, avatar, total_score, streak, coins, exam_goal, is_pro')
       .order('total_score', { ascending: false })
       .limit(50);
 
@@ -22,54 +22,74 @@ router.get('/global', protect, async (req, res) => {
     const { data: leaderboard, error } = await query;
 
     if (error) throw error;
-    res.json(leaderboard);
+    res.json(leaderboard || []);
   } catch (error) {
     console.error('Leaderboard Error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(200).json([]); // Return empty array on error to prevent frontend crash
   }
 });
 
 router.get('/weekly', protect, async (req, res) => {
-  // Weekly is ONLY for Pro users per requirement
+  const { tier } = req.query;
   try {
-    const { data: leaderboard, error } = await supabase
+    let query = supabase
       .from('profiles')
-      .select('name, avatar, avatar_url, weekly_score, streak, coins, exam_goal, is_pro, pro_expiry')
-      .eq('is_pro', true) // Strictly Pro
+      .select('name, avatar, weekly_score, streak, coins, exam_goal, is_pro, pro_expiry')
       .order('weekly_score', { ascending: false })
       .limit(50);
+
+    if (tier === 'pro') {
+      query = query.eq('is_pro', true);
+    } else if (tier === 'free') {
+      query = query.eq('is_pro', false);
+    }
+
+    const { data: leaderboard, error } = await query;
 
     if (error) throw error;
     
     // Filter out expired users just in case the background job hasn't run
-    const activeProLeaderboard = leaderboard.filter(u => !u.pro_expiry || new Date(u.pro_expiry) > new Date());
+    const activeLeaderboard = (leaderboard || []).filter(u => {
+      if (!u.is_pro) return true; // Allow free users if requested
+      return !u.pro_expiry || new Date(u.pro_expiry) > new Date();
+    });
     
-    res.json(activeProLeaderboard);
+    res.json(activeLeaderboard);
   } catch (error) {
     console.error('Weekly Leaderboard Error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(200).json([]);
   }
 });
 
 router.get('/monthly', protect, async (req, res) => {
-  // Monthly is ONLY for Pro users per requirement
+  const { tier } = req.query;
   try {
-    const { data: leaderboard, error } = await supabase
+    let query = supabase
       .from('profiles')
-      .select('name, avatar, avatar_url, monthly_score, streak, coins, exam_goal, is_pro, pro_expiry')
-      .eq('is_pro', true) // Strictly Pro
+      .select('name, avatar, monthly_score, streak, coins, exam_goal, is_pro, pro_expiry')
       .order('monthly_score', { ascending: false })
       .limit(50);
+
+    if (tier === 'pro') {
+      query = query.eq('is_pro', true);
+    } else if (tier === 'free') {
+      query = query.eq('is_pro', false);
+    }
+
+    const { data: leaderboard, error } = await query;
 
     if (error) throw error;
 
     // Filter out expired users
-    const activeProLeaderboard = leaderboard.filter(u => !u.pro_expiry || new Date(u.pro_expiry) > new Date());
+    const activeLeaderboard = (leaderboard || []).filter(u => {
+      if (!u.is_pro) return true;
+      return !u.pro_expiry || new Date(u.pro_expiry) > new Date();
+    });
     
-    res.json(activeProLeaderboard);
+    res.json(activeLeaderboard);
   } catch (error) {
     console.error('Monthly Leaderboard Error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(200).json([]);
   }
 });
 

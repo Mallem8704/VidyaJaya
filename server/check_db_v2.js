@@ -1,6 +1,4 @@
-require('dotenv').config({ path: './server/.env' });
-const supabase = require('../server/config/supabase');
-
+const supabase = require('./config/supabase');
 
 async function checkProfiles() {
   console.log('Checking profiles table...');
