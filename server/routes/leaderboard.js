@@ -4,6 +4,8 @@ const supabase = require('../config/supabase');
 const { protect } = require('../middleware/authMiddleware');
 
 router.get('/global', protect, async (req, res) => {
+  console.log("Leaderboard API HIT: /global");
+  console.log("Query params:", req.query);
   const { tier } = req.query; // 'pro' or 'free'
   
   try {
@@ -22,14 +24,16 @@ router.get('/global', protect, async (req, res) => {
     const { data: leaderboard, error } = await query;
 
     if (error) throw error;
-    res.json(leaderboard || []);
+    res.json({ data: leaderboard || [] });
   } catch (error) {
     console.error('Leaderboard Error:', error);
-    res.status(200).json([]); // Return empty array on error to prevent frontend crash
+    res.status(200).json({ data: [] }); // Return empty data on error to prevent frontend crash
   }
 });
 
 router.get('/weekly', protect, async (req, res) => {
+  console.log("Leaderboard API HIT: /weekly");
+  console.log("Query params:", req.query);
   const { tier } = req.query;
   try {
     let query = supabase
@@ -54,14 +58,16 @@ router.get('/weekly', protect, async (req, res) => {
       return !u.pro_expiry || new Date(u.pro_expiry) > new Date();
     });
     
-    res.json(activeLeaderboard);
+    res.json({ data: activeLeaderboard });
   } catch (error) {
     console.error('Weekly Leaderboard Error:', error);
-    res.status(200).json([]);
+    res.status(200).json({ data: [] });
   }
 });
 
 router.get('/monthly', protect, async (req, res) => {
+  console.log("Leaderboard API HIT: /monthly");
+  console.log("Query params:", req.query);
   const { tier } = req.query;
   try {
     let query = supabase
@@ -86,10 +92,10 @@ router.get('/monthly', protect, async (req, res) => {
       return !u.pro_expiry || new Date(u.pro_expiry) > new Date();
     });
     
-    res.json(activeLeaderboard);
+    res.json({ data: activeLeaderboard });
   } catch (error) {
     console.error('Monthly Leaderboard Error:', error);
-    res.status(200).json([]);
+    res.status(200).json({ data: [] });
   }
 });
 

@@ -35,8 +35,8 @@ const Dashboard = () => {
     const fetchLeaderboard = async () => {
       try {
         const res = await axios.get('/api/leaderboard/global');
-        if (res.data && Array.isArray(res.data)) {
-          setTopWarriors(res.data.slice(0, 4).map((u, i) => ({
+        if (res.data && res.data.data && Array.isArray(res.data.data)) {
+          setTopWarriors(res.data.data.slice(0, 4).map((u, i) => ({
             rank: i + 1,
             name: u.name || 'Anonymous',
             score: u.total_score || 0,

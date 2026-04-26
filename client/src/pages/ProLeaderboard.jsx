@@ -19,7 +19,7 @@ const ProLeaderboard = () => {
     setLoading(true);
     try {
       const res = await axios.get(`/api/leaderboard/${activeTab}`);
-      setLeaderboard(res.data);
+      setLeaderboard(res.data.data || []);
     } catch (err) {
       console.error('Leaderboard error:', err);
       toast.error('Failed to load rankings');

@@ -32,8 +32,8 @@ const Leaderboard = () => {
           params: { tier: tier !== 'all' ? tier : undefined }
         });
         
-        if (res.data && Array.isArray(res.data)) {
-          setLeaderboard(res.data.map((u, i) => ({
+        if (res.data && res.data.data && Array.isArray(res.data.data)) {
+          setLeaderboard(res.data.data.map((u, i) => ({
             ...u,
             rank: i + 1,
             score: (tab === 'global' ? u.total_score : tab === 'weekly' ? u.weekly_score : u.monthly_score) || 0,
