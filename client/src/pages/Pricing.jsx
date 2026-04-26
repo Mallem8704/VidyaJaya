@@ -27,7 +27,7 @@ const Pricing = () => {
 
             // 2. Open Razorpay Checkout
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_SgtHYjaxxDOJUk',
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
                 amount: order.amount,
                 currency: order.currency,
                 name: "VidyaJaya PRO",

@@ -116,4 +116,102 @@ router.post('/verify', protect, async (req, res) => {
   }
 });
 
+/**
+ * @route   POST /api/payments/webhook
+ * @desc    Handle Razorpay Webhooks (Live Payment Notifications)
+ * @access  Public (Signature Verified)
+ */
+router.post('/webhook', async (req, res) => {
+  const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  const signature = req.headers['x-razorpay-signature'];
+
+  if (!webhookSecret || !signature) {
+    console.warn('[WEBHOOK] Missing secret or signature. Ignoring.');
+    return res.status(400).json({ status: 'ignored' });
+  }
+
+  // Verify signature
+  const shasum = crypto.createHmac('sha256', webhookSecret);
+  shasum.update(JSON.stringify(req.body));
+  const digest = shasum.digest('hex');
+
+  if (digest !== signature) {
+    console.error('[WEBHOOK] Invalid signature detected!');
+    return res.status(403).json({ status: 'invalid signature' });
+  }
+
+  const event = req.body.event;
+  const payload = req.body.payload;
+
+  console.log(`[WEBHOOK] Received Razorpay event: ${event}`);
+
+  // Handle successful payment events
+  if (event === 'payment.captured' || event === 'order.paid') {
+    const payment = payload.payment ? payload.payment.entity : payload.order.entity;
+    const orderId = payment.order_id || (payload.order ? payload.order.entity.id : null);
+    
+    // Extract notes (where we stored userId and planType)
+    const notes = payment.notes || (payload.order ? payload.order.entity.notes : {});
+    const { userId, planType } = notes;
+
+    if (!userId || !planType) {
+      console.warn(`[WEBHOOK] Missing userId or planType in notes for order ${orderId}. skipping.`);
+      return res.json({ status: 'ok', message: 'missing metadata' });
+    }
+
+    try {
+      // 1. Check if already processed (Idempotency)
+      const { data: existingSub } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('razorpay_order_id', orderId)
+        .single();
+
+      if (existingSub) {
+        console.log(`[WEBHOOK] Subscription for order ${orderId} already processed. skipping.`);
+        return res.json({ status: 'ok', message: 'already processed' });
+      }
+
+      const days = planType === 'weekly' ? 7 : 30;
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + days);
+
+      // 2. Upgrade User
+      await supabase
+        .from('profiles')
+        .update({
+          is_pro: true,
+          plan: `pro_${planType}`,
+          pro_expiry: expiryDate.toISOString()
+        })
+        .eq('id', userId);
+
+      // 3. Log Subscription
+      await supabase.from('subscriptions').insert({
+        user_id: userId,
+        plan_type: planType,
+        amount: planType === 'weekly' ? 49 : 99,
+        razorpay_order_id: orderId,
+        razorpay_payment_id: payment.id,
+        status: 'active',
+        expiry_date: expiryDate.toISOString()
+      });
+
+      // 4. Log Analytics
+      await supabase.from('analytics_logs').insert({
+        user_id: userId,
+        event_type: 'conversion_webhook',
+        details: { plan_type: planType, order_id: orderId, payment_id: payment.id }
+      }).catch(() => {});
+
+      console.log(`[WEBHOOK] Successfully upgraded user ${userId} to PRO via webhook.`);
+    } catch (error) {
+      console.error('[WEBHOOK] Error processing payment:', error);
+      return res.status(500).json({ status: 'error' });
+    }
+  }
+
+  res.json({ status: 'ok' });
+});
+
 module.exports = router;
