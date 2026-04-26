@@ -377,12 +377,12 @@ const Profile = () => {
                       <p className="text-[var(--text-secondary)] px-6">Upgrade to PRO to unlock unlimited tests, AI doubt solving, and priority rankings.</p>
                       <div className="grid grid-cols-2 gap-4 max-w-xs mx-auto mt-6">
                         <Link to="/pricing" className="btn btn-outline border-2 flex flex-col items-center p-4 h-auto">
-                           <span className="text-xl font-bold mb-1">₹149</span>
+                           <span className="text-xl font-bold mb-1">₹49</span>
                            <span className="text-xs font-bold text-[var(--text-secondary)] uppercase">Weekly</span>
                         </Link>
                         <Link to="/pricing" className="btn btn-primary flex flex-col items-center p-4 h-auto relative">
                            <span className="absolute -top-3 bg-accent-gold text-white text-[10px] px-2 py-0.5 rounded shadow">Best Value</span>
-                           <span className="text-xl font-bold mb-1">₹499</span>
+                           <span className="text-xl font-bold mb-1">₹99</span>
                            <span className="text-xs font-bold uppercase">Monthly</span>
                         </Link>
                       </div>
