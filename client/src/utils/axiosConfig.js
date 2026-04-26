@@ -18,9 +18,15 @@ axios.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Clear auth store on 401 Unauthorized
-      useAuthStore.getState().logout();
-      window.location.href = '/login';
+      const url = error.config?.url || '';
+      const isAuthPath = url.includes('/api/auth/login') || 
+                        url.includes('/api/auth/register');
+      
+      if (!isAuthPath) {
+        // Only clear store and redirect if NOT on an auth-related request
+        useAuthStore.getState().logout();
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
