@@ -29,6 +29,31 @@ router.get('/stats', protect, adminProtect, async (req, res) => {
 });
 
 /**
+ * @route   GET /api/admin/safety-data
+ * @desc    Get flagged users and pending KYC applications
+ */
+router.get('/safety-data', protect, adminProtect, async (req, res) => {
+    try {
+        const { data: flaggedUsers } = await supabase
+            .from('profiles')
+            .select('id, name, email')
+            .eq('user_flagged', true);
+
+        const { data: kycPending } = await supabase
+            .from('profiles')
+            .select('id, name, email, kyc_provider_id')
+            .eq('kyc_status', 'pending');
+
+        res.json({
+            flaggedUsers: flaggedUsers || [],
+            kycPending: kycPending || []
+        });
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error' });
+    }
+});
+
+/**
  * @route   GET /api/admin/users
  * @desc    Get all users with filtering
  */

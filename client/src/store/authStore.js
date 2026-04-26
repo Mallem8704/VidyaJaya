@@ -19,7 +19,14 @@ export const useAuthStore = create(
       login: async (email, password) => {
         set({ isloading: true, error: null });
         try {
-          const response = await axios.post('/api/auth/login', { email, password });
+          // Device tracking
+          let deviceId = localStorage.getItem('vidyajaya_device_id');
+          if (!deviceId) {
+            deviceId = 'dv_' + Math.random().toString(36).substring(2, 15);
+            localStorage.setItem('vidyajaya_device_id', deviceId);
+          }
+
+          const response = await axios.post('/api/auth/login', { email, password, deviceId });
           const { user, token } = response.data;
           set({ 
             user, 
@@ -39,7 +46,14 @@ export const useAuthStore = create(
       register: async (userData) => {
         set({ isloading: true, error: null });
         try {
-          const response = await axios.post('/api/auth/register', userData);
+          // Device tracking
+          let deviceId = localStorage.getItem('vidyajaya_device_id');
+          if (!deviceId) {
+            deviceId = 'dv_' + Math.random().toString(36).substring(2, 15);
+            localStorage.setItem('vidyajaya_device_id', deviceId);
+          }
+
+          const response = await axios.post('/api/auth/register', { ...userData, deviceId });
           const { user, token } = response.data;
           set({ 
             user, 

@@ -16,18 +16,25 @@ import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState(null);
+    const [flaggedUsers, setFlaggedUsers] = useState([]);
+    const [kycPending, setKycPending] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetchStats();
+        fetchData();
     }, []);
 
-    const fetchStats = async () => {
+    const fetchData = async () => {
         try {
-            const res = await axios.get('/api/admin/stats');
-            setStats(res.data);
+            const [statsRes, safetyRes] = await Promise.all([
+                axios.get('/api/admin/stats'),
+                axios.get('/api/admin/safety-data')
+            ]);
+            setStats(statsRes.data);
+            setFlaggedUsers(safetyRes.data.flaggedUsers);
+            setKycPending(safetyRes.data.kycPending);
         } catch (err) {
-            toast.error('Failed to load platform statistics');
+            toast.error('Failed to load administrative data');
         } finally {
             setLoading(false);
         }
@@ -84,8 +91,61 @@ const AdminDashboard = () => {
                 ))}
             </div>
 
+            {/* Safety & KYC Management */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Flagged Users List */}
+                <div className="card p-8 border border-[var(--border)] shadow-xl">
+                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                        <Activity size={24} className="text-rose-500" /> Flagged Users (Anti-Cheat)
+                    </h3>
+                    {flaggedUsers.length === 0 ? (
+                        <p className="text-gray-400 italic">No users flagged for suspicious activity.</p>
+                    ) : (
+                        <div className="space-y-4">
+                            {flaggedUsers.map(user => (
+                                <div key={user.id} className="flex items-center justify-between p-4 bg-rose-50 dark:bg-rose-900/10 rounded-xl border border-rose-100 dark:border-rose-900/30">
+                                    <div>
+                                        <p className="font-bold text-sm">{user.name}</p>
+                                        <p className="text-xs text-gray-500">{user.email}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button className="px-3 py-1 bg-white dark:bg-gray-800 text-xs font-bold rounded-lg border border-[var(--border)] hover:bg-gray-50">Unflag</button>
+                                        <button className="px-3 py-1 bg-rose-500 text-white text-xs font-bold rounded-lg shadow-lg">Ban</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* KYC Pending List */}
+                <div className="card p-8 border border-[var(--border)] shadow-xl">
+                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                        <ShieldCheck size={24} className="text-accent-gold" /> Pending KYC Applications
+                    </h3>
+                    {kycPending.length === 0 ? (
+                        <p className="text-gray-400 italic">No pending KYC reviews at the moment.</p>
+                    ) : (
+                        <div className="space-y-4">
+                            {kycPending.map(user => (
+                                <div key={user.id} className="flex items-center justify-between p-4 bg-amber-50 dark:bg-amber-900/10 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                                    <div>
+                                        <p className="font-bold text-sm">{user.name}</p>
+                                        <p className="text-xs text-gray-500">ID: {user.kyc_provider_id || 'Pending'}</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button className="px-3 py-1 bg-white dark:bg-gray-800 text-xs font-bold rounded-lg border border-[var(--border)]">Reject</button>
+                                        <button className="px-3 py-1 bg-accent-gold text-yellow-900 text-xs font-bold rounded-lg shadow-lg">Approve</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
             {/* Activity & Health Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
                 <div className="lg:col-span-2 card p-8 border border-[var(--border)] shadow-xl">
                     <div className="flex justify-between items-center mb-8">
                         <h3 className="text-xl font-bold flex items-center gap-2">

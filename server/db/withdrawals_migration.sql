@@ -73,11 +73,15 @@ CREATE OR REPLACE FUNCTION request_withdrawal(
 DECLARE
   v_balance INTEGER;
   v_verified BOOLEAN;
+  v_kyc_verified BOOLEAN;
 BEGIN
   -- 1. Check verification
-  SELECT is_verified INTO v_verified FROM profiles WHERE id = p_user_id;
+  SELECT is_verified, kyc_verified INTO v_verified, v_kyc_verified FROM profiles WHERE id = p_user_id;
   IF NOT v_verified THEN
     RAISE EXCEPTION 'Account must be verified to withdraw';
+  END IF;
+  IF NOT v_kyc_verified THEN
+    RAISE EXCEPTION 'KYC verification required to withdraw';
   END IF;
 
   -- 2. Check balance

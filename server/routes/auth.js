@@ -115,13 +115,31 @@ router.post('/register', async (req, res) => {
       });
     }
 
-    // Create entry in referrals table if referred
-    if (referrerId) {
-      await supabase.from('referrals').insert({
-        referrer_id: referrerId,
-        referee_id: profile.id,
-        status: 'pending'
+    // 3. Track Device & Duplicate Accounts
+    const deviceId = req.body.deviceId;
+    const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const browserFingerprint = req.headers['user-agent'];
+
+    if (deviceId) {
+      await supabase.from('user_devices').insert({
+        user_id: profile.id,
+        device_id: deviceId,
+        ip_address: ipAddress,
+        browser_fingerprint: browserFingerprint
       });
+
+      const { data: deviceUsers } = await supabase
+        .from('user_devices')
+        .select('user_id')
+        .eq('device_id', deviceId);
+      
+      const uniqueUsers = new Set(deviceUsers?.map(d => d.user_id) || []);
+      
+      if (uniqueUsers.size > 2) {
+        await supabase.from('profiles').update({ user_flagged: true }).in('id', Array.from(uniqueUsers));
+      }
+
+      await supabase.from('profiles').update({ last_device_id: deviceId }).eq('id', profile.id);
     }
     
     res.status(201).json({
@@ -180,13 +198,43 @@ router.post('/login', async (req, res) => {
       return res.status(403).json({ message: 'Your account has been suspended. Please contact support.' });
     }
 
+    // 3. Track Device & Duplicate Accounts
+    const deviceId = req.body.deviceId;
+    const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const browserFingerprint = req.headers['user-agent'];
+
+    if (deviceId) {
+      // Log this device session
+      await supabase.from('user_devices').insert({
+        user_id: profile.id,
+        device_id: deviceId,
+        ip_address: ipAddress,
+        browser_fingerprint: browserFingerprint
+      });
+
+      // Check for account limit on this device
+      const { data: deviceUsers } = await supabase
+        .from('user_devices')
+        .select('user_id')
+        .eq('device_id', deviceId);
+      
+      const uniqueUsers = new Set(deviceUsers?.map(d => d.user_id) || []);
+      
+      if (uniqueUsers.size > 2) {
+        // Automatically flag ALL users on this device
+        await supabase.from('profiles').update({ user_flagged: true }).in('id', Array.from(uniqueUsers));
+      }
+
+      // Update latest device in profile
+      await supabase.from('profiles').update({ last_device_id: deviceId }).eq('id', profile.id);
+    }
+
     res.json({
       user: profile || { id: authData.user.id, email: authData.user.email },
       token: authData.session.access_token
     });
   } catch (error) {
     console.error('[Login] Unexpected error:', error.message);
-    // Return the actual error message (useful for config issues on Render)
     res.status(500).json({ message: error.message || 'Login failed. Please try again.' });
   }
 });

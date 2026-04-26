@@ -6,7 +6,7 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
 const KYC = () => {
-    const { updateUser } = useAuthStore();
+    const { user, updateUser } = useAuthStore();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [aadhaar, setAadhaar] = useState('');
@@ -24,14 +24,17 @@ const KYC = () => {
     const handleFinalSubmit = async () => {
         setLoading(true);
         try {
-            const res = await axios.post('/api/profiles/kyc', {
-                fullName: 'Simulated User', // Could be from an input
-                upiId: 'simulated@upi'
+            const res = await axios.post('/api/verification/start-kyc', {
+                name: user?.name,
+                idNumber: 'SIM-ID-' + Math.random().toString(36).substring(5).toUpperCase(),
+                idType: 'Aadhaar'
             });
             
-            updateUser(res.data.user);
             setStep(3);
-            toast.success('KYC Completed! Reward eligibility unlocked.');
+            toast.success(res.data.message);
+            
+            // Poll for status update or just inform user
+            // In a real app, we'd wait for webhook or poll
         } catch (err) {
             console.error(err);
             toast.error(err.response?.data?.message || 'Failed to complete KYC');

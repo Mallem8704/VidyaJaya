@@ -143,19 +143,43 @@ router.post('/', protect, async (req, res) => {
       if (ansErr) console.error('Warning: Failed to save answer details:', ansErr.message);
     }
 
+    // 6. ANTI-CHEAT LOGIC
+    let isSuspicious = false;
+    const minTimePerQuestion = 1.5; // 1.5 seconds minimum per question
+    const totalQuestions = answers.length;
+    
+    // Flag if speed is impossible (e.g., 10 questions in < 15 seconds)
+    if (result.timeTaken < (totalQuestions * minTimePerQuestion) && totalQuestions >= 5) {
+      isSuspicious = true;
+    }
+
+    // Flag if perfect score in very low time
+    if (result.accuracy === 100 && result.timeTaken < (totalQuestions * 3)) {
+      isSuspicious = true;
+    }
+
+    if (isSuspicious) {
+      console.warn(`[ANTI-CHEAT] Suspicious submission from ${user.id}. Flagging user.`);
+      await supabase.from('profiles').update({ user_flagged: true }).eq('id', user.id);
+    }
+
     // Calculate coins for this submission (Only for PRO tests)
     let coinsEarned = 0;
     
-    if (test.is_premium) {
+    // RULE: Flagged users or unverified users get NO REWARDS
+    const isVerified = user.is_verified;
+    const isFlagged = user.user_flagged || isSuspicious;
+
+    if (test.is_premium && isVerified && !isFlagged) {
       if (isPremium || user.role === 'admin') {
         coinsEarned = result.accuracy >= 80 ? 25 : 10;
         // Bonus for high performance
         if (result.accuracy === 100) coinsEarned += 15;
       }
-    } else {
-      // Free tests don't earn coins
-      coinsEarned = 0; 
-      console.log(`Free test ${test.id} completed. No rewards issued.`);
+    } else if (isFlagged) {
+      console.log(`[REWARDS] Blocked for user ${user.id} due to flag.`);
+    } else if (!isVerified) {
+      console.log(`[REWARDS] Blocked for user ${user.id} - account not verified.`);
     }
 
     // 6. UPDATE PROFILE STATS & ANTI-CHEAT

@@ -60,7 +60,11 @@ const Wallet = () => {
             return;
         }
         if (!user?.is_verified) {
-            toast.error('Please verify your profile first');
+            toast.error('Please verify your mobile number first');
+            return;
+        }
+        if (!user?.kyc_verified) {
+            toast.error('Identity Verification (KYC) required for withdrawals');
             return;
         }
 
@@ -185,13 +189,33 @@ const Wallet = () => {
                                 Funds are transferred within 24-48 hours. Ensure your UPI ID is correct.
                             </p>
                         </div>
+                        {/* Verification Guards */}
                         {!user?.is_verified && (
-                            <div className="flex items-start gap-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-xl">
-                                <ShieldCheck size={16} className="text-red-500 mt-0.5" />
+                            <div className="flex items-start gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                                <Smartphone size={16} className="text-blue-500 mt-0.5" />
                                 <div className="space-y-1">
-                                    <p className="text-[10px] text-red-700 dark:text-red-300 font-bold uppercase">Verification Required</p>
-                                    <p className="text-[10px] text-red-600 dark:text-red-400">Complete KYC/Profile verification to enable withdrawals.</p>
-                                    <Link to="/profile" className="text-[10px] font-bold text-red-700 underline block">Go to Profile</Link>
+                                    <p className="text-[10px] text-blue-700 dark:text-blue-300 font-bold uppercase">Mobile Verification</p>
+                                    <p className="text-[10px] text-blue-600 dark:text-blue-400">Verify your mobile to earn rewards.</p>
+                                    <Link to="/profile" className="text-[10px] font-bold text-blue-700 underline block">Verify Mobile</Link>
+                                </div>
+                            </div>
+                        )}
+                        {!user?.kyc_verified && (
+                            <div className="flex items-start gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
+                                <ShieldCheck size={16} className="text-amber-500 mt-0.5" />
+                                <div className="space-y-1">
+                                    <p className="text-[10px] text-amber-700 dark:text-amber-300 font-bold uppercase">KYC Required</p>
+                                    <p className="text-[10px] text-amber-600 dark:text-amber-400">Identity verification needed to withdraw money.</p>
+                                    <Link to="/kyc" className="text-[10px] font-bold text-amber-700 underline block">Complete KYC Now</Link>
+                                </div>
+                            </div>
+                        )}
+                        {user?.kyc_verified && (
+                             <div className="flex items-start gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-900/30">
+                                <CheckCircle2 size={16} className="text-green-500 mt-0.5" />
+                                <div className="space-y-1">
+                                    <p className="text-[10px] text-green-700 dark:text-green-300 font-bold uppercase">KYC Approved</p>
+                                    <p className="text-[10px] text-green-600 dark:text-green-400">Withdrawals are active for your account.</p>
                                 </div>
                             </div>
                         )}
