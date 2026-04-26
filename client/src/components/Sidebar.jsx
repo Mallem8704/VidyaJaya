@@ -26,18 +26,27 @@ const Sidebar = () => {
   const isPro = user?.is_pro && (!user?.pro_expiry || new Date(user?.pro_expiry) > new Date());
 
   const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    { name: 'Tests', icon: BookOpen, path: '/tests' },
-    { name: 'PRO Tests', icon: ShieldCheck, path: '/pro-tests', premium: true },
+    { 
+      name: isPro ? 'PRO Dashboard' : 'Dashboard', 
+      icon: LayoutDashboard, 
+      path: isPro ? '/pro-dashboard' : '/dashboard' 
+    },
+    { 
+      name: isPro ? 'PRO Tests' : 'Tests', 
+      icon: isPro ? ShieldCheck : BookOpen, 
+      path: isPro ? '/pro-tests' : '/tests' 
+    },
     { name: 'AI Questions', icon: Sparkles, path: '/ai-questions' },
     { name: 'Practice', icon: Target, path: '/practice' },
-    { name: 'Leaderboard', icon: Trophy, path: '/leaderboard' },
-    { name: 'PRO Leaderboard', icon: Trophy, path: '/pro-leaderboard', premium: true },
+    { 
+      name: isPro ? 'PRO Leaderboard' : 'Leaderboard', 
+      icon: Trophy, 
+      path: isPro ? '/pro-leaderboard' : '/leaderboard' 
+    },
     { name: 'Analysis', icon: BarChart2, path: '/analysis' },
     { name: 'Doubts', icon: HelpCircle, path: '/doubts' },
     { name: 'Wallet', icon: Gift, path: '/wallet' },
-    ...(isPro ? [{ name: 'PRO Dashboard', icon: Sparkles, path: '/pro-dashboard', premium: true }] : []),
-    ...(user?.is_admin || user?.email === 'mallem8704@gmail.com' ? [{ name: 'Admin Panel', icon: ShieldCheck, path: '/admin' }] : []),
+    ...(user?.role === 'admin' || user?.is_admin || user?.email === 'mallem8704@gmail.com' ? [{ name: 'Admin Panel', icon: ShieldCheck, path: '/admin' }] : []),
     { name: 'Pricing', icon: Sparkles, path: '/pricing' },
     { name: 'Profile', icon: User, path: '/profile' },
   ];
