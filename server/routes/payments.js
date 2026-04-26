@@ -104,13 +104,16 @@ router.post('/verify', protect, async (req, res) => {
         expiry_date: expiryDate.toISOString()
       });
 
-      // 2b. Log Analytics Conversion
-      console.log(`[ANALYTICS] Conversion: User ${req.user.id} upgraded to PRO (${planType})`);
-      await supabase.from('analytics_logs').insert({
-        user_id: req.user.id,
-        event_type: 'conversion',
-        details: { plan_type: planType, amount: planType === 'weekly' ? 49 : 99 }
-      }).catch(() => {});
+      // 2b. Log Analytics Conversion (Optional, don't fail if it fails)
+      try {
+        await supabase.from('analytics_logs').insert({
+          user_id: req.user.id,
+          event_type: 'conversion',
+          details: { plan_type: planType, amount: planType === 'weekly' ? 49 : 99 }
+        });
+      } catch (err) {
+        console.warn('[PAYMENT] Analytics log failed:', err.message);
+      }
 
       // 3. Initialize/Sync wallet (if needed)
       // For now, we assume the wallet system is linked to the coins field
@@ -206,12 +209,16 @@ router.post('/webhook', async (req, res) => {
         expiry_date: expiryDate.toISOString()
       });
 
-      // 4. Log Analytics
-      await supabase.from('analytics_logs').insert({
-        user_id: userId,
-        event_type: 'conversion_webhook',
-        details: { plan_type: planType, order_id: orderId, payment_id: payment.id }
-      }).catch(() => {});
+      // 4. Log Analytics (Optional)
+      try {
+        await supabase.from('analytics_logs').insert({
+          user_id: userId,
+          event_type: 'conversion_webhook',
+          details: { plan_type: planType, order_id: orderId, payment_id: payment.id }
+        });
+      } catch (err) {
+        console.warn('[WEBHOOK] Analytics log failed:', err.message);
+      }
 
       console.log(`[WEBHOOK] Successfully upgraded user ${userId} to PRO via webhook.`);
     } catch (error) {
