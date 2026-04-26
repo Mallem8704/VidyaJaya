@@ -618,7 +618,7 @@ export default function Landing() {
             <div className="founder-card reveal reveal-delay-2">
               <div className="founder-top">
                 <div className="founder-ava" style={{ padding: 0, overflow: 'hidden', background: 'none', border: '3px solid rgba(59,130,246,.4)', boxShadow: '0 0 40px rgba(59,130,246,.3)' }}>
-                  <img src="/founder-manjunath.jpg" alt="Manjunath Yadav Meesala" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                  <img src="/manjunath.jpg" alt="Manjunath Yadav Meesala" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
                 </div>
                 <div className="founder-info">
                   <div className="founder-name">Manjunath Yadav Meesala</div>
