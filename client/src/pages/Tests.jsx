@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import ProUpgradeModal from '../components/ProUpgradeModal';
 import { useAuthStore } from '../store/authStore';
-import { Lock, BookOpen, Filter, Share2, Award, CheckCircle, Clock, X, Book, Search } from 'lucide-react';
+import { Lock, BookOpen, Filter, Share2, Award, CheckCircle, Clock, X, Book, Search, Sparkles, ArrowRight } from 'lucide-react';
 
 const Tests = () => {
   const [tests, setTests] = useState([]);
@@ -93,6 +93,17 @@ const Tests = () => {
              ))}
            </div>
          </div>
+
+         {!isUserPro && (
+           <Link to="/pro-tests" className="relative z-10 flex flex-col items-center bg-gradient-to-br from-accent-gold to-yellow-600 p-4 rounded-xl shadow-lg hover:scale-[1.02] transition-all group">
+             <div className="flex items-center gap-2 text-[#0a2540] font-black text-sm mb-1">
+               <Sparkles size={16} />
+               GO PREMIUM
+             </div>
+             <p className="text-[10px] text-[#0a2540]/80 font-bold text-center">Unlock 50+ High-Quality Mock Tests & Earn Rewards</p>
+             <ArrowRight size={18} className="mt-2 text-[#0a2540] group-hover:translate-x-1 transition-transform" />
+           </Link>
+         )}
       </div>
 
       <div className="flex justify-between items-center px-2">

@@ -57,11 +57,17 @@ const admin = (req, res, next) => {
 };
 
 const isPro = (req, res, next) => {
-  if (req.user && (req.user.is_pro || req.user.role === 'admin' || req.user.plan === 'admin')) {
+  const user = req.user;
+  const isProUser = user && (user.is_pro || user.role === 'admin' || user.plan === 'admin' || user.plan === 'pro' || user.plan === 'pro+');
+  
+  // Check for expiry if is_pro is true
+  const isExpired = user && user.pro_expiry && new Date(user.pro_expiry) < new Date();
+
+  if (isProUser && !isExpired) {
     next();
   } else {
     res.status(403).json({ 
-      message: 'This feature is for PRO members only.',
+      message: isExpired ? 'Your PRO plan has expired. Please renew to continue.' : 'Upgrade to PRO to unlock this feature and earn real rewards.',
       code: 'PRO_REQUIRED'
     });
   }

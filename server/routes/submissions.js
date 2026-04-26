@@ -61,7 +61,8 @@ router.post('/', protect, async (req, res) => {
     const questionsToGrade = testData.questions;
 
     // 3. TIER LIMITS CHECK
-    const isPremium = (user.plan === 'premium') || false;
+    const isProUser = user.is_pro && (!user.pro_expiry || new Date(user.pro_expiry) > new Date());
+    const isPremium = isProUser || (user.plan === 'premium') || (user.plan === 'pro') || (user.plan === 'pro+');
     
     if (test.category === 'Daily Streak') {
         const today = new Date().toISOString().split('T')[0];
@@ -87,6 +88,23 @@ router.post('/', protect, async (req, res) => {
                 return res.status(403).json({ message: 'Daily Limit Reached for all 6 sectors!' });
             }
         }
+    }
+
+    // 3b. PREMIUM TEST ATTEMPT LIMIT
+    if (test.is_premium) {
+      const today = new Date().toISOString().split('T')[0];
+      const { data: premiumSubs, error: premErr } = await supabase
+        .from('submissions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('test_id', testId)
+        .gte('created_at', today);
+      
+      if (premiumSubs && premiumSubs.length >= 3) {
+        return res.status(403).json({
+          message: 'Daily Limit Reached for this Premium Test! You can attempt each premium mock test up to 3 times daily to ensure fair competition.'
+        });
+      }
     }
 
     // 4. SCORING
@@ -126,8 +144,16 @@ router.post('/', protect, async (req, res) => {
     }
 
     // Calculate coins for this submission
-    let coinsEarned = result.accuracy >= 80 ? 25 : 10;
-    if (user.is_pro) coinsEarned *= 2; // PRO users get double rewards
+    let coinsEarned = 0;
+    
+    if (isPremium || user.role === 'admin') {
+      coinsEarned = result.accuracy >= 80 ? 25 : 10;
+      // Bonus for high performance
+      if (result.accuracy === 100) coinsEarned += 15;
+    } else {
+      // Free users don't earn coins that can be withdrawn
+      coinsEarned = 0; 
+    }
 
     // 6. UPDATE PROFILE STATS & ANTI-CHEAT
     const { data: profile } = await supabase

@@ -27,6 +27,8 @@ import Pricing from './pages/Pricing';
 import KYC from './pages/KYC';
 import Wallet from './pages/Wallet';
 import ProDashboard from './pages/ProDashboard';
+import ProTests from './pages/ProTests';
+import ProLeaderboard from './pages/ProLeaderboard';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUserManagement from './pages/AdminUserManagement';
 import AdminWithdrawals from './pages/AdminWithdrawals';
@@ -37,6 +39,7 @@ import WhatIsVidyajaya from './pages/articles/WhatIsVidyajaya';
 import HowVidyajayaHelps from './pages/articles/HowVidyajayaHelps';
 import WhyVidyajayaIsBest from './pages/articles/WhyVidyajayaIsBest';
 
+import ProRoute from './components/ProRoute';
 import AdminLayout from './components/AdminLayout';
 
 const AdminRoute = ({ children }) => {
@@ -123,11 +126,17 @@ function App() {
             <Route path="/doubts" element={<Doubts />} />
             <Route path="/rewards" element={<Rewards />} />
             <Route path="/wallet" element={<Wallet />} />
-            <Route path="/pro-dashboard" element={<ProDashboard />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/ai-questions" element={<DailyAiQuestions />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/kyc" element={<KYC />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/ai-questions" element={<DailyAiQuestions />} />
+            
+            {/* PRO Specific Routes */}
+            <Route element={<ProRoute />}>
+              <Route path="/pro-dashboard" element={<ProDashboard />} />
+              <Route path="/pro-tests" element={<ProTests />} />
+              <Route path="/pro-leaderboard" element={<ProLeaderboard />} />
+            </Route>
             
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>

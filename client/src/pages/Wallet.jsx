@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -112,11 +113,27 @@ const Wallet = () => {
                             <Sparkles className="text-accent-gold" size={18} />
                             <span className="text-sm font-bold">{Math.floor(balance * 10)} Coins</span>
                         </div>
-                        <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/10">
-                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                            <span className="text-sm font-bold">Withdrawals Active</span>
+                        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl backdrop-blur-md border ${user?.is_pro ? 'bg-accent-gold/20 border-accent-gold/30 text-accent-gold' : 'bg-white/10 border-white/10 text-white'}`}>
+                            {user?.is_pro ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 bg-accent-gold rounded-full animate-pulse shadow-[0_0_8px_rgba(255,215,0,0.8)]" />
+                                <span className="text-sm font-bold uppercase tracking-tighter">PRO Earning Active</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 opacity-80">
+                                <AlertCircle size={14} />
+                                <span className="text-sm font-bold uppercase tracking-tighter">Earnings Restricted</span>
+                              </div>
+                            )}
                         </div>
                     </div>
+
+                    {!user?.is_pro && (
+                      <Link to="/pricing" className="mt-6 inline-flex items-center gap-2 bg-accent-gold text-[#0a2540] px-6 py-2.5 rounded-xl font-bold text-sm hover:scale-[1.02] transition-transform relative z-20 shadow-xl shadow-black/20">
+                        <Sparkles size={16} />
+                        Upgrade to PRO to Enable Earnings
+                      </Link>
+                    )}
 
                     <div className="absolute right-0 top-0 w-80 h-80 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
                     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 scale-150">

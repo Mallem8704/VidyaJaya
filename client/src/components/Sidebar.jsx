@@ -15,23 +15,28 @@ import {
   LogOut,
   X,
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  Lock
 } from 'lucide-react';
 
 const Sidebar = () => {
   const { user, logout } = useAuthStore();
   const { sidebarOpen, setSidebarOpen } = useAppStore();
 
+  const isPro = user?.is_pro && (!user?.pro_expiry || new Date(user?.pro_expiry) > new Date());
+
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-    ...(user?.is_pro ? [{ name: 'PRO Analysis', icon: Sparkles, path: '/pro-dashboard' }] : []),
     { name: 'Tests', icon: BookOpen, path: '/tests' },
+    { name: 'PRO Tests', icon: ShieldCheck, path: '/pro-tests', premium: true },
     { name: 'AI Questions', icon: Sparkles, path: '/ai-questions' },
     { name: 'Practice', icon: Target, path: '/practice' },
     { name: 'Leaderboard', icon: Trophy, path: '/leaderboard' },
+    { name: 'PRO Leaderboard', icon: Trophy, path: '/pro-leaderboard', premium: true },
     { name: 'Analysis', icon: BarChart2, path: '/analysis' },
     { name: 'Doubts', icon: HelpCircle, path: '/doubts' },
     { name: 'Wallet', icon: Gift, path: '/wallet' },
+    ...(isPro ? [{ name: 'PRO Dashboard', icon: Sparkles, path: '/pro-dashboard', premium: true }] : []),
     ...(user?.is_admin || user?.email === 'mallem8704@gmail.com' ? [{ name: 'Admin Panel', icon: ShieldCheck, path: '/admin' }] : []),
     { name: 'Pricing', icon: Sparkles, path: '/pricing' },
     { name: 'Profile', icon: User, path: '/profile' },
@@ -78,12 +83,17 @@ const Sidebar = () => {
                   to={item.path}
                   onClick={() => setSidebarOpen(false)}
                   className={({ isActive }) => `
-                    flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200
+                    flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200
                     ${isActive ? 'bg-secondary text-white shadow-lg shadow-secondary/20' : 'hover:bg-primary-light text-gray-300 hover:text-white'}
                   `}
                 >
-                  <item.icon size={18} />
-                  <span className="font-medium text-sm">{item.name}</span>
+                  <div className="flex items-center gap-3">
+                    <item.icon size={18} />
+                    <span className="font-medium text-sm">{item.name}</span>
+                  </div>
+                  {item.premium && !isPro && (
+                    <Lock size={12} className="text-accent-gold" />
+                  )}
                 </NavLink>
               </li>
             ))}

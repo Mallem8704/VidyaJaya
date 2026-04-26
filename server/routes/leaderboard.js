@@ -34,13 +34,17 @@ router.get('/weekly', protect, async (req, res) => {
   try {
     const { data: leaderboard, error } = await supabase
       .from('profiles')
-      .select('name, avatar, avatar_url, weekly_score, streak, coins, exam_goal, is_pro')
+      .select('name, avatar, avatar_url, weekly_score, streak, coins, exam_goal, is_pro, pro_expiry')
       .eq('is_pro', true) // Strictly Pro
       .order('weekly_score', { ascending: false })
       .limit(50);
 
     if (error) throw error;
-    res.json(leaderboard);
+    
+    // Filter out expired users just in case the background job hasn't run
+    const activeProLeaderboard = leaderboard.filter(u => !u.pro_expiry || new Date(u.pro_expiry) > new Date());
+    
+    res.json(activeProLeaderboard);
   } catch (error) {
     console.error('Weekly Leaderboard Error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -52,13 +56,17 @@ router.get('/monthly', protect, async (req, res) => {
   try {
     const { data: leaderboard, error } = await supabase
       .from('profiles')
-      .select('name, avatar, avatar_url, monthly_score, streak, coins, exam_goal, is_pro')
+      .select('name, avatar, avatar_url, monthly_score, streak, coins, exam_goal, is_pro, pro_expiry')
       .eq('is_pro', true) // Strictly Pro
       .order('monthly_score', { ascending: false })
       .limit(50);
 
     if (error) throw error;
-    res.json(leaderboard);
+
+    // Filter out expired users
+    const activeProLeaderboard = leaderboard.filter(u => !u.pro_expiry || new Date(u.pro_expiry) > new Date());
+    
+    res.json(activeProLeaderboard);
   } catch (error) {
     console.error('Monthly Leaderboard Error:', error);
     res.status(500).json({ message: 'Server error' });
