@@ -15,13 +15,14 @@ const baseTopics = [
 ];
 
 const Practice = () => {
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [testsTaken, setTestsTaken] = useState(0);
   const [topics, setTopics] = useState(baseTopics);
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       try {
         const [dashRes, countRes] = await Promise.all([
           axios.get('/api/dashboard'),
@@ -37,6 +38,8 @@ const Practice = () => {
         })));
       } catch (err) {
         console.error('Error fetching practice data:', err);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchData();
@@ -123,14 +126,14 @@ const Practice = () => {
                  <div className="flex justify-between items-start mb-6">
                     <span className="text-3xl bg-[var(--bg-light)] w-12 h-12 flex items-center justify-center rounded-xl">{topic.icon}</span>
                     <span className="text-[10px] font-bold bg-[#F1F5F9] dark:bg-[#1E293B] text-[var(--text-secondary)] px-2 py-1 rounded">
-                      {topic.count} Qs
+                      {isLoading ? 'Loading...' : `${topic.count} Qs`}
                     </span>
                  </div>
                  <h4 className="font-bold text-lg mb-1 text-[var(--text-primary)]">{topic.name}</h4>
                  
                  <div className="mt-4 flex items-center justify-between text-xs text-[var(--text-secondary)] mb-1">
                     <span>Available Questions</span>
-                    <span className="font-bold">{topic.count}</span>
+                    <span className="font-bold">{isLoading ? '...' : topic.count}</span>
                  </div>
                  <div className="w-full bg-[var(--bg-light)] rounded-full h-1.5">
                     <div className="bg-accent-purple h-1.5 rounded-full" style={{ width: `${Math.min((topic.count / 50) * 100, 100)}%` }}></div>

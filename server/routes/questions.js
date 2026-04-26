@@ -120,14 +120,64 @@ router.get('/counts-by-category', protect, async (req, res) => {
 
     if (error) throw error;
 
+    // Normalization mapping to bridge legacy/DB names to UI names
+    const categoryMapping = {
+      'Indian Polity': 'Civic & Electoral',
+      'History': 'UPSC & Govt Exams',
+      'Geography': 'UPSC & Govt Exams',
+      'UPSC': 'UPSC & Govt Exams',
+      'SSC': 'UPSC & Govt Exams',
+      'Science & Technology': 'Science & Technology',
+      'Business & Finance': 'Business & Finance',
+      'Current Affairs': 'Daily Current Affairs'
+    };
+
     const counts = {};
     data.forEach(q => {
-      counts[q.category] = (counts[q.category] || 0) + 1;
+      const normalizedName = categoryMapping[q.category] || q.category;
+      counts[normalizedName] = (counts[normalizedName] || 0) + 1;
     });
 
     res.json(counts);
   } catch (error) {
+    console.error('Counts Error:', error);
     res.status(500).json({ message: 'Failed to fetch question counts' });
+  }
+});
+
+/**
+ * @route   GET /api/questions
+ * @desc    Get questions by category
+ * @access  Private
+ */
+router.get('/', protect, async (req, res) => {
+  const { category, limit = 50 } = req.query;
+  
+  try {
+    let query = supabase
+      .from('questions')
+      .select('*')
+      .limit(limit)
+      .order('created_at', { ascending: false });
+
+    if (category) {
+      // Handle normalization in search too
+      const normalizedCategories = [category];
+      if (category === 'Civic & Electoral') normalizedCategories.push('Indian Polity');
+      if (category === 'UPSC & Govt Exams') normalizedCategories.push('History', 'Geography', 'UPSC', 'SSC');
+      if (category === 'Daily Current Affairs') normalizedCategories.push('Current Affairs');
+
+      query = query.in('category', normalizedCategories);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    res.json(data);
+  } catch (error) {
+    console.error('Fetch Questions Error:', error);
+    res.status(500).json({ message: 'Failed to fetch questions' });
   }
 });
 
