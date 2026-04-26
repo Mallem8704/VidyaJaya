@@ -71,9 +71,7 @@ function App() {
     );
   }
 
-  // Handle routing
-  return (
-    <BrowserRouter>
+    <Router>
       {/* Toast notifications */}
       <Toaster 
         position="top-right"
@@ -98,8 +96,20 @@ function App() {
         <Route path="/what-is-vidyajaya" element={<WhatIsVidyajaya />} />
         <Route path="/how-it-helps-students" element={<HowVidyajayaHelps />} />
         <Route path="/why-vidyajaya-is-best" element={<WhyVidyajayaIsBest />} />
+
+        {/* Admin Routes (Separate from standard User Layout) */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={
+          <AdminRoute>
+            <AdminLayout />
+          </AdminRoute>
+        }>
+          <Route index element={<AdminDashboard />} />
+          <Route path="users" element={<AdminUserManagement />} />
+          <Route path="withdrawals" element={<AdminWithdrawals />} />
+        </Route>
         
-        {/* Protected Routes inside Layout */}
+        {/* Protected User Routes inside Layout */}
         <Route element={<PrivateRoute />}>
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
@@ -109,17 +119,6 @@ function App() {
             <Route path="/analysis" element={<AiAnalysis />} />
             <Route path="/doubts" element={<Doubts />} />
             <Route path="/rewards" element={<Rewards />} />
-            {/* Admin Routes */}
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin" element={
-              <AdminRoute>
-                <AdminLayout />
-              </AdminRoute>
-            }>
-              <Route index element={<AdminDashboard />} />
-              <Route path="users" element={<AdminUserManagement />} />
-              <Route path="withdrawals" element={<AdminWithdrawals />} />
-            </Route>
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/pro-dashboard" element={<ProDashboard />} />
             <Route path="/profile" element={<Profile />} />
@@ -137,7 +136,7 @@ function App() {
           <Route path="/result/:id" element={<Result />} />
         </Route>
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
 
