@@ -24,9 +24,62 @@ const Profile = () => {
   });
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   
-  // Premium Avatar Editing State
+  // Avatar System State
+  const [isUploading, setIsUploading] = useState(false);
   const [isEditingAvatar, setIsEditingAvatar] = useState(false);
-  const [newAvatarUrl, setNewAvatarUrl] = useState(user?.avatar || '');
+  
+  const defaultAvatars = [
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Buddy',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Caspian',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Daisy',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Enzo',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Fiona',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=George',
+  ];
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      return toast.error('File size must be less than 2MB');
+    }
+
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    setIsUploading(true);
+    const loadToast = toast.loading('Uploading your new look...');
+
+    try {
+      const res = await axios.put('/api/profiles/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      updateUser({ ...user, avatar_url: res.data.avatar_url, avatar: res.data.avatar_url });
+      toast.success('Profile picture updated!');
+      setIsEditingAvatar(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Upload failed');
+    } finally {
+      setIsUploading(false);
+      toast.dismiss(loadToast);
+    }
+  };
+
+  const handleSelectAvatar = async (url) => {
+    try {
+      const res = await axios.put('/api/profiles/select-avatar', { avatarUrl: url });
+      updateUser({ ...user, avatar_url: res.data.avatar_url, avatar: res.data.avatar_url });
+      toast.success('Avatar updated!');
+      setIsEditingAvatar(false);
+    } catch (err) {
+      toast.error('Failed to select avatar');
+    }
+  };
+
+  const userAvatar = user?.avatar_url || user?.avatar;
 
   const tabs = [
     { icon: UserIcon, label: 'Account Details' },
@@ -54,7 +107,6 @@ const Profile = () => {
     }
   };
 
-  // BUG 11 FIX: Real password change handler
   const handlePasswordChange = async () => {
     if (!passwordData.newPassword) {
       return toast.error('Please enter a new password');
@@ -80,8 +132,7 @@ const Profile = () => {
     }
   };
 
-  // BUG 12 FIX: Determine if user is actually premium
-  const isPremium = user?.plan === 'premium';
+  const isPremium = user?.is_pro || user?.plan === 'premium';
 
   return (
     <div className="max-w-4xl mx-auto animate-fade-in pb-10 space-y-6">
@@ -89,70 +140,35 @@ const Profile = () => {
       <div className="card p-8 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden bg-primary text-white border-0 shadow-xl">
         <div className="absolute top-0 right-0 w-64 h-64 bg-secondary rounded-full blur-3xl opacity-20 -mr-20 -mt-20"></div>
         
-        <div className="relative group cursor-pointer z-10">
-          <div className="w-28 h-28 bg-[var(--bg-light)] bg-opacity-20 rounded-full border-4 border-[rgba(255,255,255,0.2)] flex items-center justify-center text-4xl font-bold text-gray-200 overflow-hidden shadow-xl backdrop-blur-md">
-             {user?.avatar ? (
-               <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
+        <div className="relative group z-10">
+          <div className="w-28 h-28 bg-[var(--bg-light)] bg-opacity-20 rounded-full border-4 border-[rgba(255,255,255,0.2)] flex items-center justify-center text-4xl font-bold text-gray-200 overflow-hidden shadow-xl backdrop-blur-md relative">
+             {userAvatar ? (
+               <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
              ) : (
                user?.name?.charAt(0)?.toUpperCase() || 'U'
              )}
+             {isUploading && (
+               <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                 <Loader className="animate-spin text-white" size={24} />
+               </div>
+             )}
           </div>
-          <div className="absolute bottom-0 right-0 w-8 h-8 bg-secondary rounded-full flex items-center justify-center text-white border-2 border-primary shadow-md hover:scale-110 transition-transform">
+          <button 
+            onClick={() => setIsEditingAvatar(!isEditingAvatar)}
+            className="absolute bottom-0 right-0 w-8 h-8 bg-secondary rounded-full flex items-center justify-center text-white border-2 border-primary shadow-md hover:scale-110 transition-transform"
+          >
             <Edit3 size={14} />
-          </div>
+          </button>
         </div>
 
         <div className="flex-1 text-center md:text-left z-10">
            <h2 className="text-3xl font-heading font-bold mb-1">{user?.name || 'Warrior'}</h2>
            <p className="text-primary-light mb-4">{user?.email}</p>
            
-           {/* Integrated Avatar Editor */}
-           {!isEditingAvatar ? (
-             <button 
-               onClick={() => setIsEditingAvatar(true)}
-               className="text-[10px] font-bold bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-full mb-3 transition-all flex items-center gap-1.5 border border-white/10"
-             >
-               <Edit3 size={10} /> Update Profile Picture
-             </button>
-           ) : (
-             <div className="flex items-center gap-2 mb-3 animate-fade-in">
-               <input 
-                 type="text" 
-                 placeholder="Paste Image URL..." 
-                 value={newAvatarUrl}
-                 onChange={(e) => setNewAvatarUrl(e.target.value)}
-                 className="bg-white/10 border border-white/20 rounded-lg px-3 py-1.5 text-[10px] outline-none focus:ring-1 focus:ring-secondary w-48 placeholder:text-white/40"
-               />
-               <button 
-                 onClick={async () => {
-                   if (!newAvatarUrl) return setIsEditingAvatar(false);
-                   try {
-                     const res = await axios.put('/api/profiles/avatar', { avatarUrl: newAvatarUrl });
-                     updateUser(res.data.user);
-                     toast.success("Avatar updated!");
-                     setIsEditingAvatar(false);
-                   } catch (err) {
-                     toast.error("Failed to update avatar");
-                   }
-                 }}
-                 className="bg-secondary text-white px-3 py-1.5 rounded-lg text-[10px] font-bold"
-               >
-                 Save
-               </button>
-               <button 
-                 onClick={() => setIsEditingAvatar(false)}
-                 className="bg-white/10 text-white px-3 py-1.5 rounded-lg text-[10px]"
-               >
-                 Cancel
-               </button>
-             </div>
-           )}
-
            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
              <span className="px-3 py-1 bg-[rgba(255,255,255,0.1)] rounded-full text-xs font-bold border border-[rgba(255,255,255,0.2)] backdrop-blur-md">🎯 Goal: {user?.exam_goal || 'UPSC'}</span>
-             {/* BUG 12 FIX: Show real plan */}
-             <span className={`px-3 py-1 font-bold rounded-full text-xs shadow-md ${isPremium ? 'bg-accent-gold text-yellow-900' : 'bg-gray-200 text-gray-700'}`}>
-               {isPremium ? '👑 Plan: PRO' : '🎓 Plan: Free'}
+             <span className={`px-3 py-1 font-bold rounded-full text-xs shadow-md ${user?.is_pro ? 'bg-accent-gold text-yellow-900' : 'bg-gray-200 text-gray-700'}`}>
+               {user?.is_pro ? '👑 Plan: PRO' : '🎓 Plan: Free'}
              </span>
              <span className={`px-3 py-1 font-bold rounded-full text-xs shadow-md ${user?.is_verified ? 'bg-accent-green text-green-900' : 'bg-gray-300 text-gray-700'}`}>
                {user?.is_verified ? '✓ Verified Student' : '⚠ Unverified'}
@@ -160,6 +176,51 @@ const Profile = () => {
            </div>
         </div>
       </div>
+
+      {/* Avatar Selection Modal/Panel */}
+      {isEditingAvatar && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="card p-6 border-2 border-secondary/30 bg-[var(--bg-card)] shadow-2xl"
+        >
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-bold">Personalize Your Profile</h3>
+            <button onClick={() => setIsEditingAvatar(false)} className="text-gray-500 hover:text-gray-700">✕</button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Upload Section */}
+            <div className="space-y-4">
+              <p className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Upload Custom Image</p>
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[var(--border)] rounded-2xl cursor-pointer hover:bg-secondary/5 hover:border-secondary transition-all">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <Shield size={24} className="text-secondary mb-2" />
+                  <p className="text-xs text-gray-500 font-bold">CLICK TO UPLOAD</p>
+                  <p className="text-[10px] text-gray-400">PNG, JPG (MAX 2MB)</p>
+                </div>
+                <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} />
+              </label>
+            </div>
+
+            {/* Default Avatars Section */}
+            <div className="space-y-4">
+              <p className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-wider">Choose an Avatar</p>
+              <div className="grid grid-cols-4 gap-3">
+                {defaultAvatars.map((url, i) => (
+                  <button 
+                    key={i}
+                    onClick={() => handleSelectAvatar(url)}
+                    className="w-12 h-12 rounded-full overflow-hidden border-2 border-transparent hover:border-secondary hover:scale-110 transition-all shadow-sm"
+                  >
+                    <img src={url} alt={`Avatar ${i}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
          

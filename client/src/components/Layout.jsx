@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useAppStore } from '../store/appStore';
 import { useAuthStore } from '../store/authStore';
@@ -72,7 +72,17 @@ const Layout = () => {
                   </div>
                 </div>
               )}
-            </div>
+            </button>
+            
+            <Link to="/profile" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-white text-xs font-bold overflow-hidden border-2 border-white/20 shadow-sm">
+                {(user?.avatar_url || user?.avatar) ? (
+                  <img src={user?.avatar_url || user?.avatar} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  user?.name?.charAt(0) || 'U'
+                )}
+              </div>
+            </Link>
           </div>
         </header>
 

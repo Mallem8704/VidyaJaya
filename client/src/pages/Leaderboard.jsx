@@ -102,9 +102,13 @@ const Leaderboard = () => {
          {/* Rank 2 */}
          {topThree[1] && (
            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full bg-gray-200 border-4 border-gray-300 flex items-center justify-center text-2xl font-bold font-heading mb-4 shadow-lg z-10 relative">
+              <div className="w-16 h-16 rounded-full bg-gray-200 border-4 border-gray-300 flex items-center justify-center text-2xl font-bold font-heading mb-4 shadow-lg z-10 relative overflow-hidden">
                 <Medal className="absolute -top-3 -right-2 text-gray-500" fill="currentColor" size={24}/>
-                <span className="text-gray-600">{topThree[1].name.charAt(0)}</span>
+                {(topThree[1].avatar_url || topThree[1].avatar) ? (
+                  <img src={topThree[1].avatar_url || topThree[1].avatar} alt="Rank 2" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-gray-600">{topThree[1].name.charAt(0)}</span>
+                )}
               </div>
               <div className="card w-24 md:w-32 h-32 md:h-40 bg-gradient-to-t from-gray-100 to-white dark:from-gray-800 dark:to-gray-700 flex flex-col items-center justify-start pt-6 border-t-4 border-gray-400">
                  <span className="font-bold text-sm text-[var(--text-primary)] truncate px-2">{topThree[1].name}</span>
@@ -116,9 +120,13 @@ const Leaderboard = () => {
          {/* Rank 1 */}
          {topThree[0] && (
            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="flex flex-col items-center relative z-20">
-              <div className="w-20 h-20 rounded-full bg-yellow-100 border-4 border-accent-gold flex items-center justify-center text-3xl font-bold font-heading mb-4 shadow-xl relative">
+              <div className="w-20 h-20 rounded-full bg-yellow-100 border-4 border-accent-gold flex items-center justify-center text-3xl font-bold font-heading mb-4 shadow-xl relative overflow-hidden">
                 <Crown className="absolute -top-6 text-accent-gold" fill="currentColor" size={36}/>
-                <span className="text-yellow-700">{topThree[0].name.charAt(0)}</span>
+                {(topThree[0].avatar_url || topThree[0].avatar) ? (
+                  <img src={topThree[0].avatar_url || topThree[0].avatar} alt="Rank 1" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-yellow-700">{topThree[0].name.charAt(0)}</span>
+                )}
               </div>
               <div className="card w-28 md:w-40 h-40 md:h-48 bg-gradient-to-t from-yellow-50 to-white dark:from-yellow-900/30 dark:to-yellow-800/20 flex flex-col items-center justify-start pt-6 border-t-4 border-accent-gold shadow-2xl">
                  <span className="font-bold text-md text-[var(--text-primary)] truncate px-2">{topThree[0].name}</span>
@@ -130,9 +138,13 @@ const Leaderboard = () => {
          {/* Rank 3 */}
          {topThree[2] && (
            <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }} className="flex flex-col items-center">
-              <div className="w-16 h-16 rounded-full bg-orange-100 border-4 border-orange-400 flex items-center justify-center text-2xl font-bold font-heading mb-4 shadow-lg z-10 relative">
+              <div className="w-16 h-16 rounded-full bg-orange-100 border-4 border-orange-400 flex items-center justify-center text-2xl font-bold font-heading mb-4 shadow-lg z-10 relative overflow-hidden">
                 <Medal className="absolute -top-3 -right-2 text-orange-600" fill="currentColor" size={24}/>
-                <span className="text-orange-700">{topThree[2].name.charAt(0)}</span>
+                {(topThree[2].avatar_url || topThree[2].avatar) ? (
+                  <img src={topThree[2].avatar_url || topThree[2].avatar} alt="Rank 3" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-orange-700">{topThree[2].name.charAt(0)}</span>
+                )}
               </div>
               <div className="card w-24 md:w-32 h-28 md:h-36 bg-gradient-to-t from-orange-50 to-white dark:from-orange-900/30 dark:to-orange-800/20 flex flex-col items-center justify-start pt-4 border-t-4 border-orange-400">
                  <span className="font-bold text-sm text-[var(--text-primary)] truncate px-2">{topThree[2].name}</span>
@@ -173,8 +185,12 @@ const Leaderboard = () => {
                   #{user.rank}
                 </div>
                 <div className="col-span-5 md:col-span-5 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-white font-bold text-xs shrink-0">
-                    {user.name?.charAt(0) || '?'}
+                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-white font-bold text-xs shrink-0 overflow-hidden">
+                    {(user.avatar_url || user.avatar) ? (
+                      <img src={user.avatar_url || user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                    ) : (
+                      user.name?.charAt(0) || '?'
+                    )}
                   </div>
                   <span className="font-bold truncate">{user.name}</span>
                 </div>

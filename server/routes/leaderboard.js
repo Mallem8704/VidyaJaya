@@ -9,7 +9,7 @@ router.get('/global', protect, async (req, res) => {
   try {
     let query = supabase
       .from('profiles')
-      .select('name, avatar, total_score, streak, coins, exam_goal, is_pro')
+      .select('name, avatar, avatar_url, total_score, streak, coins, exam_goal, is_pro')
       .order('total_score', { ascending: false })
       .limit(50);
 
@@ -35,7 +35,7 @@ router.get('/weekly', protect, async (req, res) => {
   try {
     let query = supabase
       .from('profiles')
-      .select('name, avatar, weekly_score, streak, coins, exam_goal, is_pro')
+      .select('name, avatar, avatar_url, weekly_score, streak, coins, exam_goal, is_pro')
       .order('weekly_score', { ascending: false })
       .limit(50);
 

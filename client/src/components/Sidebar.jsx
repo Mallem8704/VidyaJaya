@@ -111,8 +111,12 @@ const Sidebar = () => {
         <div className="p-4 border-t border-primary-light bg-primary-light bg-opacity-30">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-accent-gold flex items-center justify-center text-white font-bold uppercase shadow-md border-2 border-white/10">
-                {user?.name?.charAt(0) || 'U'}
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-accent-gold flex items-center justify-center text-white font-bold uppercase shadow-md border-2 border-white/10 overflow-hidden">
+                {(user?.avatar_url || user?.avatar) ? (
+                  <img src={user?.avatar_url || user?.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  user?.name?.charAt(0) || 'U'
+                )}
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-semibold truncate w-24">{user?.name || 'Student'}</span>
