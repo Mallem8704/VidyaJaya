@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Award, Lock, Star, Zap, CheckCircle, ShieldCheck, Loader2 } from 'lucide-react';
+import { Award, Lock, Star, Zap, CheckCircle, ShieldCheck, Loader2, Snowflake, Frame, Bot, Coins, ShoppingBag, Diamond, History } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 
 const mockRewards = [
-  { id: 'freeze', title: 'Streak Freeze', cost: 50, icon: '❄️', desc: 'Saves your streak if you miss a day. (Max 2)' },
-  { id: 'frame', title: 'Profile Frame: Conqueror', cost: 200, icon: '🖼️', desc: 'Adds a flaming border to your avatar.' },
-  { id: 'token', title: '1 AI Doubt Token', cost: 100, icon: '🤖', desc: 'Get an instant step-by-step GPT explanation.' },
+  { id: 'freeze', title: 'Streak Freeze', cost: 50, icon: Snowflake, desc: 'Saves your streak if you miss a day. (Max 2)' },
+  { id: 'frame', title: 'Profile Frame: Conqueror', cost: 200, icon: Frame, desc: 'Adds a flaming border to your avatar.' },
+  { id: 'token', title: '1 AI Doubt Token', cost: 100, icon: Bot, desc: 'Get an instant step-by-step GPT explanation.' },
 ];
 
 const Rewards = () => {
@@ -105,7 +105,7 @@ const Rewards = () => {
 
   const handlePurchase = async (reward) => {
     if (coins < reward.cost) {
-      return toast.error(`Not enough coins! You need ${reward.cost} 💰`);
+      return toast.error(`Not enough coins! You need ${reward.cost}`, { icon: <Coins size={16} className="text-accent-gold" /> });
     }
 
     if (reward.id === 'freeze') {
@@ -191,12 +191,14 @@ const Rewards = () => {
          {/* Store items */}
          <div className="space-y-6">
             <h3 className="text-2xl font-heading font-bold flex items-center gap-2">
-              🛒 Tactical Upgrades
+              <ShoppingBag className="text-secondary" /> Tactical Upgrades
             </h3>
             <div className="grid grid-cols-1 gap-4">
                {mockRewards.map(reward => (
                   <div key={reward.id} className="card p-5 flex items-center gap-4 hover:-translate-y-1 transition-transform border border-transparent hover:border-secondary">
-                     <div className="text-4xl bg-[var(--bg-light)] p-3 rounded-xl border border-[var(--border)]">{reward.icon}</div>
+                     <div className="text-secondary bg-[var(--bg-light)] p-3 rounded-xl border border-[var(--border)]">
+                        <reward.icon size={32} />
+                     </div>
                      <div className="flex-1">
                         <h4 className="font-bold text-lg">{reward.title}</h4>
                         <p className="text-sm text-[var(--text-secondary)]">{reward.desc}</p>
@@ -213,7 +215,9 @@ const Rewards = () => {
                ))}
                
                <div className="card p-5 flex items-center gap-4 opacity-50 bg-[var(--bg-light)]">
-                   <div className="text-4xl bg-[var(--bg-card)] p-3 rounded-xl border border-[var(--border)] grayscale">🏆</div>
+                   <div className="text-gray-400 bg-[var(--bg-card)] p-3 rounded-xl border border-[var(--border)] grayscale">
+                      <Trophy size={32} />
+                   </div>
                    <div className="flex-1">
                       <h4 className="font-bold text-lg flex items-center gap-2">Grandmaster Title <Lock size={16}/></h4>
                       <p className="text-sm text-[var(--text-secondary)]">Requires 100+ day streak.</p>
@@ -288,7 +292,7 @@ const Rewards = () => {
       {/* Transactions History */}
       <div className="mt-12 space-y-6">
         <h3 className="text-2xl font-heading font-bold flex items-center gap-2">
-          📜 Transaction History
+          <History className="text-secondary" /> Transaction History
         </h3>
         <div className="card p-6 border border-[var(--border)] overflow-hidden">
           {loadingTransactions ? (
@@ -310,8 +314,8 @@ const Rewards = () => {
                       <p className="text-xs text-[var(--text-secondary)]">{new Date(t.created_at).toLocaleDateString()} • {new Date(t.created_at).toLocaleTimeString()}</p>
                     </div>
                   </div>
-                  <div className={`font-bold ${t.transaction_type === 'earned' ? 'text-green-500' : 'text-red-500'}`}>
-                    {t.transaction_type === 'earned' ? '+' : '-'}{t.amount} 💰
+                  <div className={`font-bold ${t.transaction_type === 'earned' ? 'text-green-500' : 'text-red-500'} flex items-center gap-1`}>
+                    {t.transaction_type === 'earned' ? '+' : '-'}{t.amount} <Coins size={14} />
                   </div>
                 </div>
               ))}

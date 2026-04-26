@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppStore } from '../store/appStore';
+import { 
+  TrendingUp, Trophy, Coins, Rocket, Star, Target, 
+  Hand, Flame, Play, CheckCircle, ShieldCheck, 
+  Bot, BarChart, HelpCircle, History, Landmark, 
+  Newspaper, Map, Scale, BookOpen, Clock, 
+  ArrowRight, Search, Menu, X, Mail, Instagram, 
+  Youtube, Linkedin, Send 
+} from 'lucide-react';
 import './Landing.css';
 
 export default function Landing() {
@@ -91,18 +99,18 @@ export default function Landing() {
       {/* TICKER */}
       <div className="ticker">
         <div className="ticker-inner">
-          <span className="ticker-item">🔥 <span>Priya from Delhi</span> scored 94% in UPSC Mock #47</span>
-          <span className="ticker-item">🏆 <span>Rahul from Mumbai</span> unlocked Gold Badge — 30 day streak!</span>
-          <span className="ticker-item">💰 <span>SSC student</span> earned ₹500 in weekly reward pool</span>
-          <span className="ticker-item">🚀 <span>12,483 students</span> active on VidyaJaya right now</span>
-          <span className="ticker-item">⭐ <span>Sneha from Hyderabad</span> cleared SBI PO with 99 marks</span>
-          <span className="ticker-item">🎯 <span>VidyaJaya AI</span> generated 180 fresh questions today</span>
-          <span className="ticker-item">🔥 <span>Priya from Delhi</span> scored 94% in UPSC Mock #47</span>
-          <span className="ticker-item">🏆 <span>Rahul from Mumbai</span> unlocked Gold Badge — 30 day streak!</span>
-          <span className="ticker-item">💰 <span>SSC student</span> earned ₹500 in weekly reward pool</span>
-          <span className="ticker-item">🚀 <span>12,483 students</span> active on VidyaJaya right now</span>
-          <span className="ticker-item">⭐ <span>Sneha from Hyderabad</span> cleared SBI PO with 99 marks</span>
-          <span className="ticker-item">🎯 <span>VidyaJaya AI</span> generated 180 fresh questions today</span>
+          <span className="ticker-item"><TrendingUp size={14} className="text-secondary" /> <span>Priya from Delhi</span> scored 94% in UPSC Mock #47</span>
+          <span className="ticker-item"><Trophy size={14} className="text-accent-gold" /> <span>Rahul from Mumbai</span> unlocked Gold Badge — 30 day streak!</span>
+          <span className="ticker-item"><Coins size={14} className="text-accent-gold" /> <span>SSC student</span> earned ₹500 in weekly reward pool</span>
+          <span className="ticker-item"><Rocket size={14} className="text-primary" /> <span>12,483 students</span> active on VidyaJaya right now</span>
+          <span className="ticker-item"><Star size={14} className="text-accent-gold" fill="currentColor" /> <span>Sneha from Hyderabad</span> cleared SBI PO with 99 marks</span>
+          <span className="ticker-item"><Target size={14} className="text-secondary" /> <span>VidyaJaya AI</span> generated 180 fresh questions today</span>
+          <span className="ticker-item"><TrendingUp size={14} className="text-secondary" /> <span>Priya from Delhi</span> scored 94% in UPSC Mock #47</span>
+          <span className="ticker-item"><Trophy size={14} className="text-accent-gold" /> <span>Rahul from Mumbai</span> unlocked Gold Badge — 30 day streak!</span>
+          <span className="ticker-item"><Coins size={14} className="text-accent-gold" /> <span>SSC student</span> earned ₹500 in weekly reward pool</span>
+          <span className="ticker-item"><Rocket size={14} className="text-primary" /> <span>12,483 students</span> active on VidyaJaya right now</span>
+          <span className="ticker-item"><Star size={14} className="text-accent-gold" fill="currentColor" /> <span>Sneha from Hyderabad</span> cleared SBI PO with 99 marks</span>
+          <span className="ticker-item"><Target size={14} className="text-secondary" /> <span>VidyaJaya AI</span> generated 180 fresh questions today</span>
         </div>
       </div>
 
@@ -149,7 +157,9 @@ export default function Landing() {
         <button className="mobile-link" onClick={() => scrollToSection('how')}>How It Works</button>
         <button className="mobile-link" onClick={() => scrollToSection('pricing')}>Pricing</button>
         <button className="mobile-link" onClick={() => scrollToSection('leaderboard-section')}>Leaderboard</button>
-        <button onClick={() => { setIsMobileMenuOpen(false); handleCtaClick(); }} className="btn btn-primary btn-lg" style={{ marginTop: '16px', justifyContent: 'center' }}>🔥 Start for Free</button>
+        <button onClick={() => { setIsMobileMenuOpen(false); handleCtaClick(); }} className="btn btn-primary btn-lg" style={{ marginTop: '16px', justifyContent: 'center' }}>
+          <Flame size={20} /> Start for Free
+        </button>
       </div>
 
       {/* HERO */}
@@ -162,8 +172,8 @@ export default function Landing() {
         <div className="hero-content">
           <div className="hero-left">
             <div className="hero-badge-row">
-              <div className="hero-badge">⭐ India's #1 AI Exam Platform</div>
-              <div className="hero-badge">🚀 Free to Start</div>
+              <div className="hero-badge"><Star size={14} fill="currentColor" className="text-accent-gold" /> India's #1 AI Exam Platform</div>
+              <div className="hero-badge"><Rocket size={14} className="text-primary" /> Free to Start</div>
             </div>
             <h1 className="hero-title">
               The <span className="accent">Vidyajaya App</span>: Where study<br />
@@ -192,26 +202,28 @@ export default function Landing() {
           </div>
           <div className="hero-right mockup-wrap">
             <div className="float-badge float-badge-1">
-              <div className="fb-icon" style={{ background: 'rgba(255,215,0,.15)' }}>💰</div>
+              <div className="fb-icon" style={{ background: 'rgba(255,215,0,.15)', color: '#FFD700' }}><Coins size={20} /></div>
               <div><div className="fb-title">+25 Coins Earned!</div><div className="fb-sub">Just now</div></div>
             </div>
             <div className="float-badge float-badge-2">
-              <div className="fb-icon" style={{ background: 'rgba(0,200,83,.15)' }}>🏆</div>
+              <div className="fb-icon" style={{ background: 'rgba(0,200,83,.15)', color: '#00C853' }}><Trophy size={20} /></div>
               <div><div className="fb-title">New Badge Unlocked!</div><div className="fb-sub">Week Warrior</div></div>
             </div>
             <div className="mockup-card">
               <div className="mockup-header">
-                <div className="mockup-greeting">Good morning 👋</div>
+                <div className="mockup-greeting">Good morning <Hand size={16} className="inline text-accent-gold" /></div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div className="mockup-name">Dheeraj Royal</div>
-                  <div style={{ background: 'rgba(255,107,0,.2)', border: '1px solid rgba(255,107,0,.3)', borderRadius: '20px', padding: '4px 10px', fontSize: '12px', fontWeight: 700, color: '#ff9350' }}>💰 340</div>
+                  <div style={{ background: 'rgba(255,107,0,.2)', border: '1px solid rgba(255,107,0,.3)', borderRadius: '20px', padding: '4px 10px', fontSize: '12px', fontWeight: 700, color: '#ff9350', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Coins size={12} /> 340
+                  </div>
                 </div>
                 <div className="mockup-streak">
                   <div>
                     <div style={{ fontSize: '11px', fontWeight: 700, color: 'rgba(255,255,255,.7)', letterSpacing: '1px', marginBottom: '2px' }}>STREAK</div>
-                    <div className="streak-txt">🔥 12 Day Streak!</div>
+                    <div className="streak-txt">12 Day Streak!</div>
                   </div>
-                  <div className="streak-fire">🔥</div>
+                  <div className="streak-fire"><Flame size={24} fill="currentColor" /></div>
                 </div>
               </div>
               <div className="mockup-body">
@@ -239,32 +251,32 @@ export default function Landing() {
           <p className="section-sub reveal reveal-delay-2">Built for UPSC, SSC, Banking, RRB, and aptitude exams. Vidyajaya uses AI to generate fresh questions every night, runs daily contests with live leaderboards, and rewards your performance with coins and weekly cash payouts.</p>
           <div className="features-grid" style={{ marginTop: '56px' }}>
             <div className="card feat-card feat-card-1 reveal">
-              <div className="feat-icon" style={{ background: 'rgba(255,107,0,.12)' }}>🤖</div>
+              <div className="feat-icon" style={{ background: 'rgba(255,107,0,.12)', color: 'var(--orange)' }}><Bot size={32} /></div>
               <div className="feat-title">AI Daily Questions</div>
               <div className="feat-desc">GPT‑4o generates fresh questions every midnight across UPSC, SSC, Banking, RRB and more – mapped to real exam patterns and the latest current affairs. No recycled question bank.</div>
             </div>
             <div className="card feat-card feat-card-2 reveal reveal-delay-1">
-              <div className="feat-icon" style={{ background: 'rgba(0,200,83,.12)' }}>🔥</div>
+              <div className="feat-icon" style={{ background: 'rgba(0,200,83,.12)', color: '#00C853' }}><Flame size={32} fill="currentColor" /></div>
               <div className="feat-title">Daily Streak & Coins</div>
               <div className="feat-desc">Build your streak, earn coins for every test and milestone, and redeem them for streak freezes, Pro access, and cash rewards. Your consistency finally has a score.</div>
             </div>
             <div className="card feat-card feat-card-3 reveal reveal-delay-2">
-              <div className="feat-icon" style={{ background: 'rgba(124,58,237,.12)' }}>🏆</div>
+              <div className="feat-icon" style={{ background: 'rgba(124,58,237,.12)', color: '#7C3AED' }}><Trophy size={32} /></div>
               <div className="feat-title">Live Leaderboard</div>
               <div className="feat-desc">Compete with serious aspirants across India on a transparent leaderboard. Top performers win from a weekly and monthly reward pool funded from subscriptions, not betting.</div>
             </div>
             <div className="card feat-card feat-card-4 reveal">
-              <div className="feat-icon" style={{ background: 'rgba(14,165,233,.12)' }}>📊</div>
+              <div className="feat-icon" style={{ background: 'rgba(14,165,233,.12)', color: '#0EA5E9' }}><BarChart size={32} /></div>
               <div className="feat-title">AI Performance Analysis</div>
               <div className="feat-desc">After every test, AI highlights your exact weak chapters and question types and suggests what to study in the next 7 days. No generic “60% accuracy” reports.</div>
             </div>
             <div className="card feat-card feat-card-5 reveal reveal-delay-1">
-              <div className="feat-icon" style={{ background: 'rgba(245,158,11,.12)' }}>❓</div>
+              <div className="feat-icon" style={{ background: 'rgba(245,158,11,.12)', color: '#F59E0B' }}><HelpCircle size={32} /></div>
               <div className="feat-title">AI Doubt Solver</div>
               <div className="feat-desc">Upload any question as image or text. Get a step-by-step explanation within seconds. Available 24/7. No waiting for a teacher to respond.</div>
             </div>
             <div className="card feat-card feat-card-6 reveal reveal-delay-2">
-              <div className="feat-icon" style={{ background: 'rgba(239,68,68,.12)' }}>💰</div>
+              <div className="feat-icon" style={{ background: 'rgba(239,68,68,.12)', color: '#EF4444' }}><Coins size={32} /></div>
               <div className="feat-title">Coin Rewards System</div>
               <div className="feat-desc">Earn coins for every test, every streak milestone, every referral. Redeem coins for streak freezes, premium access, or weekly cash payouts.</div>
             </div>
@@ -313,28 +325,28 @@ export default function Landing() {
       {/* LEADERBOARD */}
       <section className="leaderboard-section" id="leaderboard-section">
         <div className="container text-center">
-          <div className="section-tag reveal">🏆 Live Rankings</div>
+          <div className="section-tag reveal"><Trophy size={14} className="inline mr-1" /> Live Rankings</div>
           <h2 className="section-title reveal reveal-delay-1">This Week's <span style={{ color: 'var(--orange)' }}>Champions</span></h2>
           <p className="section-sub reveal reveal-delay-2">Top 3 win ₹500, ₹250 and ₹100 every Sunday midnight. Your rank updates in real-time.</p>
           <div className="lb-card reveal">
             <div className="lb-head">
-              <div className="lb-head-title">🏆 Weekly Leaderboard</div>
+              <div className="lb-head-title"><Trophy size={18} className="inline mr-2 text-accent-gold" /> Weekly Leaderboard</div>
               <div className="badge badge-green" style={{ fontSize: '11px' }}>● Live</div>
             </div>
             <div className="lb-row">
-              <div className="lb-medal">🥇</div>
+              <div className="lb-medal"><Trophy size={20} className="text-accent-gold" /></div>
               <div className="lb-ava" style={{ background: 'linear-gradient(135deg, #FF6B00, #FF3D00)' }}>RK</div>
               <div><div className="lb-name">Rahul Kumar</div><div className="lb-exam">UPSC · 🔥 28 streak</div></div>
               <div><div className="lb-pts">2,840</div><div className="lb-streak">+₹500 this Sunday</div></div>
             </div>
             <div className="lb-row">
-              <div className="lb-medal">🥈</div>
+              <div className="lb-medal"><Trophy size={20} className="text-gray-400" /></div>
               <div className="lb-ava" style={{ background: 'linear-gradient(135deg, #3B82F6, #7C3AED)' }}>PS</div>
               <div><div className="lb-name">Priya Sharma</div><div className="lb-exam">SSC · 🔥 21 streak</div></div>
               <div><div className="lb-pts">2,680</div><div className="lb-streak">+₹250 this Sunday</div></div>
             </div>
             <div className="lb-row">
-              <div className="lb-medal">🥉</div>
+              <div className="lb-medal"><Trophy size={20} className="text-orange-400" /></div>
               <div className="lb-ava" style={{ background: 'linear-gradient(135deg, #00C853, #0891B2)' }}>SM</div>
               <div><div className="lb-name">Sneha Misra</div><div className="lb-exam">Banking · 🔥 19 streak</div></div>
               <div><div className="lb-pts">2,540</div><div className="lb-streak">+₹100 this Sunday</div></div>
@@ -441,12 +453,12 @@ export default function Landing() {
       {/* EXAM CATEGORIES */}
       <section className="exams-section">
         <div className="container text-center">
-          <div className="section-tag reveal">📚 All Exams Covered</div>
+          <div className="section-tag reveal"><BookOpen size={14} className="inline mr-1" /> All Exams Covered</div>
           <h2 className="section-title reveal reveal-delay-1">The best <span style={{ color: 'var(--orange)' }}>Vidyajaya app</span> for <br />every competitive exam in India</h2>
           <p className="section-sub reveal reveal-delay-2">Vidyajaya covers 6 major exam categories with AI-generated questions tailored to each exam's pattern and syllabus.</p>
           <div className="exam-grid">
             <div className="card exam-card reveal" style={{ '--ec-color': '#FF6B00' }}>
-              <div className="exam-icon">🏛️</div>
+              <div className="exam-icon text-secondary"><Landmark size={32} /></div>
               <div className="exam-name">UPSC Civil Services</div>
               <div className="exam-desc">Prelims, Mains, Current Affairs. AI-generated daily tests mapped to UPSC syllabus. Polity, History, Economy, Science & Tech.</div>
               <div className="exam-meta">
@@ -454,7 +466,7 @@ export default function Landing() {
               </div>
             </div>
             <div className="card exam-card reveal reveal-delay-1" style={{ '--ec-color': '#3B82F6' }}>
-              <div className="exam-icon">📋</div>
+              <div className="exam-icon text-blue-500"><Newspaper size={32} /></div>
               <div className="exam-name">SSC CGL / CHSL / MTS</div>
               <div className="exam-desc">Speed and accuracy-focused tests. Quantitative Aptitude, English, General Awareness, Reasoning. Tier-I & Tier-II patterns.</div>
               <div className="exam-meta">
@@ -462,7 +474,7 @@ export default function Landing() {
               </div>
             </div>
             <div className="card exam-card reveal reveal-delay-2" style={{ '--ec-color': '#00C853' }}>
-              <div className="exam-icon">🚂</div>
+              <div className="exam-icon text-green-500"><Rocket size={32} /></div>
               <div className="exam-name">RRB NTPC / Group D</div>
               <div className="exam-desc">Railway exam preparation with affordable access. CBT-1 and CBT-2 patterns. Mobile-friendly daily practice tests.</div>
             </div>
@@ -475,7 +487,7 @@ export default function Landing() {
         <div className="container">
           <div className="wa-inner">
             <div>
-              <div className="wa-text">📲 Join 12,000+ students on our Telegram community</div>
+              <div className="wa-text"><Send size={24} className="inline mr-2 text-white" /> Join 12,000+ students on our Telegram community</div>
               <div className="wa-sub">Get daily current affairs, free study notes, and launch updates directly on Telegram</div>
             </div>
             <a href="https://t.me/vidyajayaa" target="_blank" rel="noopener noreferrer" className="wa-btn">
@@ -527,13 +539,13 @@ export default function Landing() {
                 <div className="founder-info">
                   <div className="founder-name">Mallem Dheeraj Royal</div>
                   <div className="founder-role">Founder & CEO</div>
-                  <div className="founder-loc">📍 Kadiri, Andhra Pradesh</div>
+                  <div className="founder-loc"><Map size={14} className="inline mr-1" /> Kadiri, Andhra Pradesh</div>
                 </div>
               </div>
               <blockquote className="founder-quote">"I built VidyaJaya because 2.5 crore students in India study every single day and not one platform was rewarding their consistency. Every test you take, every streak you maintain, every question you answer correctly — it counts. It rewards you. It brings you one step closer to the rank you deserve."</blockquote>
               <div className="founder-contacts">
-                <div className="fc"><span className="fc-icon">📧</span><span className="fc-val">dheeraj@vidyajaya.in</span></div>
-                <div className="fc"><span className="fc-icon">📸</span><span className="fc-val">@mallemdheerajroyal</span></div>
+                <div className="fc"><span className="fc-icon"><Mail size={14} /></span><span className="fc-val">dheeraj@vidyajaya.in</span></div>
+                <div className="fc"><span className="fc-icon"><Instagram size={14} /></span><span className="fc-val">@mallemdheerajroyal</span></div>
               </div>
             </div>
 
@@ -545,13 +557,13 @@ export default function Landing() {
                 <div className="founder-info">
                   <div className="founder-name">Manjunath Yadav Meesala</div>
                   <div className="founder-role" style={{ color: '#3B82F6' }}>Co-Founder</div>
-                  <div className="founder-loc">📍 Bengaluru, Karnataka</div>
+                  <div className="founder-loc"><Map size={14} className="inline mr-1" /> Bengaluru, Karnataka</div>
                 </div>
               </div>
               <blockquote className="founder-quote" style={{ borderColor: '#3B82F6' }}>"Our mission is to build a platform that doesn't just provide content, but builds a future. By combining AI with habit-building psychology, we're ensuring every aspirant has the best shot at success. VidyaJaya is the ultimate companion for those who are serious about their goals."</blockquote>
               <div className="founder-contacts">
-                <div className="fc"><span className="fc-icon">📧</span><span className="fc-val">manjunath@vidyajaya.in</span></div>
-                <div className="fc"><span className="fc-icon">📸</span><span className="fc-val">@manjunathyadav</span></div>
+                <div className="fc"><span className="fc-icon"><Mail size={14} /></span><span className="fc-val">manjunath@vidyajaya.in</span></div>
+                <div className="fc"><span className="fc-icon"><Instagram size={14} /></span><span className="fc-val">@manjunathyadav</span></div>
               </div>
             </div>
           </div>
@@ -561,11 +573,13 @@ export default function Landing() {
       {/* CTA BAND */}
       <section className="cta-band">
         <div className="container">
-          <h2 className="cta-title">Start your streak today 🔥</h2>
+          <h2 className="cta-title">Start your streak today <Flame size={32} className="inline ml-2" fill="currentColor" /></h2>
           <p className="cta-sub">Join thousands of aspirants who study daily, track their rank, and earn rewards for performance – not luck. Free forever to start, upgrade only when you’re ready.</p>
           <div className="cta-btns">
             <button onClick={handleCtaClick} className="btn btn-white btn-lg">Join VidyaJaya – Take Today’s Free Mock →</button>
-            <a href="https://t.me/vidyajayaa" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{ background: 'rgba(255,255,255,.15)', color: '#fff', borderColor: 'rgba(255,255,255,.3)' }}>✈️ Join Telegram</a>
+            <a href="https://t.me/vidyajayaa" target="_blank" rel="noopener noreferrer" className="btn btn-lg" style={{ background: 'rgba(255,255,255,.15)', color: '#fff', borderColor: 'rgba(255,255,255,.3)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Send size={20} /> Join Telegram
+            </a>
           </div>
         </div>
       </section>
@@ -611,10 +625,10 @@ export default function Landing() {
           <div className="footer-bottom">
             <div className="footer-copy">© 2026 VidyaJaya Technologies Pvt Ltd · All rights reserved · Built from Kadiri, Andhra Pradesh</div>
             <div className="social-row">
-              <a href="https://www.instagram.com/vidyajaya.in?igsh=cGNzZGkxYTFiODgx" target="_blank" rel="noopener noreferrer" className="social-btn" title="Instagram">📸</a>
-              <a href="https://t.me/vidyajayaa" target="_blank" rel="noopener noreferrer" className="social-btn" title="Telegram">✈️</a>
-              <div className="social-btn" title="YouTube">▶</div>
-              <a href="https://www.linkedin.com/in/vidyajaya-where-knowledge-pays-off-0480a0405?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer" className="social-btn" title="LinkedIn">in</a>
+              <a href="https://www.instagram.com/vidyajaya.in?igsh=cGNzZGkxYTFiODgx" target="_blank" rel="noopener noreferrer" className="social-btn" title="Instagram"><Instagram size={18} /></a>
+              <a href="https://t.me/vidyajayaa" target="_blank" rel="noopener noreferrer" className="social-btn" title="Telegram"><Send size={18} /></a>
+              <div className="social-btn" title="YouTube"><Youtube size={18} /></div>
+              <a href="https://www.linkedin.com/in/vidyajaya-where-knowledge-pays-off-0480a0405?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer" className="social-btn" title="LinkedIn"><Linkedin size={18} /></a>
             </div>
           </div>
         </div>

@@ -36,8 +36,8 @@ const Layout = () => {
               <Menu size={24} />
             </button>
             <div className="hidden sm:block">
-              <h2 className="text-xl font-heading font-bold animate-fade-in">
-                Welcome back, {user?.name?.split(' ')[0] || 'Student'} 👋
+              <h2 className="text-xl font-heading font-bold animate-fade-in flex items-center gap-2">
+                Welcome back, {user?.name?.split(' ')[0] || 'Student'}
               </h2>
               <p className="text-xs text-[var(--text-secondary)]">{dateStr}</p>
             </div>
@@ -67,7 +67,9 @@ const Layout = () => {
                     Notifications
                   </div>
                   <div className="p-4 text-sm text-[var(--text-secondary)] text-center">
-                    <p className="mb-2">🏆 You are on a 12 day streak!</p>
+                    <div className="flex items-center justify-center gap-2 mb-2 text-accent-gold font-bold">
+                      <Trophy size={16} /> You are on a 12 day streak!
+                    </div>
                     <p>No new notifications right now.</p>
                   </div>
                 </div>

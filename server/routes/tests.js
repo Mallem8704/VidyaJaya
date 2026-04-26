@@ -36,6 +36,15 @@ router.get('/:id', protect, async (req, res) => {
     // 2. Check Pro access for premium tests
     const isPro = req.user.is_pro || req.user.role === 'admin' || req.user.plan === 'admin';
     if (testInfo.is_premium && !isPro) {
+      console.log(`[ANALYTICS] Test Unlock Attempt: User ${req.user.id} (${req.user.email}) attempted to access premium test ${req.params.id}`);
+      
+      // OPTIONAL: Log to database if analytics_logs exists
+      await supabase.from('analytics_logs').insert({
+        user_id: req.user.id,
+        event_type: 'test_unlock_attempt',
+        details: { test_id: req.params.id, test_title: testInfo.title }
+      }).catch(() => {}); // Silently fail if table missing
+
       return res.status(403).json({ 
         message: 'Upgrade to Pro to attempt full mock tests and compete for rewards',
         code: 'PRO_REQUIRED'

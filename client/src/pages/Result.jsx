@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { CheckCircle, XCircle, Clock, ChevronRight, Share2, Award, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, ChevronRight, Share2, Award, Loader2, FastForward, Bot } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
@@ -147,7 +147,7 @@ const Result = () => {
               <div className="text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wide">Wrong</div>
             </div>
             <div className="card p-4 border flex flex-col items-center text-center bg-gray-50 dark:bg-[#151c27]">
-              <div className="text-xl mb-2">⏭️</div>
+              <FastForward size={28} className="text-gray-400 mb-2" />
               <div className="text-2xl font-bold mb-1 text-[var(--text-primary)]">{submission.skippedCount}</div>
               <div className="text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wide">Skipped</div>
             </div>
@@ -165,7 +165,9 @@ const Result = () => {
           {/* AI Insight */}
           <div className="card p-6 bg-gradient-to-br from-[#0B1120] to-primary border-l-4 border-accent-purple shadow-xl">
             <div className="flex items-center gap-3 mb-4">
-              <span className="p-2 bg-accent-purple bg-opacity-20 rounded-lg text-accent-purple shrink-0">🤖</span>
+              <span className="p-2 bg-accent-purple bg-opacity-20 rounded-lg text-accent-purple shrink-0">
+                <Bot size={24} />
+              </span>
               <h3 className="font-heading font-bold text-xl text-white">AI Performance Insight</h3>
             </div>
             <p className="text-gray-300 leading-relaxed text-[15px] mb-6">

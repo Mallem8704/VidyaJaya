@@ -1,6 +1,6 @@
 import ProUpgradeModal from '../components/ProUpgradeModal';
 import { useAuthStore } from '../store/authStore';
-import { Lock } from 'lucide-react';
+import { Lock, BookOpen, Filter, Share2, Award, CheckCircle, Clock, X, Book, Search } from 'lucide-react';
 
 const Tests = () => {
   const [tests, setTests] = useState([]);
@@ -108,13 +108,17 @@ const Tests = () => {
 
       {tests.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="text-6xl mb-4">📚</div>
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+            <Book size={32} />
+          </div>
           <h3 className="text-xl font-bold mb-2">No Tests Available Yet</h3>
           <p className="text-[var(--text-secondary)] max-w-md mb-6">The daily contest loads automatically at midnight. Check back soon or ask an admin to seed test data.</p>
         </div>
       ) : filteredTests.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="text-5xl mb-4">🔍</div>
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+            <Search size={32} />
+          </div>
           <h3 className="text-xl font-bold mb-2">No Tests Found for "{activeFilter}"</h3>
           <p className="text-[var(--text-secondary)] mb-6">Try a different category or view all tests.</p>
           <button onClick={clearCategoryFilter} className="btn btn-primary">View All Tests</button>

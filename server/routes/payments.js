@@ -95,6 +95,14 @@ router.post('/verify', protect, async (req, res) => {
         expiry_date: expiryDate.toISOString()
       });
 
+      // 2b. Log Analytics Conversion
+      console.log(`[ANALYTICS] Conversion: User ${req.user.id} upgraded to PRO (${planType})`);
+      await supabase.from('analytics_logs').insert({
+        user_id: req.user.id,
+        event_type: 'conversion',
+        details: { plan_type: planType, amount: planType === 'weekly' ? 49 : 99 }
+      }).catch(() => {});
+
       // 3. Initialize/Sync wallet (if needed)
       // For now, we assume the wallet system is linked to the coins field
       

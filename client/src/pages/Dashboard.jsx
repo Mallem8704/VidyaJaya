@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Flame, CheckCircle, Target, HelpCircle, Trophy, TrendingUp, Calendar as CalendarIcon, Snowflake } from 'lucide-react';
+import { Flame, CheckCircle, Target, HelpCircle, Trophy, TrendingUp, Calendar as CalendarIcon, Snowflake, AlertTriangle, Coins, FileText, Sparkles, Crown, Medal, Award, Hand } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
@@ -40,7 +40,7 @@ const Dashboard = () => {
             rank: i + 1,
             name: u.name || 'Anonymous',
             score: u.total_score || 0,
-            icon: ['👑', '🥈', '🥉', '🏅'][i]
+            icon: [Crown, Medal, Medal, Award][i]
           })));
         }
       } catch (err) {
@@ -77,7 +77,9 @@ const Dashboard = () => {
   if (loadingStage === 'error' || !dashboard) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 text-center">
-        <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center text-3xl">⚠️</div>
+        <div className="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center">
+          <AlertTriangle size={32} />
+        </div>
         <h2 className="text-xl font-bold">Failed to load statistics</h2>
         <p className="text-gray-400 max-w-sm">We couldn't connect to the analytics server. Please refresh or try again later.</p>
         <button onClick={() => window.location.reload()} className="btn bg-primary text-white mt-4">Retry Connection</button>
@@ -130,9 +132,9 @@ const Dashboard = () => {
             <motion.div 
               animate={{ scale: [1, 1.1, 1] }} 
               transition={{ repeat: Infinity, duration: 2 }}
-              className="w-20 h-20 bg-[rgba(255,107,0,0.2)] rounded-full flex items-center justify-center text-5xl shrink-0"
+              className="w-20 h-20 bg-[rgba(255,107,0,0.2)] rounded-full flex items-center justify-center text-secondary shrink-0"
             >
-              🔥
+              <Flame size={40} fill="currentColor" />
             </motion.div>
             <div>
               <h2 className="text-3xl font-heading font-bold mb-1">{streakAmount} Day Streak!</h2>
@@ -144,7 +146,9 @@ const Dashboard = () => {
                 <div className="h-2 w-48 bg-primary-light rounded-full overflow-hidden">
                   <div className="h-full bg-secondary rounded-full" style={{ width: `${Math.min((streakAmount % 10) * 10, 100)}%` }}></div>
                 </div>
-                <span className="text-xs font-semibold text-accent-gold">💰 {coinsAmount} coins</span>
+                <span className="text-xs font-semibold text-accent-gold flex items-center gap-1">
+                  <Coins size={12} /> {coinsAmount} coins
+                </span>
               </div>
               <p className="text-[10px] text-white opacity-40 mt-3 flex items-center gap-1">
                 <CalendarIcon size={10} /> Updated just now: {new Date(dashboard.lastUpdated).toLocaleTimeString()}
@@ -157,7 +161,7 @@ const Dashboard = () => {
               {[...Array(7)].map((_, i) => (
                 <div key={i} className={`w-6 h-6 rounded-sm flex items-center justify-center text-[10px] font-bold
                   ${i < Math.min(streakAmount, 7) ? 'bg-accent-green text-white' : 'bg-primary-light text-gray-400'}`}>
-                  {i < Math.min(streakAmount, 7) ? '✓' : '·'}
+                  {i < Math.min(streakAmount, 7) ? <CheckCircle size={10} /> : '·'}
                 </div>
               ))}
             </div>
@@ -239,7 +243,9 @@ const Dashboard = () => {
               >
                 <div className="flex justify-between items-center">
                   <div>
-                    <h4 className="font-bold mb-1 group-hover:text-secondary transition-colors">📝 Today's Mock Test</h4>
+                    <h4 className="font-bold mb-1 group-hover:text-secondary transition-colors flex items-center gap-2">
+                      <FileText size={16} /> Today's Mock Test
+                    </h4>
                     <p className="text-xs text-gray-300">{latestTestId ? 'Latest available test • Click to start' : 'Browse all tests →'}</p>
                   </div>
                   <ArrowRightIcon className="group-hover:translate-x-1 transition-transform" />
@@ -250,7 +256,7 @@ const Dashboard = () => {
                 <div className="flex justify-between items-center">
                   <div>
                     <h4 className="font-bold mb-1 text-[var(--text-primary)] flex items-center gap-2">
-                       ✨ AI Practice
+                       <Sparkles size={16} className="text-secondary" /> AI Practice
                     </h4>
                     <p className="text-xs text-[var(--text-secondary)] font-medium">
                        {dashboard.recommendation || "Take tests to unlock AI insights!"}
@@ -263,7 +269,9 @@ const Dashboard = () => {
               <Link to="/doubts" className="group block bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-xl shadow hover:border-accent-purple transition-all hover:-translate-y-1">
                 <div className="flex justify-between items-center">
                   <div>
-                    <h4 className="font-bold mb-1 text-[var(--text-primary)]">❓ Doubt Solver</h4>
+                    <h4 className="font-bold mb-1 text-[var(--text-primary)] flex items-center gap-2">
+                      <HelpCircle size={16} className="text-accent-purple" /> Doubt Solver
+                    </h4>
                     <p className="text-xs text-[var(--text-secondary)]">Ask any question — AI answers instantly</p>
                   </div>
                   <ArrowRightIcon className="text-accent-purple group-hover:translate-x-1 transition-transform" />
@@ -317,7 +325,9 @@ const Dashboard = () => {
           {/* BUG 6 FIX: Real Leaderboard Mini */}
           <div className="card p-5">
             <h3 className="font-heading font-bold text-lg mb-4 flex items-center justify-between">
-              🏅 Top Warriors
+              <div className="flex items-center gap-2">
+                <Trophy size={18} className="text-accent-gold" /> Top Warriors
+              </div>
               <Link to="/leaderboard" className="text-xs text-secondary font-medium hover:underline flex items-center">View Full</Link>
             </h3>
             
@@ -325,7 +335,9 @@ const Dashboard = () => {
               {topWarriors.length > 0 ? topWarriors.map((lb) => (
                 <div key={lb.rank} className="flex items-center justify-between p-2 rounded-lg hover:bg-[var(--bg-light)] transition-colors">
                   <div className="flex items-center gap-3">
-                    <span className="text-lg w-6 text-center">{lb.icon}</span>
+                    <span className="text-lg w-6 text-center flex items-center justify-center">
+                      <lb.icon size={18} className={lb.rank === 1 ? 'text-accent-gold' : lb.rank === 2 ? 'text-gray-400' : 'text-orange-400'} />
+                    </span>
                     <span className="font-medium text-sm truncate max-w-[100px]">{lb.name}</span>
                   </div>
                   <span className="text-sm font-bold">{lb.score}</span>

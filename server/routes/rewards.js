@@ -48,6 +48,14 @@ router.post('/withdraw', protect, async (req, res) => {
         const { amount, upiId } = req.body;
         const user = req.user;
 
+        // 0. PRO CHECK (ONLY Pro users eligible for rewards)
+        if (!user.is_pro && user.role !== 'admin') {
+            return res.status(403).json({ 
+                message: 'Only Pro users can withdraw cash rewards. Upgrade to Pro to unlock withdrawals.',
+                code: 'PRO_REQUIRED'
+            });
+        }
+
         // 1. MINIMUM WITHDRAWAL CHECK
         if (amount < 50) {
             return res.status(400).json({ message: 'Minimum withdrawal amount is Rs. 50' });
