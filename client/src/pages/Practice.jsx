@@ -15,6 +15,7 @@ const baseTopics = [
 ];
 
 const Practice = () => {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [testsTaken, setTestsTaken] = useState(0);

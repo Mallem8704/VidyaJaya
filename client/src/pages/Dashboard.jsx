@@ -18,7 +18,7 @@ const Dashboard = () => {
   // BUG 7 FIX: Latest test ID state
   const [latestTestId, setLatestTestId] = useState(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchDashboard = async () => {
       try {
         const res = await axios.get('/api/dashboard');

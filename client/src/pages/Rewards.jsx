@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Award, Lock, Star, Zap, CheckCircle, ShieldCheck, Loader2, Snowflake, Frame, Bot, Coins, ShoppingBag, Diamond, History } from 'lucide-react';
+import { Award, Lock, Star, Zap, CheckCircle, ShieldCheck, Loader2, Snowflake, Frame, Bot, Coins, ShoppingBag, Diamond, History, Trophy } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 import axios from 'axios';

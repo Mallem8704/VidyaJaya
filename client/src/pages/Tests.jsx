@@ -1,3 +1,8 @@
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
 import ProUpgradeModal from '../components/ProUpgradeModal';
 import { useAuthStore } from '../store/authStore';
 import { Lock, BookOpen, Filter, Share2, Award, CheckCircle, Clock, X, Book, Search } from 'lucide-react';
@@ -12,7 +17,7 @@ const Tests = () => {
 
   const isUserPro = user?.is_pro || user?.role === 'admin';
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchTests = async () => {
       try {
         const res = await axios.get('/api/tests');
@@ -28,7 +33,7 @@ const Tests = () => {
   }, []);
 
   // BUG 10 FIX: Apply category filter from query param on load
-  React.useEffect(() => {
+  useEffect(() => {
     const categoryParam = searchParams.get('category');
     if (categoryParam) {
       setActiveFilter(categoryParam);

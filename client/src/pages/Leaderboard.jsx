@@ -1,6 +1,10 @@
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
 import ProUpgradeModal from '../components/ProUpgradeModal';
 import { useAuthStore } from '../store/authStore';
-import { Lock, Diamond } from 'lucide-react';
+import { Lock, Diamond, Trophy, Crown, Medal, Flame } from 'lucide-react';
 
 const Leaderboard = () => {
   const [tab, setTab] = useState('global'); // 'global', 'weekly', 'monthly'
@@ -12,7 +16,7 @@ const Leaderboard = () => {
 
   const isUserPro = user?.is_pro || user?.role === 'admin';
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchLeaderboard = async () => {
       // Check if trying to access Pro-only tabs
       if ((tab === 'weekly' || tab === 'monthly') && !isUserPro) {
