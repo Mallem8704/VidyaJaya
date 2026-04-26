@@ -84,13 +84,14 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/doubts', doubtRoutes);
 app.use('/api/rewards', require('./routes/rewards'));
+app.use('/api/wallet', require('./routes/wallet'));
 app.use('/api/payments', require('./routes/payments'));
+app.use('/api/admin', require('./routes/admin'));
 app.use('/api/streak', streakRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/profiles', profileRoutes);
 app.use('/api/practice', practiceRoutes);
 app.use('/api/questions', questionRoutes);
-app.use('/api/wallet', require('./routes/wallet'));
 
 // Placeholder routes
 app.get('/health', (req, res) => {

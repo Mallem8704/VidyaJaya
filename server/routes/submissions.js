@@ -126,43 +126,107 @@ router.post('/', protect, async (req, res) => {
     }
 
     // Calculate coins for this submission
-    const coinsEarned = result.accuracy >= 80 ? 25 : 10;
+    let coinsEarned = result.accuracy >= 80 ? 25 : 10;
+    if (user.is_pro) coinsEarned *= 2; // PRO users get double rewards
 
-    // 6. UPDATE PROFILE STATS
-    // BUG 14 FIX: Only increment streak if user hasn't submitted today already
+    // 6. UPDATE PROFILE STATS & ANTI-CHEAT
     const { data: profile } = await supabase
       .from('profiles')
-      .select('coins, streak, weekly_score, total_score, last_streak_update')
+      .select('coins, streak, weekly_score, total_score, last_streak_update, referred_by, daily_reward_accumulated, last_reward_reset')
       .eq('id', user.id)
       .single();
 
+    // Check Daily Cap (Max 50 coins/day from test attempts)
     const today = new Date().toDateString();
+    const lastReset = profile?.last_reward_reset ? new Date(profile.last_reward_reset).toDateString() : null;
+    let currentDailyTotal = lastReset === today ? (profile?.daily_reward_accumulated || 0) : 0;
+    
+    if (currentDailyTotal >= 50) {
+      coinsEarned = 0; // Cap reached
+      console.log(`User ${user.id} reached daily reward cap.`);
+    } else {
+      // Don't exceed the cap in a single submission
+      if (currentDailyTotal + coinsEarned > 50) {
+        coinsEarned = 50 - currentDailyTotal;
+      }
+    }
+
     const lastUpdate = profile?.last_streak_update 
       ? new Date(profile.last_streak_update).toDateString() 
       : null;
     const shouldIncrementStreak = lastUpdate !== today;
+    const newStreak = shouldIncrementStreak ? (profile?.streak || 0) + 1 : (profile?.streak || 0);
+
+    // Milestone Rewards
+    let milestoneBonus = 0;
+    if (shouldIncrementStreak) {
+      if (newStreak === 3) milestoneBonus = 50;
+      if (newStreak === 7) milestoneBonus = 150;
+      if (newStreak === 30) milestoneBonus = 1000;
+    }
 
     await supabase.from('profiles').update({
-      coins: (profile?.coins || 0) + coinsEarned,
-      streak: shouldIncrementStreak ? (profile?.streak || 0) + 1 : (profile?.streak || 0),
+      coins: (profile?.coins || 0) + coinsEarned + milestoneBonus,
+      streak: newStreak,
       weekly_score: (profile?.weekly_score || 0) + result.score,
       total_score: (profile?.total_score || 0) + result.score,
-      accuracy: result.accuracy, // update with latest accuracy
-      last_streak_update: shouldIncrementStreak ? new Date() : profile?.last_streak_update
+      accuracy: result.accuracy,
+      last_streak_update: shouldIncrementStreak ? new Date() : profile?.last_streak_update,
+      daily_reward_accumulated: currentDailyTotal + coinsEarned,
+      last_reward_reset: new Date()
     }).eq('id', user.id);
 
-    // BUG 4 FIX: Use correct column names (type instead of transaction_type, no source/status)
-    // 7. RECORD REWARD
-    await supabase.from('rewards').insert({
-        user_id: user.id,
-        type: 'earned',
-        amount: coinsEarned,
-        description: `Earned ${coinsEarned} coins from completing: ${test.title}`
-    });
+    // 7. RECORD REWARDS
+    if (coinsEarned > 0) {
+      await supabase.from('rewards').insert({
+          user_id: user.id,
+          type: 'earned',
+          amount: coinsEarned,
+          description: `Earned coins from completing: ${test.title}${coinsEarned < (result.accuracy >= 80 ? 25 : 10) ? ' (Daily Cap Applied)' : ''}`
+      });
+    }
+
+    if (milestoneBonus > 0) {
+      await supabase.from('rewards').insert({
+          user_id: user.id,
+          type: 'milestone',
+          amount: milestoneBonus,
+          description: `Streak Milestone Reward! Reached ${newStreak} days.`
+      });
+    }
+
+    // 8. REFERRAL COMPLETION (If this is the first submission)
+    const { count: submissionCount } = await supabase
+      .from('submissions')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id);
+
+    if (submissionCount === 1 && profile.referred_by) {
+      // First test completed! Pay referrer (₹10) and referee (₹5 already given or add more)
+      const referrerId = profile.referred_by;
+      
+      // Pay Referrer (100 coins = ₹10 approx)
+      const { data: referrer } = await supabase.from('profiles').select('coins').eq('id', referrerId).single();
+      await supabase.from('profiles').update({ coins: (referrer?.coins || 0) + 100 }).eq('id', referrerId);
+      
+      await supabase.from('rewards').insert({
+          user_id: referrerId,
+          type: 'referral',
+          amount: 100,
+          description: `Referral Reward for inviting ${profile.name}!`
+      });
+
+      // Mark referral as completed
+      await supabase.from('referrals')
+        .update({ status: 'completed', reward_paid: true })
+        .eq('referrer_id', referrerId)
+        .eq('referee_id', user.id);
+    }
 
     res.status(201).json({
       ...mapSubmission(submission),
-      coinsEarned
+      coinsEarned,
+      milestoneBonus
     });
   } catch (error) {
     console.error('Submission Error:', error);

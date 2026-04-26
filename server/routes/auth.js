@@ -27,7 +27,7 @@ const getAuthClient = () => {
 // @desc    Register a new user
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, phone, password, examGoal } = req.body;
+    const { name, email, phone, password, examGoal, referralCode, deviceId } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Please provide name, email, and password.' });
@@ -35,6 +35,18 @@ router.post('/register', async (req, res) => {
 
     if (password.length < 6) {
       return res.status(400).json({ message: 'Password must be at least 6 characters.' });
+    }
+
+    // Anti-Abuse: Check if deviceId already has many accounts (optional but recommended)
+    if (deviceId) {
+      const { data: deviceAccounts } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('device_id', deviceId);
+      
+      if (deviceAccounts && deviceAccounts.length >= 3) {
+        return res.status(403).json({ message: 'Maximum account limit reached for this device.' });
+      }
     }
 
     // 1. Get shared auth client (throws if env vars missing)
@@ -59,6 +71,20 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Registration failed. Please try again.' });
     }
 
+    // Generate unique referral code
+    const generatedCode = (name.substring(0, 3) + Math.random().toString(36).substring(2, 6)).toUpperCase();
+
+    // Check if referralCode provided is valid
+    let referrerId = null;
+    if (referralCode) {
+      const { data: referrer } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('referral_code', referralCode.toUpperCase())
+        .single();
+      if (referrer) referrerId = referrer.id;
+    }
+
     // 2. Create user profile in the profiles table using service role client
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -69,8 +95,12 @@ router.post('/register', async (req, res) => {
         phone: phone || null,
         exam_goal: examGoal || 'UPSC',
         is_verified: false,
-        coins: 0,
-        streak: 0
+        coins: referralCode && referrerId ? 5 : 0, // Gift 5 coins if referred
+        streak: 0,
+        referral_code: generatedCode,
+        referred_by: referrerId,
+        device_id: deviceId || null,
+        plan: 'free'
       })
       .select()
       .single();
@@ -82,6 +112,15 @@ router.post('/register', async (req, res) => {
         message: 'Account created! Please log in.',
         user: { id: authData.user.id, email, name },
         token: authData.session?.access_token || null
+      });
+    }
+
+    // Create entry in referrals table if referred
+    if (referrerId) {
+      await supabase.from('referrals').insert({
+        referrer_id: referrerId,
+        referee_id: profile.id,
+        status: 'pending'
       });
     }
     

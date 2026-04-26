@@ -27,6 +27,7 @@ import Pricing from './pages/Pricing';
 import KYC from './pages/KYC';
 import Wallet from './pages/Wallet';
 import ProDashboard from './pages/ProDashboard';
+import AdminDashboard from './pages/AdminDashboard';
 
 // SEO Articles
 import WhatIsVidyajaya from './pages/articles/WhatIsVidyajaya';
@@ -99,6 +100,7 @@ function App() {
             <Route path="/rewards" element={<Rewards />} />
             <Route path="/wallet" element={<Wallet />} />
             <Route path="/pro-dashboard" element={<ProDashboard />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/ai-questions" element={<DailyAiQuestions />} />
             <Route path="/pricing" element={<Pricing />} />

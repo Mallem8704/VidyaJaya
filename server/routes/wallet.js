@@ -40,51 +40,64 @@ router.get('/balance', protect, async (req, res) => {
 });
 
 /**
- * @route   POST /api/wallet/claim-reward
- * @desc    Claim rewards for activity (Accuracy/Speed)
+ * @route   POST /api/wallet/withdraw
+ * @desc    Request a withdrawal (Min ₹100 / 1000 coins)
  * @access  Private
  */
-router.post('/claim-reward', protect, async (req, res) => {
-  const { amount, description, type } = req.body;
+router.post('/withdraw', protect, async (req, res) => {
+  const { amount, upiId } = req.body; // Amount in Rupees
+  const coinAmount = amount * 10; // 10 coins = ₹1
 
   try {
-    // Basic anti-fraud: Check if this specific reward description was already claimed today
-    const today = new Date();
-    today.setHours(0,0,0,0);
+    if (amount < 100) {
+      return res.status(400).json({ message: 'Minimum withdrawal amount is ₹100' });
+    }
 
+    // 1. Check current balance
+    const { data: profile } = await supabase.from('profiles').select('coins, is_verified').eq('id', req.user.id).single();
+    
+    if ((profile?.coins || 0) < coinAmount) {
+      return res.status(400).json({ message: 'Insufficient balance' });
+    }
+
+    // 2. Check for existing pending requests
     const { data: existing } = await supabase
-      .from('rewards')
+      .from('withdrawals')
       .select('id')
       .eq('user_id', req.user.id)
-      .eq('description', description)
-      .gte('created_at', today.toISOString())
+      .eq('status', 'pending')
       .limit(1);
 
     if (existing && existing.length > 0) {
-      return res.status(400).json({ message: 'Reward already claimed for this activity today.' });
+      return res.status(400).json({ message: 'You already have a pending withdrawal request.' });
     }
 
-    // 1. Log transaction
-    const { error: tErr } = await supabase.from('rewards').insert({
+    // 3. Create withdrawal record
+    const { error: wErr } = await supabase.from('withdrawals').insert({
       user_id: req.user.id,
-      amount,
-      description,
-      type: type || 'reward'
+      amount: amount,
+      upi_id: upiId,
+      status: 'pending'
     });
 
-    if (tErr) throw tErr;
+    if (wErr) throw wErr;
 
-    // 2. Update profile balance
-    const { data: profile } = await supabase.from('profiles').select('coins').eq('id', req.user.id).single();
-    
+    // 4. Deduct coins and log transaction
     await supabase.from('profiles').update({
-      coins: (profile?.coins || 0) + amount
+      coins: profile.coins - coinAmount
     }).eq('id', req.user.id);
 
-    res.json({ message: 'Reward claimed successfully!', newBalance: (profile?.coins || 0) + amount });
+    await supabase.from('rewards').insert({
+      user_id: req.user.id,
+      amount: -coinAmount,
+      description: `Withdrawal request for ₹${amount} (UPI: ${upiId})`,
+      type: 'withdrawal'
+    });
+
+    res.json({ message: 'Withdrawal request submitted! It will be reviewed within 48 hours.' });
   } catch (error) {
-    console.error('Claim Reward Error:', error);
-    res.status(500).json({ message: 'Failed to claim reward' });
+    console.error('Withdrawal Request Error:', error);
+    res.status(500).json({ message: 'Failed to process withdrawal' });
   }
 });
 
