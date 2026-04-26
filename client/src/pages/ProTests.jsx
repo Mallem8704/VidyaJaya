@@ -54,7 +54,7 @@ const ProTests = () => {
               Exclusive <span className="text-accent-gold">PRO</span> Mock Tests
             </h1>
             <p className="text-lg text-gray-300 max-w-2xl mb-8 leading-relaxed">
-              Unlock the highest quality, AI-curated mock tests. Compete with elite aspirants, 
+              Unlock the highest quality, AI-curated mock tests for **UPSC, SSC, NDA, and CDS**. Compete with elite aspirants, 
               climb the PRO leaderboard, and earn real cash rewards for your accuracy.
             </p>
             

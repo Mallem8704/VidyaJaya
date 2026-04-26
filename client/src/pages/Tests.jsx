@@ -84,8 +84,8 @@ const Tests = () => {
            </h2>
            <p className="text-gray-300 mb-6">Take rigorous mock tests designed by experts and graded instantly by AI.</p>
            
-           <div className="flex gap-2 bg-[rgba(255,255,255,0.1)] p-1 rounded-xl w-max border border-[rgba(255,255,255,0.1)] backdrop-blur-sm">
-             {['All', 'UPSC', 'SSC', 'PRO'].map(f => (
+           <div className="flex flex-wrap gap-2 bg-[rgba(255,255,255,0.1)] p-1 rounded-xl w-full md:w-max border border-[rgba(255,255,255,0.1)] backdrop-blur-sm">
+             {['All', 'UPSC', 'SSC', 'NDA', 'CDS', 'PRO'].map(f => (
                <button 
                  key={f}
                  onClick={() => { setActiveFilter(f); setSearchParams({}); }}

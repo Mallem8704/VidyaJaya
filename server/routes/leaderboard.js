@@ -21,6 +21,10 @@ router.get('/global', protect, async (req, res) => {
       query = query.eq('is_pro', false);
     }
 
+    if (req.query.exam_goal) {
+      query = query.eq('exam_goal', req.query.exam_goal);
+    }
+
     const { data: leaderboard, error } = await query;
 
     if (error) throw error;
@@ -46,6 +50,10 @@ router.get('/weekly', protect, async (req, res) => {
       query = query.eq('is_pro', true);
     } else if (tier === 'free') {
       query = query.eq('is_pro', false);
+    }
+
+    if (req.query.exam_goal) {
+      query = query.eq('exam_goal', req.query.exam_goal);
     }
 
     const { data: leaderboard, error } = await query;
@@ -80,6 +88,10 @@ router.get('/monthly', protect, async (req, res) => {
       query = query.eq('is_pro', true);
     } else if (tier === 'free') {
       query = query.eq('is_pro', false);
+    }
+
+    if (req.query.exam_goal) {
+      query = query.eq('exam_goal', req.query.exam_goal);
     }
 
     const { data: leaderboard, error } = await query;

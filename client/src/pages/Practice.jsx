@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Target, MonitorPlay, Zap, ArrowRight, Brain, Loader2, Landmark, Newspaper, Rocket, Coins, Map, Scale } from 'lucide-react';
+import { Target, MonitorPlay, Zap, ArrowRight, Brain, Loader2, Landmark, Newspaper, Rocket, Coins, Map, Scale, Shield, Swords } from 'lucide-react';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import axios from 'axios';
@@ -12,6 +12,8 @@ const baseTopics = [
   { name: 'Business & Finance', count: 0, progress: 0, icon: Coins },
   { name: 'Regional & State GK', count: 0, progress: 0, icon: Map },
   { name: 'Civic & Electoral', count: 0, progress: 0, icon: Scale },
+  { name: 'NDA Exam Prep', count: 0, progress: 0, icon: Shield },
+  { name: 'CDS Exam Prep', count: 0, progress: 0, icon: Swords },
 ];
 
 const Practice = () => {

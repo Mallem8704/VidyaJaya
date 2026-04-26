@@ -10,6 +10,7 @@ const Leaderboard = () => {
   const [tab, setTab] = useState('global'); // 'global', 'weekly', 'monthly'
   const [tier, setTier] = useState('all'); // 'all', 'pro', 'free'
   const [leaderboard, setLeaderboard] = useState([]);
+  const [activeCategory, setActiveCategory] = useState(null); // null, 'NDA', 'CDS', 'UPSC', 'SSC'
   const [loading, setLoading] = useState(true);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const { user } = useAuthStore();
@@ -29,7 +30,10 @@ const Leaderboard = () => {
       try {
         const endpoint = `/api/leaderboard/${tab}`;
         const res = await axios.get(endpoint, {
-          params: { tier: tier !== 'all' ? tier : undefined }
+          params: { 
+            tier: tier !== 'all' ? tier : undefined,
+            exam_goal: activeCategory || undefined
+          }
         });
         
         if (res.data && res.data.data && Array.isArray(res.data.data)) {
@@ -50,7 +54,7 @@ const Leaderboard = () => {
       }
     };
     fetchLeaderboard();
-  }, [tab, tier, isUserPro]);
+  }, [tab, tier, activeCategory, isUserPro]);
 
   const handleTabChange = (newTab) => {
     if ((newTab === 'weekly' || newTab === 'monthly') && !isUserPro) {
@@ -86,6 +90,19 @@ const Leaderboard = () => {
         </div>
         
         <div className="flex flex-col md:flex-row gap-4 items-center">
+          {/* Category Toggle */}
+          <div className="flex flex-wrap bg-[var(--bg-light)] p-1 rounded-xl border border-[var(--border)]">
+            {['All', 'UPSC', 'SSC', 'NDA', 'CDS'].map((c) => (
+              <button 
+                key={c}
+                className={`px-3 py-1.5 rounded-lg font-bold text-[10px] transition-all uppercase tracking-wider ${activeCategory === (c === 'All' ? null : c) ? 'bg-primary text-white shadow-md' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
+                onClick={() => setActiveCategory(c === 'All' ? null : c)}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+
           {/* Tier Toggle */}
           <div className="flex bg-[var(--bg-light)] p-1 rounded-xl border border-[var(--border)]">
             {['all', 'pro', 'free'].map((t) => (
