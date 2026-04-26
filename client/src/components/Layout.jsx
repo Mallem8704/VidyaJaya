@@ -3,7 +3,7 @@ import { Outlet, Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useAppStore } from '../store/appStore';
 import { useAuthStore } from '../store/authStore';
-import { Menu, Bell, Sun, Moon } from 'lucide-react';
+import { Menu, Bell, Sun, Moon, Trophy } from 'lucide-react';
 
 const Layout = () => {
   const { theme, toggleTheme, toggleSidebar } = useAppStore();
