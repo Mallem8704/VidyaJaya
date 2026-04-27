@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAppStore } from './store/appStore';
@@ -54,20 +54,19 @@ function App() {
   const { theme } = useAppStore();
   const { loadUser, token, setAuth, _hasHydrated } = useAuthStore();
 
-  // 1. Handle Google OAuth Redirect Token (SYNCHRONOUS to prevent redirect race)
-  const [processedHash, setProcessedHash] = useState(false);
-  if (!processedHash) {
+  useEffect(() => {
+    // 1. Handle Google OAuth Redirect Token
     const hash = window.location.hash;
     if (hash && hash.includes('access_token=')) {
       const params = new URLSearchParams(hash.replace('#', '?'));
       const accessToken = params.get('access_token');
       if (accessToken) {
         setAuth(null, accessToken);
+        // Clean URL
         window.history.replaceState(null, '', window.location.pathname);
       }
     }
-    setProcessedHash(true);
-  }
+  }, [setAuth]);
 
   useEffect(() => {
     if (_hasHydrated && token) {

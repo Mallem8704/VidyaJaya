@@ -9,7 +9,6 @@ import {
   Trophy, 
   BarChart2, 
   HelpCircle, 
-  Gift, 
   User, 
   Settings,
   LogOut,
