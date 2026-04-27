@@ -62,8 +62,9 @@ function App() {
       const accessToken = params.get('access_token');
       if (accessToken) {
         setAuth(null, accessToken);
-        // Clean URL
+        // Clean URL and force navigate to dashboard
         window.history.replaceState(null, '', window.location.pathname);
+        window.location.href = '/dashboard';
       }
     }
   }, [setAuth]);
