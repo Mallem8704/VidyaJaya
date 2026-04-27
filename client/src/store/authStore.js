@@ -6,22 +6,8 @@ export const useAuthStore = create(
   persist(
     (set, get) => ({
       user: null,
-      token: (() => {
-        if (typeof window !== 'undefined') {
-          const hash = window.location.hash;
-          if (hash && hash.includes('access_token=')) {
-            const params = new URLSearchParams(hash.replace('#', '?'));
-            const t = params.get('access_token');
-            if (t) {
-              // Clean URL immediately
-              window.history.replaceState(null, '', window.location.pathname);
-              return t;
-            }
-          }
-        }
-        return null;
-      })(),
-      isAuthenticated: false, // Will be set in the return of create
+      token: null,
+      isAuthenticated: false,
       isloading: false,
       error: null,
       _hasHydrated: false,
@@ -154,6 +140,18 @@ export const useAuthStore = create(
     {
       name: 'auth-storage',
       onRehydrateStorage: () => (state) => {
+        // 🏁 THE WINNING MOVE: Overwrite old storage with new URL token if it exists
+        if (typeof window !== 'undefined') {
+          const hash = window.location.hash;
+          if (hash && hash.includes('access_token=')) {
+            const params = new URLSearchParams(hash.replace('#', '?'));
+            const token = params.get('access_token');
+            if (token) {
+              state.setAuth(null, token);
+              window.history.replaceState(null, '', window.location.pathname);
+            }
+          }
+        }
         state.setHasHydrated(true);
       }
     }
