@@ -55,11 +55,16 @@ function App() {
   const { loadUser, token, setAuth, _hasHydrated } = useAuthStore();
 
   useEffect(() => {
+    // 🛡️ AGGRESSIVE AUTH SYNC
+    if (token && !useAuthStore.getState().isAuthenticated) {
+      setAuth(null, token);
+    }
+
     // If we have a token but are on the root/login page, go to dashboard
-    if (token && (window.location.pathname === '/' || window.location.pathname === '/login')) {
+    if (token && (window.location.pathname === '/' || window.location.pathname === '/login' || window.location.pathname === '/auth')) {
       window.location.href = '/dashboard';
     }
-  }, [token]);
+  }, [token, setAuth]);
 
   useEffect(() => {
     if (_hasHydrated && token) {
