@@ -52,13 +52,28 @@ const AdminRoute = ({ children }) => {
 
 function App() {
   const { theme } = useAppStore();
-  const { loadUser, token, _hasHydrated } = useAuthStore();
+  const { loadUser, token, setAuth, _hasHydrated } = useAuthStore();
+
+  // 1. Handle Google OAuth Redirect Token (SYNCHRONOUS to prevent redirect race)
+  const [processedHash, setProcessedHash] = useState(false);
+  if (!processedHash) {
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token=')) {
+      const params = new URLSearchParams(hash.replace('#', '?'));
+      const accessToken = params.get('access_token');
+      if (accessToken) {
+        setAuth(null, accessToken);
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    }
+    setProcessedHash(true);
+  }
 
   useEffect(() => {
     if (_hasHydrated && token) {
       loadUser();
     }
-  }, [_hasHydrated, token]);
+  }, [_hasHydrated, token, loadUser]);
 
   useEffect(() => {
     if (theme === 'dark') {
