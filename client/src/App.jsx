@@ -55,19 +55,11 @@ function App() {
   const { loadUser, token, setAuth, _hasHydrated } = useAuthStore();
 
   useEffect(() => {
-    // 1. Handle Google OAuth Redirect Token
-    const hash = window.location.hash;
-    if (hash && hash.includes('access_token=')) {
-      const params = new URLSearchParams(hash.replace('#', '?'));
-      const accessToken = params.get('access_token');
-      if (accessToken) {
-        setAuth(null, accessToken);
-        // Clean URL and force navigate to dashboard
-        window.history.replaceState(null, '', window.location.pathname);
-        window.location.href = '/dashboard';
-      }
+    // If we have a token but are on the root/login page, go to dashboard
+    if (token && (window.location.pathname === '/' || window.location.pathname === '/login')) {
+      window.location.href = '/dashboard';
     }
-  }, [setAuth]);
+  }, [token]);
 
   useEffect(() => {
     if (_hasHydrated && token) {

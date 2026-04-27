@@ -6,8 +6,22 @@ export const useAuthStore = create(
   persist(
     (set, get) => ({
       user: null,
-      token: null,
-      isAuthenticated: false,
+      token: (() => {
+        // SYNCHRONOUS HASH CHECK (Prevents redirect race)
+        if (typeof window !== 'undefined') {
+          const hash = window.location.hash;
+          if (hash && hash.includes('access_token=')) {
+            const params = new URLSearchParams(hash.replace('#', '?'));
+            const token = params.get('access_token');
+            if (token) {
+              window.history.replaceState(null, '', window.location.pathname);
+              return token;
+            }
+          }
+        }
+        return null;
+      })(),
+      isAuthenticated: false, // Will be corrected by token presence
       isloading: false,
       error: null,
       _hasHydrated: false,
