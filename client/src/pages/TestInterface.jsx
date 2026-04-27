@@ -277,17 +277,28 @@ const TestInterface = () => {
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <button onClick={() => navigate('/dashboard')} className="flex-1 btn btn-outline py-5 text-lg font-black">
-            GO TO DASHBOARD
-          </button>
-          <button 
-            onClick={() => finalResultId && navigate(`/result/${finalResultId}`)} 
-            disabled={!finalResultId}
-            className={`flex-1 btn py-5 text-lg font-black ${!finalResultId ? 'bg-gray-400 cursor-not-allowed' : 'btn-primary'}`}
-          >
-            {finalResultId ? 'DETAILED ANALYSIS' : 'SAVING RESULT...'}
-          </button>
+        <div className="flex flex-col gap-4 w-full">
+          <div className="flex gap-4">
+            <button onClick={() => navigate('/dashboard')} className="flex-1 btn btn-outline py-5 text-lg font-black">
+              GO TO DASHBOARD
+            </button>
+            <button 
+              onClick={() => finalResultId && navigate(`/result/${finalResultId}`)} 
+              disabled={!finalResultId}
+              className={`flex-1 btn py-5 text-lg font-black ${!finalResultId ? 'bg-gray-400 cursor-not-allowed' : 'btn-primary'}`}
+            >
+              {finalResultId ? 'DETAILED ANALYSIS' : 'SAVING RESULT...'}
+            </button>
+          </div>
+          
+          {!finalResultId && !submitting && (
+            <button 
+              onClick={handleSubmit}
+              className="text-orange-500 font-bold hover:underline flex items-center justify-center gap-2"
+            >
+              <ShieldAlert size={16} /> Save failed. Click here to Retry Saving
+            </button>
+          )}
         </div>
       </motion.div>
     </div>
