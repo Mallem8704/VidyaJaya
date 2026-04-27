@@ -5,10 +5,17 @@ const crypto = require('crypto');
 const supabase = require('../config/supabase');
 const { protect } = require('../middleware/authMiddleware');
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
-});
+// Lazy load Razorpay to prevent crash if env vars are missing at startup
+const getRazorpay = () => {
+  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    console.error('[PAYMENT] Razorpay keys are missing from environment variables!');
+    return null;
+  }
+  return new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+  });
+};
 
 /**
  * @route   POST /api/payments/create-order
@@ -38,7 +45,12 @@ router.post('/create-order', protect, async (req, res) => {
   };
 
   try {
-    const order = await razorpay.orders.create(options);
+    const rzp = getRazorpay();
+    if (!rzp) {
+      return res.status(500).json({ message: 'Payment gateway not configured' });
+    }
+
+    const order = await rzp.orders.create(options);
     res.json(order);
   } catch (error) {
     console.error('Razorpay Order Error:', error);
