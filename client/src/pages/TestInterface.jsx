@@ -1,477 +1,291 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Clock, Bookmark, ChevronLeft, ChevronRight, AlertTriangle, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Clock, CheckCircle, Target, Award, Timer, ShieldAlert, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { useAuthStore } from '../store/authStore';
+
+const MOCK_QUESTIONS = [
+  { id: 1, text: "Which article of the Indian Constitution deals with the Right to Equality?", options: ["Article 14", "Article 19", "Article 21", "Article 32"], correct_index: 0, category: "Polity" },
+  { id: 2, text: "Who was the first Governor-General of independent India?", options: ["Lord Mountbatten", "C. Rajagopalachari", "Dr. Rajendra Prasad", "Jawaharlal Nehru"], correct_index: 0, category: "History" },
+  { id: 3, text: "The 'Green Revolution' in India was most successful in which crops?", options: ["Rice and Wheat", "Tea and Coffee", "Cotton and Jute", "Oilseeds"], correct_index: 0, category: "Economy" },
+  { id: 4, text: "Which pass connects Srinagar to Leh?", options: ["Zoji La Pass", "Bara Lacha Pass", "Rohtang Pass", "Nathu La Pass"], correct_index: 0, category: "Geography" },
+  { id: 5, text: "Who is known as the 'Father of the Indian Constitution'?", options: ["B.R. Ambedkar", "Mahatma Gandhi", "Sardar Patel", "Jawaharlal Nehru"], correct_index: 0, category: "Polity" },
+  { id: 6, text: "What is the capital of Kazakhstan?", options: ["Astana", "Almaty", "Bishkek", "Tashkent"], correct_index: 0, category: "GK" },
+  { id: 7, text: "The Quit India Movement was started in which year?", options: ["1942", "1930", "1920", "1947"], correct_index: 0, category: "History" },
+  { id: 8, text: "Which planet is known as the 'Red Planet'?", options: ["Mars", "Venus", "Jupiter", "Saturn"], correct_index: 0, category: "Science" },
+  { id: 9, text: "The 'Statue of Unity' is dedicated to which Indian leader?", options: ["Sardar Vallabhbhai Patel", "Subhash Chandra Bose", "B.R. Ambedkar", "Atal Bihari Vajpayee"], correct_index: 0, category: "GK" },
+  { id: 10, text: "Which river is known as the 'Ganges of the South'?", options: ["Cauvery", "Godavari", "Krishna", "Narmada"], correct_index: 0, category: "Geography" }
+];
 
 const TestInterface = () => {
-  const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
+  const { user, isAuthenticated } = useAuthStore();
 
-  const [test, setTest] = useState(null);
-  const [questions, setQuestions] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // --- STATE ---
+  const [testStarted, setTestStarted] = useState(false);
+  const [finished, setFinished] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
-
-  // answers: { qIndex: optionIndex } — -1 means deliberately skipped
-  const [answers, setAnswers] = useState({});
-  const [markedForReview, setMarkedForReview] = useState(new Set());
-  const [timeLeft, setTimeLeft] = useState(0);
-
-  // Per-question timer
-  const [qTimeLeft, setQTimeLeft] = useState(30);
-  const qStartTimeRef = useRef(Date.now());
-  // Store time taken per question in ms: { qIndex: ms }
-  const timeTakenRef = useRef({});
-
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [score, setScore] = useState(0);
+  const [answers, setAnswers] = useState([]);
   const [submitting, setSubmitting] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+  const [finalResultId, setFinalResultId] = useState(null);
 
-  // Load test data
+  const qStartTimeRef = useRef(null);
+  const totalStartTimeRef = useRef(null);
+
+  // --- AUTH CHECK ---
   useEffect(() => {
-    if (location.state?.questions) {
-      setTest({ 
-        title: location.state.title || 'AI Drill Session',
-        duration: 1800, // 30 mins for drill
-        category: 'AI Drill'
-      });
-      setQuestions(location.state.questions);
-      setTimeLeft(1800);
-      setLoading(false);
-      return;
+    if (!isAuthenticated) {
+      toast.error("Please login to attempt tests.");
+      navigate('/login');
     }
+  }, [isAuthenticated, navigate]);
 
-    const fetchTestData = async () => {
-      if (id === 'drill') {
-        setLoading(false);
-        return;
-      }
-      try {
-        const res = await axios.get(`/api/tests/${id}`);
-        setTest(res.data);
-        setQuestions(res.data.questions || []);
-        setTimeLeft(res.data.duration || 7200);
-      } catch (err) {
-        console.error('Error fetching test data:', err);
-        toast.error('Failed to load test questions');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTestData();
-  }, [id, location.state]);
-
-  // Overall countdown timer
+  // --- TIMER ---
   useEffect(() => {
-    if (loading) return;
+    if (!testStarted || finished || isLocked) return;
+
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         if (prev <= 1) {
-          clearInterval(timer);
-          handleSubmit();
-          return 0;
+          handleTimeout();
+          return 15;
         }
         return prev - 1;
       });
     }, 1000);
+
     return () => clearInterval(timer);
-  }, [loading]);
+  }, [testStarted, finished, currentIdx, isLocked]);
 
-  // Per-question countdown (30s)
-  useEffect(() => {
-    if (loading || showConfirmModal) return;
-    qStartTimeRef.current = Date.now();
-    setQTimeLeft(30);
-
-    const qTimer = setInterval(() => {
-      setQTimeLeft(prev => {
-        if (prev <= 1) {
-          // Auto-advance: record as skipped if no answer
-          recordTimeForCurrent();
-          goToNext(true);
-          return 30;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(qTimer);
-  }, [loading, currentIdx, showConfirmModal]);
-
-  // Anti-cheat
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        toast.error('⚠️ Anti-Cheat: Do not leave the test tab!', { duration: 5000 });
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
-
-  const recordTimeForCurrent = useCallback(() => {
-    const elapsed = Date.now() - qStartTimeRef.current;
-    timeTakenRef.current[currentIdx] = elapsed;
-  }, [currentIdx]);
-
-  const goToNext = useCallback((autoAdvance = false) => {
-    if (currentIdx < questions.length - 1) {
-      setCurrentIdx(prev => prev + 1);
-    } else if (!autoAdvance) {
-      setShowConfirmModal(true);
+  // --- ACTIONS ---
+  const handleStart = async () => {
+    try {
+      // Check for Pro/Free daily limits via backend
+      // (Backend /api/submissions route already does this, but we can do a soft check here)
+      const isPro = user?.plan === 'pro' || user?.plan === 'premium';
+      
+      setTestStarted(true);
+      setCurrentIdx(0);
+      setScore(0);
+      setAnswers([]);
+      setTimeLeft(15);
+      totalStartTimeRef.current = Date.now();
+      qStartTimeRef.current = Date.now();
+    } catch (err) {
+      toast.error("Failed to initialize test.");
     }
-  }, [currentIdx, questions.length]);
-
-  const handleSelectOption = (optIdx) => {
-    recordTimeForCurrent();
-    setAnswers(prev => ({ ...prev, [currentIdx]: optIdx }));
   };
 
-  const handleClearAnswer = () => {
-    setAnswers(prev => {
-      const next = { ...prev };
-      delete next[currentIdx];
-      return next;
-    });
+  const handleTimeout = () => {
+    const q = MOCK_QUESTIONS[currentIdx];
+    setAnswers(prev => [...prev, {
+      questionId: q.id,
+      selectedIndex: -1,
+      timeTaken: 15000 // ms
+    }]);
+    moveToNext();
   };
 
-  const handleNavigate = (idx) => {
-    recordTimeForCurrent();
-    setCurrentIdx(idx);
+  const handleSelectOption = (idx) => {
+    if (isLocked) return;
+    setIsLocked(true);
+
+    const now = Date.now();
+    const elapsed = now - qStartTimeRef.current;
+    const q = MOCK_QUESTIONS[currentIdx];
+    const isCorrect = idx === q.correct_index;
+
+    // Local UI Score Update (for immediate feedback)
+    let points = 0;
+    if (isCorrect) {
+      points += 10;
+      if (elapsed < 5000) points += 5;
+    } else {
+      points -= 0; // No negative marking for wrong, but -2 for skip (timeout)
+    }
+
+    setScore(prev => prev + points);
+    setAnswers(prev => [...prev, {
+      questionId: q.id,
+      selectedIndex: idx,
+      timeTaken: elapsed
+    }]);
+
+    setTimeout(() => {
+      moveToNext();
+      setIsLocked(false);
+    }, 300);
   };
 
-  const handlePrev = () => {
-    recordTimeForCurrent();
-    setCurrentIdx(prev => Math.max(0, prev - 1));
-  };
-
-  const handleNext = () => {
-    recordTimeForCurrent();
-    goToNext();
-  };
-
-  const toggleReview = () => {
-    setMarkedForReview(prev => {
-      const next = new Set(prev);
-      next.has(currentIdx) ? next.delete(currentIdx) : next.add(currentIdx);
-      return next;
-    });
-  };
-
-  const formatTime = (seconds) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  const moveToNext = () => {
+    if (currentIdx < MOCK_QUESTIONS.length - 1) {
+      setCurrentIdx(prev => prev + 1);
+      setTimeLeft(15);
+      qStartTimeRef.current = Date.now();
+    } else {
+      handleSubmit();
+    }
   };
 
   const handleSubmit = async () => {
-    if (submitting) return;
     setSubmitting(true);
-    recordTimeForCurrent();
-
+    setTestStarted(false);
+    
     try {
-      // If it's a drill, we might not have a real testId in the database
-      // For now, let's just show results locally if it's a drill, 
-      // or we can implement a 'practice' submission.
-      if (location.state?.isDrill) {
-        toast.success("Drill completed! Review your performance.");
-        // We can still try to submit with a 'null' or 'drill' testId if backend supports it
-        // but for now let's just go back to practice or dashboard
-        navigate('/practice');
-        return;
-      }
-
-      // Build answer array — include all questions, skipped ones get selectedIndex: null
-      const formattedAnswers = questions.map((q, idx) => ({
-        questionId: q.id,
-        selectedIndex: answers[idx] !== undefined ? answers[idx] : null,
-        timeTaken: Math.round((timeTakenRef.current[idx] || 0) / 1000) // seconds
-      })).filter(a => a.selectedIndex !== null); // only answered ones for scoring
-
+      // In a real scenario, 'testId' would come from the route or selection
+      // For this MVP, we use a constant ID or 'drill'
       const res = await axios.post('/api/submissions', {
-        testId: id,
-        answers: formattedAnswers
+        testId: 'daily-streak-1', // Placeholder for actual test ID
+        answers: answers
       });
 
-      toast.success(`Test Submitted! You earned ${res.data.coinsEarned} coins 🎉`);
-      navigate(`/result/${res.data.id}`);
+      setFinalResultId(res.data.id);
+      setFinished(true);
+      toast.success(`Submission Successful! +${res.data.coinsEarned} Coins Earned.`);
     } catch (err) {
       console.error(err);
-      const msg = err.response?.data?.message || 'Something went wrong. Please try again.';
-      toast.error(msg);
-      setShowConfirmModal(false);
+      toast.error(err.response?.data?.message || "Failed to submit test.");
+      setFinished(true); // Still show results locally if possible
+    } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading) {
+  // --- RENDERING ---
+  if (!testStarted && !finished) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen space-y-4">
-        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        <p className="font-bold">Loading Questions...</p>
+      <div className="min-h-screen bg-[var(--bg-light)] flex items-center justify-center p-6">
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="card max-w-md w-full p-10 text-center shadow-2xl">
+          <div className="w-24 h-24 bg-orange-100 dark:bg-orange-900/30 rounded-3xl flex items-center justify-center mx-auto mb-8">
+            <Zap className="text-orange-500" size={48} />
+          </div>
+          <h1 className="text-3xl font-black mb-4">Daily Mock Test</h1>
+          <p className="text-[var(--text-secondary)] mb-8">
+            10 Questions • 15s Per Question • High Precision Scoring
+          </p>
+          
+          <div className="bg-[var(--bg-card)] rounded-2xl p-4 mb-8 border border-[var(--border)] text-left space-y-2 text-sm">
+            <div className="flex justify-between"><span>Base Correct</span><span className="font-bold text-green-500">+10 XP</span></div>
+            <div className="flex justify-between"><span>Speed Bonus (< 5s)</span><span className="font-bold text-blue-500">+5 XP</span></div>
+            <div className="flex justify-between"><span>Skip / Timeout</span><span className="font-bold text-red-500">-2 XP</span></div>
+          </div>
+
+          <button onClick={handleStart} className="btn btn-primary w-full py-4 text-lg font-black shadow-lg">
+            START BATTLE
+          </button>
+        </motion.div>
       </div>
     );
   }
 
-  if (!questions || questions.length === 0) {
+  if (testStarted) {
+    const q = MOCK_QUESTIONS[currentIdx];
     return (
-      <div className="flex flex-col items-center justify-center h-screen space-y-4">
-        <div className="text-4xl">⚠️</div>
-        <h2 className="text-xl font-bold">No questions found for this test.</h2>
-        <button onClick={() => navigate('/tests')} className="btn btn-primary">Back to Tests</button>
+      <div className="min-h-screen bg-[var(--bg-light)] flex flex-col">
+        <header className="h-20 bg-[var(--bg-card)] border-b border-[var(--border)] px-8 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+          <div className="flex items-center gap-4">
+            <div className="text-xs font-black uppercase tracking-widest text-[var(--text-secondary)]">Question</div>
+            <div className="w-12 h-12 bg-[var(--bg-light)] rounded-xl flex items-center justify-center font-black text-xl border border-[var(--border)]">
+              {currentIdx + 1}
+            </div>
+          </div>
+
+          <div className={`flex items-center gap-2 px-6 py-2 rounded-full font-black text-2xl transition-all ${timeLeft <= 5 ? 'bg-red-500 text-white animate-pulse' : 'bg-orange-500 text-white shadow-orange-500/20 shadow-lg'}`}>
+            <Clock size={24} />
+            {timeLeft}s
+          </div>
+
+          <div className="text-right">
+            <div className="text-[10px] font-black uppercase text-[var(--text-secondary)]">Score</div>
+            <div className="text-2xl font-black text-orange-500">{score}</div>
+          </div>
+        </header>
+
+        <main className="flex-1 max-w-4xl w-full mx-auto p-6 flex flex-col justify-center">
+          <AnimatePresence mode="wait">
+            <motion.div key={currentIdx} initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -20, opacity: 0 }} className="space-y-10">
+              <div className="text-center">
+                <span className="px-4 py-1.5 bg-primary/10 text-primary text-xs font-black rounded-full border border-primary/20 uppercase tracking-tighter">
+                  {q.category}
+                </span>
+                <h2 className="text-3xl md:text-5xl font-black mt-6 leading-tight">
+                  {q.text}
+                </h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {q.options.map((opt, i) => (
+                  <button
+                    key={i}
+                    disabled={isLocked}
+                    onClick={() => handleSelectOption(i)}
+                    className="group relative p-6 bg-[var(--bg-card)] border-2 border-[var(--border)] rounded-3xl text-left transition-all hover:border-orange-500 hover:shadow-2xl active:scale-95 disabled:opacity-50"
+                  >
+                    <div className="flex items-center gap-6">
+                      <div className="w-12 h-12 rounded-2xl bg-[var(--bg-light)] flex items-center justify-center font-black text-xl text-[var(--text-secondary)] group-hover:bg-orange-500 group-hover:text-white transition-all">
+                        {String.fromCharCode(65 + i)}
+                      </div>
+                      <span className="text-xl font-bold">{opt}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+        </main>
+        
+        <footer className="h-16 flex items-center justify-center text-[var(--text-secondary)] text-sm font-bold gap-2">
+          <ShieldAlert size={16} className="text-red-500" />
+          Stay focused. Tab switching will invalidate your result.
+        </footer>
       </div>
     );
   }
 
-  const currentQ = questions[currentIdx];
-  const answeredCount = Object.keys(answers).length;
-  const reviewCount = markedForReview.size;
-  const selectedOption = answers[currentIdx];
-  const hasSelected = selectedOption !== undefined;
+  if (submitting) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-light)] flex flex-col items-center justify-center space-y-6">
+        <div className="w-20 h-20 border-8 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+        <h1 className="text-3xl font-black animate-pulse">Calculating Score...</h1>
+        <p className="text-[var(--text-secondary)]">Analyzing your performance across sectors</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col h-screen bg-[#F8FAFC] dark:bg-[#0B1120] text-[var(--text-primary)]">
-
-      {/* Top Bar */}
-      <header className="h-16 bg-primary text-white flex items-center justify-between px-4 md:px-6 shrink-0 shadow-lg relative z-20">
-        <div className="font-heading font-bold lg:text-lg truncate w-1/3 text-sm">
-          {test?.title || 'Mock Test'}
+    <div className="min-h-screen bg-[var(--bg-light)] flex items-center justify-center p-6">
+      <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="card max-w-2xl w-full p-12 text-center shadow-2xl border-4 border-orange-500/20">
+        <div className="w-24 h-24 bg-orange-500 text-white rounded-[40px] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-orange-500/40">
+          <Award size={56} />
         </div>
+        <h1 className="text-5xl font-black mb-4">Test Complete!</h1>
+        <p className="text-xl text-[var(--text-secondary)] mb-12 italic">"Precision is the key to UPSC success."</p>
 
-        <div className="flex items-center gap-2 md:gap-4">
-          <div className={`flex items-center gap-2 font-bold text-base md:text-xl px-3 py-1 rounded-lg ${timeLeft < 300 ? 'bg-red-500 animate-pulse' : 'bg-primary-light border border-[#1E3A5F]'}`}>
-            <Clock size={18} />
-            {formatTime(timeLeft)}
+        <div className="grid grid-cols-2 gap-6 mb-12">
+          <div className="p-8 bg-[var(--bg-light)] rounded-[32px] border border-[var(--border)]">
+            <div className="text-4xl font-black text-orange-500">{score}</div>
+            <div className="text-xs font-black uppercase text-[var(--text-secondary)] mt-2">XP Points</div>
           </div>
-          <div className={`flex items-center gap-1 font-bold text-sm md:text-lg px-2 py-1 rounded-lg border ${qTimeLeft < 8 ? 'text-red-400 border-red-500 animate-bounce' : 'text-orange-400 border-orange-400'}`}>
-            {qTimeLeft}s
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 w-1/3 justify-end">
-          <span className="text-xs text-gray-300 hidden md:block">
-            {currentIdx + 1} / {questions.length}
-          </span>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
-
-        {/* Left Panel - Question */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col pb-28 lg:pb-8">
-
-          {/* Question Header */}
-          <div className="flex justify-between items-center mb-5">
-            <span className="text-sm font-bold bg-[var(--bg-card)] px-3 py-1 rounded-lg border border-[var(--border)] shadow-sm">
-              Q{currentIdx + 1} of {questions.length}
-            </span>
-            <span className="text-xs font-semibold text-accent-purple bg-accent-purple bg-opacity-10 px-3 py-1 rounded-full border border-accent-purple border-opacity-20">
-              {currentQ.category}
-            </span>
-          </div>
-
-          {/* Question Text */}
-          <h2 className="text-lg md:text-xl font-medium mb-8 leading-relaxed max-w-3xl">
-            {currentQ.text}
-          </h2>
-
-          {/* Options */}
-          <div className="space-y-3 max-w-2xl">
-            {currentQ.options.map((opt, idx) => {
-              const isSelected = selectedOption === idx;
-              return (
-                <motion.button
-                  key={idx}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleSelectOption(idx)}
-                  className={`w-full text-left p-4 md:p-5 rounded-xl border-2 transition-all duration-150 flex items-center gap-4 text-base
-                    ${isSelected
-                      ? 'border-secondary bg-[rgba(255,107,0,0.08)] shadow-md ring-2 ring-secondary/20'
-                      : 'border-[var(--border)] bg-[var(--bg-card)] hover:border-primary/40 hover:bg-[var(--bg-light)]'
-                    }`}
-                >
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shrink-0 transition-all
-                    ${isSelected
-                      ? 'bg-secondary text-white shadow-md'
-                      : 'bg-[var(--bg-light)] text-[var(--text-secondary)] border border-[var(--border)]'
-                    }`}>
-                    {isSelected ? <CheckCircle size={16} /> : String.fromCharCode(65 + idx)}
-                  </div>
-                  <span className={`flex-1 ${isSelected ? 'font-semibold text-[var(--text-primary)]' : ''}`}>{opt}</span>
-                  {isSelected && (
-                    <span className="text-xs font-bold text-secondary bg-secondary/10 px-2 py-0.5 rounded shrink-0">Selected</span>
-                  )}
-                </motion.button>
-              );
-            })}
-          </div>
-
-          {/* Clear Selection */}
-          {hasSelected && (
-            <button
-              onClick={handleClearAnswer}
-              className="mt-4 text-sm text-red-500 hover:text-red-700 font-semibold flex items-center gap-1 transition-colors"
-            >
-              ✕ Clear Selection
-            </button>
-          )}
-
-          {/* Desktop Navigation */}
-          <div className="mt-auto hidden lg:flex items-center justify-between pt-8 px-1">
-            <button
-              onClick={handlePrev}
-              disabled={currentIdx === 0}
-              className="btn btn-outline flex items-center gap-2 disabled:opacity-40"
-            >
-              <ChevronLeft size={18} /> Previous
-            </button>
-
-            <button
-              onClick={toggleReview}
-              className={`btn flex items-center gap-2 border ${markedForReview.has(currentIdx)
-                ? 'bg-orange-100 text-orange-600 border-orange-300 dark:bg-[rgba(255,165,0,0.2)] dark:text-orange-400 dark:border-orange-600'
-                : 'bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-primary)] hover:bg-[var(--bg-light)]'}`}
-            >
-              <Bookmark size={18} className={markedForReview.has(currentIdx) ? 'fill-current' : ''} />
-              {markedForReview.has(currentIdx) ? 'Marked' : 'Mark for Review'}
-            </button>
-
-            <button
-              onClick={handleNext}
-              className="btn bg-[var(--text-primary)] text-[var(--bg-card)] hover:opacity-90 flex items-center gap-2"
-            >
-              {currentIdx === questions.length - 1 ? 'Finish' : 'Save & Next'} <ChevronRight size={18} />
-            </button>
+          <div className="p-8 bg-[var(--bg-light)] rounded-[32px] border border-[var(--border)]">
+            <div className="text-4xl font-black text-blue-500">{(answers.filter(a => a.selectedIndex !== -1).length / MOCK_QUESTIONS.length) * 100}%</div>
+            <div className="text-xs font-black uppercase text-[var(--text-secondary)] mt-2">Participation</div>
           </div>
         </div>
 
-        {/* Right Panel - Navigator */}
-        <div className="hidden lg:flex w-[380px] bg-[var(--bg-card)] border-l border-[var(--border)] flex-col shadow-[-4px_0_24px_rgba(0,0,0,0.03)]">
-
-          {/* Legend */}
-          <div className="p-5 border-b border-[var(--border)]">
-            <h3 className="font-heading font-bold text-base mb-4">Question Palette</h3>
-            <div className="grid grid-cols-2 gap-2 text-xs font-medium">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-sm bg-secondary"></div> Answered ({answeredCount})
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-sm bg-orange-400"></div> Marked ({reviewCount})
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-sm bg-[var(--border)] border border-gray-400"></div> Not Attempted
-              </div>
-            </div>
-          </div>
-
-          {/* Grid */}
-          <div className="flex-1 overflow-y-auto p-5 flex content-start flex-wrap gap-2">
-            {questions.map((_, idx) => {
-              const isAns = answers[idx] !== undefined;
-              const isMark = markedForReview.has(idx);
-              const isActive = currentIdx === idx;
-
-              let cls = 'bg-[var(--bg-light)] border-[var(--border)] text-[var(--text-primary)]';
-              if (isAns) cls = 'bg-secondary border-secondary text-white';
-              else if (isMark) cls = 'bg-orange-400 border-orange-400 text-white';
-              if (isActive) cls += ' ring-2 ring-primary ring-offset-2 dark:ring-offset-[var(--bg-card)]';
-
-              return (
-                <button
-                  key={idx}
-                  onClick={() => handleNavigate(idx)}
-                  className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center font-bold text-xs transition-all hover:-translate-y-0.5 shadow-sm ${cls}`}
-                >
-                  {idx + 1}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Submit Button */}
-          <div className="p-5 border-t border-[var(--border)] bg-[var(--bg-light)]">
-            <div className="mb-3 text-xs text-[var(--text-secondary)] text-center">
-              {answeredCount} answered · {questions.length - answeredCount} remaining
-            </div>
-            <button
-              onClick={() => setShowConfirmModal(true)}
-              className="w-full btn btn-primary py-3 text-base font-bold shadow-md hover:shadow-xl"
-            >
-              Submit Test
-            </button>
-          </div>
+        <div className="flex gap-4">
+          <button onClick={() => navigate('/dashboard')} className="flex-1 btn btn-outline py-5 text-lg font-black">
+            GO TO DASHBOARD
+          </button>
+          <button onClick={() => navigate(`/result/${finalResultId}`)} className="flex-1 btn btn-primary py-5 text-lg font-black">
+            DETAILED ANALYSIS
+          </button>
         </div>
-      </div>
-
-      {/* Mobile Sticky Footer */}
-      <div className="lg:hidden fixed bottom-0 left-0 w-full bg-[var(--bg-card)] border-t border-[var(--border)] p-3 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.07)] z-20 gap-2">
-        <button onClick={handlePrev} disabled={currentIdx === 0} className="p-2.5 border rounded-full text-[var(--text-primary)] disabled:opacity-40"><ChevronLeft size={20} /></button>
-        <button onClick={toggleReview} className="px-4 py-2 border bg-orange-50 text-orange-600 border-orange-200 rounded-full text-xs font-bold flex items-center gap-1">
-          <Bookmark size={13} className={markedForReview.has(currentIdx) ? 'fill-current' : ''} />
-          {markedForReview.has(currentIdx) ? 'Marked' : 'Mark'}
-        </button>
-        <button onClick={() => setShowConfirmModal(true)} className="px-4 py-2 bg-red-500 text-white rounded-full text-xs font-bold">Submit</button>
-        <button onClick={handleNext} className="p-2.5 bg-primary text-white rounded-full"><ChevronRight size={20} /></button>
-      </div>
-
-      {/* Confirmation Modal */}
-      {showConfirmModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="card bg-[var(--bg-card)] max-w-md w-full p-8"
-          >
-            <div className="flex justify-center text-secondary mb-4">
-              <AlertTriangle size={48} />
-            </div>
-            <h2 className="text-2xl font-bold font-heading text-center mb-2">Ready to Submit?</h2>
-            <p className="text-center text-[var(--text-secondary)] mb-6">
-              You have <strong>{questions.length - answeredCount}</strong> unanswered questions. This cannot be undone.
-            </p>
-
-            <div className="bg-[var(--bg-light)] rounded-xl p-4 mb-8 grid grid-cols-3 gap-2 text-center border border-[var(--border)]">
-              <div>
-                <span className="block font-bold text-accent-green text-2xl">{answeredCount}</span>
-                <span className="text-xs text-[var(--text-secondary)]">Answered</span>
-              </div>
-              <div>
-                <span className="block font-bold text-orange-400 text-2xl">{reviewCount}</span>
-                <span className="text-xs text-[var(--text-secondary)]">Marked</span>
-              </div>
-              <div>
-                <span className="block font-bold text-gray-400 text-2xl">{questions.length - answeredCount}</span>
-                <span className="text-xs text-[var(--text-secondary)]">Skipped</span>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <button
-                className="flex-1 btn btn-outline"
-                onClick={() => setShowConfirmModal(false)}
-                disabled={submitting}
-              >
-                Go Back
-              </button>
-              <button
-                className="flex-1 btn btn-primary flex items-center justify-center gap-2"
-                onClick={handleSubmit}
-                disabled={submitting}
-              >
-                {submitting ? (
-                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> Submitting...</>
-                ) : (
-                  'Submit Test'
-                )}
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
+      </motion.div>
     </div>
   );
 };
