@@ -123,22 +123,35 @@ class PayoutService {
       for (const winner of winners) {
         const amount = rewardMap[winner.rank] || 0;
         
-        // Update Wallet (profiles table)
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('coins, total_earnings')
-          .eq('id', winner.user_id)
+        // 1. Atomic Wallet Update
+        const { data: wallet, error: wErr } = await supabase
+          .from('wallets')
+          .select('balance')
+          .eq('user_id', winner.user_id)
           .single();
 
-        await supabase
-          .from('profiles')
-          .update({
-            coins: (profile.coins || 0) + amount,
-            total_earnings: (profile.total_earnings || 0) + amount
-          })
-          .eq('id', winner.user_id);
+        if (wErr) throw wErr;
 
-        // Record Reward
+        await supabase
+          .from('wallets')
+          .update({
+            balance: (wallet.balance || 0) + amount,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', winner.user_id);
+
+        // 2. Insert Transaction Ledger Entry
+        await supabase
+          .from('transactions')
+          .insert({
+            user_id: winner.user_id,
+            type: 'reward',
+            amount: amount,
+            description: `Daily Contest Reward — Rank #${winner.rank}`,
+            contest_date: today
+          });
+
+        // 3. Record in Rewards Ledger (Historical audit)
         await supabase
           .from('rewards_ledger')
           .insert({
