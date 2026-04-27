@@ -40,12 +40,19 @@ router.post('/', protect, async (req, res) => {
     const { testId, answers } = req.body;
     const user = req.user;
 
-    // 1. CURFEW CHECK (9:00 PM CLOSURE)
+    // 1. CONTEST WINDOW CHECK (9 AM - 9 PM)
     const now = new Date();
     const currentHour = now.getHours();
+    
+    if (currentHour < 9) {
+       return res.status(403).json({ 
+         message: 'Contest Not Started! The battle begins at 09:00 AM IST. Prepare yourself!' 
+       });
+    }
+
     if (currentHour >= 21) {
        return res.status(403).json({ 
-         message: 'Contest Closed! Submissions are only accepted until 9:00 PM IST.' 
+         message: 'Contest Ended! Submissions for today are closed. Come back tomorrow at 09:00 AM!' 
        });
     }
 
@@ -124,7 +131,8 @@ router.post('/', protect, async (req, res) => {
         correct_count: result.correctCount,
         wrong_count: result.wrongCount,
         skipped_count: result.skippedCount,
-        topic_wise: result.topicWise
+        topic_wise: result.topicWise,
+        contest_date: new Date().toISOString().split('T')[0]
       })
       .select()
       .single();
