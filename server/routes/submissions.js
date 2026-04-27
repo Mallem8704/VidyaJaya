@@ -329,10 +329,18 @@ router.get('/my', protect, async (req, res) => {
 // Get submission by ID (with full answer details for Result page)
 router.get('/:id', protect, async (req, res) => {
   try {
+    const { id } = req.params;
+    
+    // Safety check for invalid UUIDs (prevents 500 database errors)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (id === 'null' || !uuidRegex.test(id)) {
+      return res.status(404).json({ message: 'Invalid submission ID' });
+    }
+
     const { data: submission, error } = await supabase
       .from('submissions')
       .select('*, tests(*), submission_answers(*, questions(*))')
-      .eq('id', req.params.id)
+      .eq('id', id)
       .single();
 
     if (error) {

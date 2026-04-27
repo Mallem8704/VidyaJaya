@@ -14,6 +14,10 @@ const Result = () => {
 
   useEffect(() => {
     const fetchResult = async () => {
+      if (!id || id === 'null') {
+        setLoading(false);
+        return;
+      }
       try {
         const res = await axios.get(`/api/submissions/${id}`);
         setSubmission(res.data);
