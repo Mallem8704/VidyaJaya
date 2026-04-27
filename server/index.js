@@ -38,9 +38,12 @@ const io = new Server(server, {
 });
 
 app.use(express.json());
-// Force allow all origins to prevent Render from blocking Vercel
+// Force allow all origins with specific headers to prevent CORB/CORS blocks
 app.use(cors({
-  origin: '*'
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-requested-with'],
+  credentials: true
 }));
 
 // Route HTTP logs through Winston

@@ -2,7 +2,9 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
 // Set dynamic base URL for production vs local
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || '';
+// IMPORTANT: Replace with your actual Render URL if VITE_API_URL is missing
+const BACKEND_URL = import.meta.env.VITE_API_URL || 'https://vidyajaya-server.onrender.com';
+axios.defaults.baseURL = BACKEND_URL;
 
 // Set up interceptor to append Token to outgoing requests
 axios.interceptors.request.use((config) => {
