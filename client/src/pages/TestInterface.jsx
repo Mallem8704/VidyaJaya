@@ -171,7 +171,7 @@ const TestInterface = () => {
           
           <div className="bg-[var(--bg-card)] rounded-2xl p-4 mb-8 border border-[var(--border)] text-left space-y-2 text-sm">
             <div className="flex justify-between"><span>Base Correct</span><span className="font-bold text-green-500">+10 XP</span></div>
-            <div className="flex justify-between"><span>Speed Bonus (< 5s)</span><span className="font-bold text-blue-500">+5 XP</span></div>
+            <div className="flex justify-between"><span>Speed Bonus ({"<"} 5s)</span><span className="font-bold text-blue-500">+5 XP</span></div>
             <div className="flex justify-between"><span>Skip / Timeout</span><span className="font-bold text-red-500">-2 XP</span></div>
           </div>
 

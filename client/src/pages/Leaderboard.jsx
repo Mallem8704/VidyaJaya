@@ -189,6 +189,7 @@ const Leaderboard = () => {
           </div>
         ) : (
           <div className="divide-y divide-[var(--border)]">
+            {leaderboard.slice(3).map((u, i) => (
               <div key={i} className={`p-6 flex items-center justify-between transition-all hover:bg-[var(--bg-light)] ${u.name === user?.name ? 'bg-orange-500/5 border-l-4 border-orange-500' : ''}`}>
                 <div className="flex items-center gap-6">
                   <span className="w-8 text-xl font-black text-[var(--text-secondary)]">#{i + 4}</span>
