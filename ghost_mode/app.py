@@ -73,6 +73,12 @@ def apply_custom_css():
         .stProgress > div > div > div > div {
             background-color: #FF6B00;
         }
+
+        /* ── CLEAN UI PATCH ── */
+        #MainMenu {visibility: hidden;}
+        header {visibility: hidden;}
+        footer {visibility: hidden;}
+        .stDeployButton {display:none;}
     </style>
     """, unsafe_allow_html=True)
 
