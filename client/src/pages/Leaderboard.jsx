@@ -189,14 +189,16 @@ const Leaderboard = () => {
           </div>
         ) : (
           <div className="divide-y divide-[var(--border)]">
-            {others.map((u, i) => (
               <div key={i} className={`p-6 flex items-center justify-between transition-all hover:bg-[var(--bg-light)] ${u.name === user?.name ? 'bg-orange-500/5 border-l-4 border-orange-500' : ''}`}>
                 <div className="flex items-center gap-6">
                   <span className="w-8 text-xl font-black text-[var(--text-secondary)]">#{i + 4}</span>
                   <div className="flex items-center gap-4">
                     <img src={u.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${u.name}`} className="w-12 h-12 rounded-2xl bg-gray-100" alt="" />
                     <div>
-                      <div className="font-black text-lg">{u.name}</div>
+                      <div className="font-black text-lg flex items-center gap-2">
+                        {u.name}
+                        {i + 4 <= 10 && <span className="text-[8px] bg-green-500/10 text-green-500 px-1.5 py-0.5 rounded border border-green-500/20">ELITE</span>}
+                      </div>
                       <div className="flex items-center gap-3 text-xs font-bold text-[var(--text-secondary)] uppercase">
                         {u.total_time && <span className="flex items-center gap-1"><Timer size={12}/> {u.total_time}s</span>}
                         {u.streak > 0 && <span className="flex items-center gap-1 text-orange-500"><Flame size={12}/> {u.streak} Day Streak</span>}
