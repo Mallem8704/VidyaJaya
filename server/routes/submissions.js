@@ -295,8 +295,11 @@ router.post('/', protect, async (req, res) => {
         .eq('referee_id', user.id);
     }
 
+    const responseData = mapSubmission(submission) || {};
+    
     res.status(201).json({
-      ...mapSubmission(submission),
+      ...responseData,
+      id: submission?.id || responseData.id,
       coinsEarned,
       milestoneBonus
     });

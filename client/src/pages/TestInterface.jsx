@@ -281,8 +281,12 @@ const TestInterface = () => {
           <button onClick={() => navigate('/dashboard')} className="flex-1 btn btn-outline py-5 text-lg font-black">
             GO TO DASHBOARD
           </button>
-          <button onClick={() => navigate(`/result/${finalResultId}`)} className="flex-1 btn btn-primary py-5 text-lg font-black">
-            DETAILED ANALYSIS
+          <button 
+            onClick={() => finalResultId && navigate(`/result/${finalResultId}`)} 
+            disabled={!finalResultId}
+            className={`flex-1 btn py-5 text-lg font-black ${!finalResultId ? 'bg-gray-400 cursor-not-allowed' : 'btn-primary'}`}
+          >
+            {finalResultId ? 'DETAILED ANALYSIS' : 'SAVING RESULT...'}
           </button>
         </div>
       </motion.div>
