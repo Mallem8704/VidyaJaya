@@ -46,7 +46,12 @@ import AdminLayout from './components/AdminLayout';
 
 const AdminRoute = ({ children }) => {
     const { user, isAuthenticated } = useAuthStore();
-    if (!isAuthenticated || user?.role !== 'admin') {
+    
+    // 🛡️ Flexible Admin Check
+    const isAdmin = user?.role === 'admin' || user?.isAdmin || user?.plan === 'admin';
+    
+    if (!isAuthenticated || !isAdmin) {
+        console.warn("[ADMIN_GUARD] Access denied. Auth:", isAuthenticated, "User Role:", user?.role);
         return <Navigate to="/admin/login" replace />;
     }
     return children;
