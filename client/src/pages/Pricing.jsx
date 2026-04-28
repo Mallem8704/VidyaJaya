@@ -74,13 +74,13 @@ const Pricing = () => {
         {
             id: 'weekly',
             name: "PRO Weekly",
-            price: 49,
+            price: 69,
             duration: "week",
             description: "Perfect for quick exam revision.",
             features: [
                 "Unlock PRO Leaderboard",
                 "Advanced AI Performance Analytics",
-                "Double Rewards for Accuracy",
+                "Earn Silver Coins for Activity",
                 "Unlimited AI Doubt Solving",
                 "UPSC, SSC & Banking mock tests",
                 "Premium 'PRO' Badge"
@@ -90,14 +90,14 @@ const Pricing = () => {
         {
             id: 'monthly',
             name: "PRO Monthly",
-            price: 99,
+            price: 199,
             duration: "month",
             description: "Best for serious UPSC aspirants.",
             features: [
                 "All Weekly Plan Features",
-                "Eligibility for Cash Rewards",
-                "Monthly Performance Report",
-                "3x Coins on Daily Streaks",
+                "Earn Gold Coins for Achievement",
+                "Scholarship Pool Eligibility",
+                "3x Silver on Daily Streaks",
                 "Early access to new tests",
                 "Priority Support"
             ],

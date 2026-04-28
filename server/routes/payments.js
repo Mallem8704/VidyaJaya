@@ -18,6 +18,104 @@ const getRazorpay = () => {
 };
 
 /**
+ * Helper to process referral rewards after successful payment
+ */
+async function processReferralCommission(userId, planAmount, planType) {
+    try {
+        console.log(`[REFERRAL] Processing commission for User: ${userId}, Amount: ${planAmount}`);
+        
+        // 1. Find referral record
+        const { data: referral, error: refError } = await supabase
+            .from('referrals')
+            .select('*, profiles!referrer_id(name, pro_expiry, total_successful_referrals, referral_type)')
+            .eq('referred_user_id', userId)
+            .eq('is_successful', false)
+            .single();
+
+        if (refError || !referral) {
+            console.log(`[REFERRAL] No pending referral found for user ${userId}`);
+            return;
+        }
+
+        const referrerId = referral.referrer_id;
+        const referrerProfile = referral.profiles;
+        const referralType = referral.profiles?.referral_type || 'user';
+
+        // 2. Mark referral as successful
+        await supabase.from('referrals').update({ is_successful: true }).eq('id', referral.id);
+
+        if (referralType === 'influencer') {
+            // INFLUENCER: 10% Cash Commission
+            const commissionAmount = planAmount * 0.10;
+            await supabase.from('commissions').insert({
+                referrer_id: referrerId,
+                referred_user_id: userId,
+                referral_id: referral.id,
+                subscription_amount: planAmount,
+                commission_amount: commissionAmount,
+                status: 'pending'
+            });
+            console.log(`[REFERRAL] Influencer commission of ₹${commissionAmount} logged for ${referrerId}`);
+            
+            // Also give some Gold Coins as instant reward (1 Gold = ₹0.50)
+            const goldReward = Math.floor(commissionAmount / 0.5);
+            if (goldReward > 0) {
+                const { data: currProfile } = await supabase.from('profiles').select('gold_coins').eq('id', referrerId).single();
+                await supabase.from('profiles').update({ 
+                    gold_coins: (currProfile?.gold_coins || 0) + goldReward 
+                }).eq('id', referrerId);
+                
+                await supabase.from('rewards').insert({
+                    user_id: referrerId, type: 'referral_gold', amount: goldReward,
+                    description: `Influencer commission (Gold portion) for ${planType} referral.`
+                });
+            }
+
+        } else {
+            // REGULAR USER: Milestone Rewards (5 = 1wk, 10 = 1mo)
+            const newTotal = (referrerProfile.total_successful_referrals || 0) + 1;
+            
+            await supabase.from('profiles').update({ 
+                total_successful_referrals: newTotal 
+            }).eq('id', referrerId);
+
+            if (newTotal === 5 || newTotal === 10) {
+                const bonusDays = newTotal === 5 ? 7 : 30;
+                const rewardType = newTotal === 5 ? 'weekly_free' : 'monthly_free';
+                
+                // Extend PRO
+                const currentExpiry = referrerProfile.pro_expiry ? new Date(referrerProfile.pro_expiry) : new Date();
+                const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
+                const newExpiry = new Date(baseDate);
+                newExpiry.setDate(newExpiry.getDate() + bonusDays);
+
+                await supabase.from('profiles').update({
+                    is_pro: true,
+                    pro_expiry: newExpiry.toISOString(),
+                    plan: `reward_${rewardType}`
+                }).eq('id', referrerId);
+
+                await supabase.from('user_rewards').insert({
+                    user_id: referrerId,
+                    milestone_count: newTotal,
+                    reward_type: rewardType,
+                    status: 'granted'
+                });
+
+                await supabase.from('rewards').insert({
+                    user_id: referrerId, type: 'referral_milestone', amount: 0,
+                    description: `MILESTONE: ${newTotal} Referrals! You unlocked ${newTotal === 5 ? '1 Week' : '1 Month'} Free PRO.`
+                });
+                
+                console.log(`[REFERRAL] User Milestone ${newTotal} reached by ${referrerId}`);
+            }
+        }
+    } catch (err) {
+        console.error('[REFERRAL] Processing Error:', err.message);
+    }
+}
+
+/**
  * @route   POST /api/payments/create-order
  * @desc    Create a Razorpay order
  * @access  Private
@@ -27,9 +125,11 @@ router.post('/create-order', protect, async (req, res) => {
   
   let amount;
   if (planType === 'weekly') {
-    amount = 49 * 100; // Rs. 49
+    amount = 69 * 100; // ₹69
   } else if (planType === 'monthly') {
-    amount = 99 * 100; // Rs. 99
+    amount = 199 * 100; // ₹199
+  } else if (planType === 'elite') {
+    amount = 499 * 100; // ₹499 (Elite Tier)
   } else {
     return res.status(400).json({ message: 'Invalid plan type' });
   }
@@ -106,15 +206,19 @@ router.post('/verify', protect, async (req, res) => {
       if (profileError) throw profileError;
 
       // 2. Log subscription
+      const planAmount = planType === 'weekly' ? 69 : (planType === 'monthly' ? 199 : 499);
       await supabase.from('subscriptions').insert({
         user_id: req.user.id,
         plan_type: planType,
-        amount: planType === 'weekly' ? 49 : 99,
+        amount: planAmount,
         razorpay_order_id,
         razorpay_payment_id,
         status: 'active',
         expiry_date: expiryDate.toISOString()
       });
+
+      // 3. REFERRAL COMMISSION LOGIC
+      await processReferralCommission(req.user.id, planAmount, planType);
 
       // 2b. Log Analytics Conversion (Optional, don't fail if it fails)
       try {
@@ -211,15 +315,19 @@ router.post('/webhook', async (req, res) => {
         .eq('id', userId);
 
       // 3. Log Subscription
+      const planAmount = planType === 'weekly' ? 69 : (planType === 'monthly' ? 199 : 499);
       await supabase.from('subscriptions').insert({
         user_id: userId,
         plan_type: planType,
-        amount: planType === 'weekly' ? 49 : 99,
+        amount: planAmount,
         razorpay_order_id: orderId,
         razorpay_payment_id: payment.id,
         status: 'active',
         expiry_date: expiryDate.toISOString()
       });
+
+      // 3b. Referral Commission (Webhook version)
+      await processReferralCommission(userId, planAmount, planType);
 
       // 4. Log Analytics (Optional)
       try {

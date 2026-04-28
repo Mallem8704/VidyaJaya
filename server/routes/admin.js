@@ -163,4 +163,94 @@ router.post('/withdrawals/:id/update-status', protect, adminProtect, async (req,
     }
 });
 
+/**
+ * @route   POST /api/admin/referral-codes
+ * @desc    Create a new referral code (e.g. for Influencers)
+ */
+router.post('/referral-codes', protect, adminProtect, async (req, res) => {
+    const { code, type, owner_email, commission_percent } = req.body;
+    try {
+        // 1. Find user by email
+        const { data: user } = await supabase.from('profiles').select('id').eq('email', owner_email).single();
+        if (!user) return res.status(404).json({ message: 'Owner user not found' });
+
+        // 2. Create code
+        const { data: newCode, error } = await supabase.from('referral_codes').insert({
+            code: code.toUpperCase(),
+            type,
+            owner_user_id: user.id,
+            commission_percent: commission_percent || 10.0
+        }).select().single();
+
+        if (error) throw error;
+
+        // 3. Update user as influencer if type is influencer
+        if (type === 'influencer') {
+            await supabase.from('profiles').update({ 
+                is_influencer: true,
+                referral_type: 'influencer'
+            }).eq('id', user.id);
+        }
+
+        res.json(newCode);
+    } catch (err) {
+        res.status(500).json({ message: err.message || 'Failed to create code' });
+    }
+});
+
+/**
+ * @route   GET /api/admin/referrals
+ * @desc    Get all referrals with tracking data
+ */
+router.get('/referrals', protect, adminProtect, async (req, res) => {
+    try {
+        const { data: referrals, error } = await supabase
+            .from('referrals')
+            .select(`
+                *,
+                referrer:profiles!referrer_id(name, email, referral_type),
+                referee:profiles!referred_user_id(name, email, created_at)
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        res.json(referrals);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch referrals' });
+    }
+});
+
+/**
+ * @route   GET /api/admin/commissions
+ * @desc    Get all influencer commissions
+ */
+router.get('/commissions', protect, adminProtect, async (req, res) => {
+    try {
+        const { data: commissions, error } = await supabase
+            .from('commissions')
+            .select('*, referrer:profiles!referrer_id(name, email), referee:profiles!referred_user_id(name)')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        res.json(commissions);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch commissions' });
+    }
+});
+
+/**
+ * @route   POST /api/admin/commissions/:id/pay
+ * @desc    Mark a commission as paid
+ */
+router.post('/commissions/:id/pay', protect, adminProtect, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { error } = await supabase.from('commissions').update({ status: 'paid' }).eq('id', id);
+        if (error) throw error;
+        res.json({ message: 'Commission marked as paid' });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to update commission' });
+    }
+});
+
 module.exports = router;

@@ -55,12 +55,19 @@ router.get('/:id', protect, async (req, res) => {
     const isAdmin = user.role === 'admin' || user.plan === 'admin' || user.isAdmin;
 
     if (testInfo.is_premium && !isPro && !isAdmin) {
-      console.log(`[ANALYTICS] Test Access Denied: User ${req.user.id} attempted to access PRO test ${req.params.id}`);
-      
       return res.status(403).json({ 
         message: 'PRO subscription required to access this exclusive mock test',
-        error: 'PRO subscription required',
         code: 'PRO_REQUIRED'
+      });
+    }
+
+    // ACHIEVEMENT GATE (Pillar 2): 100 Silver required for Gold-paying tests
+    const silver = user.silver_coins || user.coins || 0;
+    if (testInfo.is_premium && silver < 100 && !isAdmin) {
+      return res.status(403).json({
+        message: 'Achievement Locked! You need at least 100 Silver Coins to attempt this Premium test. Solve Daily Mocks to earn Silver first!',
+        code: 'ACHIEVEMENT_REQUIRED',
+        current_silver: silver
       });
     }
 

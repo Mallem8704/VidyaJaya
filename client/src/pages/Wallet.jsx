@@ -11,8 +11,10 @@ import {
   Sparkles
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '../store/authStore';
 
 const Wallet = () => {
+  const { user } = useAuthStore();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -52,22 +54,42 @@ const Wallet = () => {
           <WalletIcon size={180} />
         </div>
         
-        <div className="relative z-10 space-y-6">
-          <div className="flex items-center gap-3 opacity-80">
-            <Sparkles size={20} />
-            <span className="font-black uppercase tracking-[0.2em] text-xs">Total Balance</span>
+        <div className="relative z-10 space-y-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 opacity-80">
+              <Sparkles size={20} />
+              <span className="font-black uppercase tracking-[0.2em] text-xs">Aspirant Wallet</span>
+            </div>
+            <div className="bg-white/20 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+              KYC Verified: {user?.kyc_verified ? 'YES' : 'NO'}
+            </div>
           </div>
           
-          <div className="flex items-end gap-3">
-            <h1 className="text-7xl font-black font-heading tabular-nums">{data.balance}</h1>
-            <span className="text-2xl font-bold mb-3 opacity-80">Coins</span>
+          <div className="grid grid-cols-2 gap-8 divide-x divide-white/20">
+            <div className="space-y-1">
+              <div className="text-4xl font-black tabular-nums">{data.gold_coins}</div>
+              <div className="text-[10px] font-black uppercase tracking-widest opacity-70 flex items-center gap-1.5">
+                <div className="w-2 h-2 bg-yellow-400 rounded-full shadow-[0_0_8px_rgba(250,204,21,0.5)]"></div>
+                Gold Coins (₹{(data.gold_coins * 0.5).toFixed(2)})
+              </div>
+            </div>
+            <div className="pl-8 space-y-1">
+              <div className="text-4xl font-black tabular-nums">{data.silver_coins}</div>
+              <div className="text-[10px] font-black uppercase tracking-widest opacity-70 flex items-center gap-1.5">
+                <div className="w-2 h-2 bg-slate-300 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.5)]"></div>
+                Silver Coins (Study Credits)
+              </div>
+            </div>
           </div>
 
           <div className="flex gap-4 pt-4">
-            <button className="bg-white/20 hover:bg-white/30 px-6 py-2 rounded-full text-xs font-black uppercase transition-all backdrop-blur-sm">
-              Redeem Rewards
+            <button 
+              onClick={() => window.location.href='/rewards'}
+              className="bg-white text-orange-600 hover:bg-orange-50 px-8 py-3 rounded-2xl text-sm font-black uppercase transition-all shadow-xl shadow-black/10 active:scale-95"
+            >
+              Withdraw Cash
             </button>
-            <button className="bg-white/10 hover:bg-white/20 px-6 py-2 rounded-full text-xs font-black uppercase transition-all backdrop-blur-sm">
+            <button className="bg-white/10 hover:bg-white/20 px-6 py-3 rounded-2xl text-xs font-black uppercase transition-all backdrop-blur-sm">
               How it works
             </button>
           </div>

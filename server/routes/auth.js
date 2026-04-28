@@ -74,15 +74,55 @@ router.post('/register', async (req, res) => {
     // Generate unique referral code
     const generatedCode = (name.substring(0, 3) + Math.random().toString(36).substring(2, 6)).toUpperCase();
 
-    // Check if referralCode provided is valid
+    // 🛡️ REFERRAL VALIDATION
     let referrerId = null;
+    let referralType = null;
+    let refCodeStr = null;
+
     if (referralCode) {
-      const { data: referrer } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('referral_code', referralCode.toUpperCase())
+      const codeUpper = referralCode.trim().toUpperCase();
+      
+      // 1. Check referral_codes table (Influencers/Admins)
+      const { data: refCodeObj } = await supabase
+        .from('referral_codes')
+        .select('*')
+        .eq('code', codeUpper)
         .single();
-      if (referrer) referrerId = referrer.id;
+      
+      if (refCodeObj) {
+        referrerId = refCodeObj.owner_user_id;
+        referralType = refCodeObj.type;
+        refCodeStr = refCodeObj.code;
+      } else {
+        // 2. Check profiles table (Regular users)
+        const { data: referrerUser } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('referral_code', codeUpper)
+          .single();
+        
+        if (referrerUser) {
+          referrerId = referrerUser.id;
+          referralType = 'user';
+          refCodeStr = codeUpper;
+        }
+      }
+    }
+
+    // 🛡️ FRAUD PREVENTION: Same Device Check
+    if (referrerId && deviceId) {
+        const { data: sameDeviceCheck } = await supabase
+            .from('user_devices')
+            .select('id')
+            .eq('user_id', referrerId)
+            .eq('device_id', deviceId);
+        
+        if (sameDeviceCheck && sameDeviceCheck.length > 0) {
+            console.warn(`[FRAUD] Self-referral detected. Device: ${deviceId}`);
+            referrerId = null;
+            refCodeStr = null;
+            referralType = null;
+        }
     }
 
     // 2. Create user profile in the profiles table using service role client
@@ -98,7 +138,10 @@ router.post('/register', async (req, res) => {
         coins: referralCode && referrerId ? 5 : 0, // Gift 5 coins if referred
         streak: 0,
         referral_code: generatedCode,
-        referred_by: referrerId,
+        referred_by: referrerId, // legacy
+        referred_by_code: refCodeStr,
+        referred_by_user_id: referrerId,
+        referral_type: referralType,
         device_id: deviceId || null,
         plan: 'free'
       })
@@ -112,6 +155,16 @@ router.post('/register', async (req, res) => {
         message: 'Account created! Please log in.',
         user: { id: authData.user.id, email, name },
         token: authData.session?.access_token || null
+      });
+    }
+
+    // 🔗 CREATE REFERRAL RECORD
+    if (referrerId && refCodeStr) {
+      await supabase.from('referrals').insert({
+        referrer_id: referrerId,
+        referred_user_id: profile.id,
+        referral_code: refCodeStr,
+        is_successful: false // Will be true after payment
       });
     }
 

@@ -11,18 +11,18 @@ router.get('/', protect, async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // 1. Fetch Balance
-    const { data: wallet, error: walletErr } = await supabase
-      .from('wallets')
-      .select('balance, updated_at')
-      .eq('user_id', userId)
+    // 1. Fetch Balances from Profile
+    const { data: profile, error: profileErr } = await supabase
+      .from('profiles')
+      .select('gold_coins, silver_coins, coins')
+      .eq('id', userId)
       .single();
 
-    if (walletErr) throw walletErr;
+    if (profileErr) throw profileErr;
 
-    // 2. Fetch Recent 20 Transactions
+    // 2. Fetch Recent 20 Transactions from Rewards table
     const { data: transactions, error: transErr } = await supabase
-      .from('transactions')
+      .from('rewards')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false })
@@ -31,8 +31,9 @@ router.get('/', protect, async (req, res) => {
     if (transErr) throw transErr;
 
     res.json({
-      balance: wallet.balance,
-      updated_at: wallet.updated_at,
+      gold_coins: profile.gold_coins || 0,
+      silver_coins: profile.silver_coins || profile.coins || 0,
+      balance: profile.silver_coins || profile.coins || 0, // for legacy UI
       recent_transactions: transactions || []
     });
     

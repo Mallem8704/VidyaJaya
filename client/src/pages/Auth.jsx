@@ -14,11 +14,22 @@ const Auth = ({ type }) => {
     if (isAuthenticated && type !== 'Reset Password') {
       navigate('/dashboard');
     }
+
+    // 🔗 AUTO-APPLY REFERRAL CODE
+    if (type === 'Signup') {
+      const storedRef = localStorage.getItem('vidyajaya_ref_code');
+      if (storedRef) {
+        setFormData(prev => ({ ...prev, referralCode: storedRef }));
+        toast.success(`Referral Code Applied: ${storedRef} ✅`, {
+            id: 'ref-toast' // prevent duplicate toasts
+        });
+      }
+    }
   }, [isAuthenticated, type, navigate]);
 
   // States
   const [formData, setFormData] = useState({
-    name: '', email: '', phone: '', password: '', confirmPassword: '', examGoal: 'UPSC'
+    name: '', email: '', phone: '', password: '', confirmPassword: '', examGoal: 'UPSC', referralCode: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showOtpField, setShowOtpField] = useState(false);
@@ -314,6 +325,26 @@ const Auth = ({ type }) => {
                             <option value="Reasoning">Reasoning</option>
                             <option value="Aptitude">Aptitude</option>
                           </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Referral Code (Optional)</label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <ArrowRight size={18} />
+                          </div>
+                          <input
+                            type="text" name="referralCode"
+                            value={formData.referralCode} onChange={handleChange}
+                            className={`pl-10 w-full p-3 rounded-xl border ${formData.referralCode ? 'border-accent-green' : 'border-[var(--border)]'} bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all uppercase`}
+                            placeholder="ABC123"
+                          />
+                          {formData.referralCode && (
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-accent-green">
+                              <CheckCircle size={16} />
+                            </div>
+                          )}
                         </div>
                       </div>
 

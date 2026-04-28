@@ -171,23 +171,25 @@ router.post('/', protect, async (req, res) => {
       await supabase.from('profiles').update({ user_flagged: true }).eq('id', user.id);
     }
 
-    // Calculate coins for this submission (Only for PRO tests)
-    let coinsEarned = 0;
+    // Calculate coins for this submission
+    let silverEarned = 0;
+    let goldEarned = 0;
     
-    // RULE: Flagged users or unverified users get NO REWARDS
-    const isVerified = user.is_verified;
+    const isVerified = user.is_verified || user.kyc_verified;
     const isFlagged = user.user_flagged || isSuspicious;
 
-    if (test.is_premium && isVerified && !isFlagged) {
-      if (isPremium || user.role === 'admin') {
-        coinsEarned = result.accuracy >= 80 ? 25 : 10;
-        // Bonus for high performance
-        if (result.accuracy === 100) coinsEarned += 15;
-      }
-    } else if (isFlagged) {
-      console.log(`[REWARDS] Blocked for user ${user.id} due to flag.`);
-    } else if (!isVerified) {
-      console.log(`[REWARDS] Blocked for user ${user.id} - account not verified.`);
+    if (isFlagged) {
+        console.log(`[REWARDS] Blocked for user ${user.id} due to flag.`);
+    } else {
+        // 1. SILVER COINS (Engagement) - Awarded for any test completion
+        silverEarned = result.accuracy >= 80 ? 25 : 10;
+        if (result.accuracy === 100) silverEarned += 15;
+
+        // 2. GOLD COINS (Achievement) - Awarded ONLY for Premium/Scholarship tests
+        if (test.is_premium && isVerified && result.accuracy === 100) {
+            goldEarned = 10; // Merit reward
+            console.log(`[GOLD REWARD] User ${user.id} earned 10 Gold Coins for perfect score.`);
+        }
     }
 
     // 6. UPDATE PROFILE STATS & ANTI-CHEAT
@@ -197,18 +199,17 @@ router.post('/', protect, async (req, res) => {
       .eq('id', user.id)
       .single();
 
-    // Check Daily Cap (Max 50 coins/day from test attempts)
+    // Check Daily Cap (Max 50 silver coins/day from test attempts)
     const today = new Date().toDateString();
     const lastReset = profile?.last_reward_reset ? new Date(profile.last_reward_reset).toDateString() : null;
     let currentDailyTotal = lastReset === today ? (profile?.daily_reward_accumulated || 0) : 0;
     
     if (currentDailyTotal >= 50) {
-      coinsEarned = 0; // Cap reached
+      silverEarned = 0; // Cap reached
       console.log(`User ${user.id} reached daily reward cap.`);
     } else {
-      // Don't exceed the cap in a single submission
-      if (currentDailyTotal + coinsEarned > 50) {
-        coinsEarned = 50 - currentDailyTotal;
+      if (currentDailyTotal + silverEarned > 50) {
+        silverEarned = 50 - currentDailyTotal;
       }
     }
 
@@ -218,7 +219,7 @@ router.post('/', protect, async (req, res) => {
     const shouldIncrementStreak = lastUpdate !== today;
     const newStreak = shouldIncrementStreak ? (profile?.streak || 0) + 1 : (profile?.streak || 0);
 
-    // Milestone Rewards
+    // Milestone Rewards (In Silver)
     let milestoneBonus = 0;
     if (shouldIncrementStreak) {
       if (newStreak === 3) milestoneBonus = 50;
@@ -230,40 +231,48 @@ router.post('/', protect, async (req, res) => {
     const profileUpdate = {
       accuracy: result.accuracy,
       last_streak_update: shouldIncrementStreak ? new Date() : profile?.last_streak_update,
-      daily_reward_accumulated: currentDailyTotal + coinsEarned,
+      daily_reward_accumulated: currentDailyTotal + silverEarned,
       last_reward_reset: new Date(),
       streak: newStreak,
-      coins: (profile?.coins || 0) + coinsEarned + milestoneBonus
+      silver_coins: (profile?.silver_coins || profile?.coins || 0) + silverEarned + milestoneBonus,
+      gold_coins: (profile?.gold_coins || 0) + goldEarned,
+      coins: (profile?.silver_coins || profile?.coins || 0) + silverEarned + milestoneBonus // legacy
     };
 
-    // Only PRO test results go to PRO leaderboard (total_score, weekly_score, monthly_score)
+    // Only PRO test results go to PRO leaderboard
     if (test.is_premium) {
       profileUpdate.weekly_score = (profile?.weekly_score || 0) + result.score;
       profileUpdate.monthly_score = (profile?.monthly_score || 0) + result.score;
       profileUpdate.total_score = (profile?.total_score || 0) + result.score;
-      console.log(`PRO test result added to user ${user.id} leaderboard scores.`);
-    } else {
-      console.log(`Free test result. Leaderboard scores not updated for user ${user.id}.`);
     }
 
     await supabase.from('profiles').update(profileUpdate).eq('id', user.id);
 
     // 7. RECORD REWARDS
-    if (coinsEarned > 0) {
+    if (silverEarned > 0) {
       await supabase.from('rewards').insert({
           user_id: user.id,
-          type: 'earned',
-          amount: coinsEarned,
-          description: `Earned coins from completing: ${test.title}${coinsEarned < (result.accuracy >= 80 ? 25 : 10) ? ' (Daily Cap Applied)' : ''}`
+          type: 'silver_earned',
+          amount: silverEarned,
+          description: `Earned silver coins from: ${test.title}`
       });
     }
+
+    if (goldEarned > 0) {
+        await supabase.from('rewards').insert({
+            user_id: user.id,
+            type: 'gold_earned',
+            amount: goldEarned,
+            description: `Achievement Reward: 100% accuracy on ${test.title}`
+        });
+      }
 
     if (milestoneBonus > 0) {
       await supabase.from('rewards').insert({
           user_id: user.id,
           type: 'milestone',
           amount: milestoneBonus,
-          description: `Streak Milestone Reward! Reached ${newStreak} days.`
+          description: `Streak Milestone (${newStreak} days)`
       });
     }
 
@@ -300,7 +309,8 @@ router.post('/', protect, async (req, res) => {
     res.status(201).json({
       ...responseData,
       id: submission?.id || responseData.id,
-      coinsEarned,
+      silverEarned,
+      goldEarned,
       milestoneBonus
     });
   } catch (error) {

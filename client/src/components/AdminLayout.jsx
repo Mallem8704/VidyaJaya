@@ -9,7 +9,8 @@ import {
     LogOut,
     ChevronLeft,
     TrendingUp,
-    AlertTriangle
+    AlertTriangle,
+    Share2
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
@@ -26,6 +27,7 @@ const AdminLayout = () => {
         { name: 'Overview', icon: LayoutDashboard, path: '/admin' },
         { name: 'User Management', icon: Users, path: '/admin/users' },
         { name: 'Withdrawals', icon: CreditCard, path: '/admin/withdrawals' },
+        { name: 'Referrals', icon: Share2, path: '/admin/referrals' },
         { name: 'Audit Logs', icon: History, path: '/admin/logs' },
     ];
 

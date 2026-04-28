@@ -16,7 +16,8 @@ import {
   Sparkles,
   ShieldCheck,
   Lock,
-  Wallet as WalletIcon
+  Wallet as WalletIcon,
+  Share2
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -46,6 +47,7 @@ const Sidebar = () => {
     { name: 'Analysis', icon: BarChart2, path: '/analysis' },
     { name: 'Doubts', icon: HelpCircle, path: '/doubts' },
     { name: 'Wallet', icon: WalletIcon, path: '/wallet' },
+    { name: 'Refer & Earn', icon: Share2, path: '/refer-and-earn' },
     ...(user?.role === 'admin' || user?.is_admin || user?.email === 'mallem8704@gmail.com' ? [{ name: 'Admin Panel', icon: ShieldCheck, path: '/admin' }] : []),
     { name: 'Pricing', icon: Sparkles, path: '/pricing' },
     { name: 'Profile', icon: User, path: '/profile' },

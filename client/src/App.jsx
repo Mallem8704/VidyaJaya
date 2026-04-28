@@ -29,10 +29,12 @@ import Wallet from './pages/Wallet';
 import ProDashboard from './pages/ProDashboard';
 import ProTests from './pages/ProTests';
 import ProLeaderboard from './pages/ProLeaderboard';
+import AdminLogin from './pages/AdminLogin';
+import ReferAndEarn from './pages/ReferAndEarn';
+import AdminReferrals from './pages/AdminReferrals';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUserManagement from './pages/AdminUserManagement';
 import AdminWithdrawals from './pages/AdminWithdrawals';
-import AdminLogin from './pages/AdminLogin';
 
 // SEO Articles
 import WhatIsVidyajaya from './pages/articles/WhatIsVidyajaya';
@@ -80,6 +82,16 @@ function App() {
     }
   }, [theme]);
 
+  // 🔗 REFERRAL TRACKING
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      console.log(`[REFERRAL] Captured code: ${refCode}`);
+      localStorage.setItem('vidyajaya_ref_code', refCode);
+    }
+  }, []);
+
   if (!_hasHydrated) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[var(--bg-light)]">
@@ -125,6 +137,7 @@ function App() {
           <Route index element={<AdminDashboard />} />
           <Route path="users" element={<AdminUserManagement />} />
           <Route path="withdrawals" element={<AdminWithdrawals />} />
+          <Route path="referrals" element={<AdminReferrals />} />
         </Route>
         
         {/* Protected User Routes inside Layout */}
@@ -141,6 +154,7 @@ function App() {
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/kyc" element={<KYC />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/refer-and-earn" element={<ReferAndEarn />} />
             <Route path="/ai-questions" element={<DailyAiQuestions />} />
             
             {/* PRO Specific Routes */}

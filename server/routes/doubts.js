@@ -19,18 +19,28 @@ router.post('/solve', protect, async (req, res) => {
     const { questionText, type } = req.body;
     const userId = req.user.id;
 
-    // 1. Check user coins
+    // 1. Check user status & coins
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('coins')
+      .select('gold_coins, silver_coins, coins, is_pro, pro_expiry')
       .eq('id', userId)
       .single();
 
     if (profileError || !profile) return res.status(404).json({ message: 'User profile not found' });
     
-    if (profile.coins < 10) {
-      return res.status(400).json({ message: 'Insufficient coins! You need 10 coins to solve a doubt.' });
+    const isPro = profile.is_pro && (!profile.pro_expiry || new Date(profile.pro_expiry) > new Date());
+    const silver = profile.silver_coins || profile.coins || 0;
+    const { adWatched } = req.body;
+
+    // RULE: Free users must watch an ad OR pay 10 silver coins
+    if (!isPro && !adWatched && silver < 10) {
+      return res.status(403).json({ 
+        message: 'Free Tier Limit: Please watch a short ad to solve this doubt, or upgrade to PRO for unlimited instant solving.',
+        code: 'AD_OR_PRO_REQUIRED'
+      });
     }
+
+    const cost = (isPro || adWatched) ? 0 : 10;
 
     // 2. Call OpenAI
     const prompt = `
@@ -75,11 +85,16 @@ router.post('/solve', protect, async (req, res) => {
 
     if (doubtError) throw doubtError;
 
-    // 4. Deduct coins
-    await supabase
-      .from('profiles')
-      .update({ coins: profile.coins - 10 })
-      .eq('id', userId);
+    // 4. Deduct coins if applicable
+    if (cost > 0) {
+      await supabase
+        .from('profiles')
+        .update({ 
+            silver_coins: Math.max(0, silver - cost),
+            coins: Math.max(0, silver - cost) // legacy sync
+        })
+        .eq('id', userId);
+    }
 
     res.json({
       id: doubt.id,
@@ -99,16 +114,25 @@ router.post('/solve-image', protect, upload.single('image'), async (req, res) =>
     const userId = req.user.id;
     if (!req.file) return res.status(400).json({ message: 'No image uploaded' });
 
-    // 1. Check user coins
+    // 1. Check user status & coins
     const { data: profile } = await supabase
       .from('profiles')
-      .select('coins')
+      .select('silver_coins, coins, is_pro, pro_expiry')
       .eq('id', userId)
       .single();
 
-    if (!profile || profile.coins < 10) {
-      return res.status(400).json({ message: 'Insufficient coins! You need 10 coins to solve a doubt.' });
+    const isPro = profile?.is_pro && (!profile?.pro_expiry || new Date(profile?.pro_expiry) > new Date());
+    const silver = profile?.silver_coins || profile?.coins || 0;
+    const { adWatched } = req.body;
+
+    if (!isPro && !adWatched && silver < 10) {
+      return res.status(403).json({ 
+        message: 'Image Scan Limit: Watch an ad to unlock or upgrade to PRO.',
+        code: 'AD_OR_PRO_REQUIRED'
+      });
     }
+
+    const cost = (isPro || adWatched) ? 0 : 10;
 
     // 2. Call Gemini Vision
     const aiResult = await solveImageDoubt(req.file.buffer, req.file.mimetype);
@@ -131,11 +155,16 @@ router.post('/solve-image', protect, upload.single('image'), async (req, res) =>
 
     if (doubtError) throw doubtError;
 
-    // 4. Deduct coins
-    await supabase
-      .from('profiles')
-      .update({ coins: profile.coins - 10 })
-      .eq('id', userId);
+    // 4. Deduct coins if applicable
+    if (cost > 0) {
+      await supabase
+        .from('profiles')
+        .update({ 
+            silver_coins: Math.max(0, silver - cost),
+            coins: Math.max(0, silver - cost)
+        })
+        .eq('id', userId);
+    }
 
     res.json({
       id: doubt.id,

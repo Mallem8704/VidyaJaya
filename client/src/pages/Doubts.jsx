@@ -26,8 +26,34 @@ const Doubts = () => {
     }
   };
 
-  const handleSolveDoubt = async (e) => {
-    if (e) e.preventDefault();
+  const [showAdModal, setShowAdModal] = useState(false);
+  const [adCount, setAdCount] = useState(5);
+  const [pendingAction, setPendingAction] = useState(null);
+
+  const startAd = (action) => {
+    setPendingAction(() => action);
+    setShowAdModal(true);
+    setAdCount(5);
+    const interval = setInterval(() => {
+        setAdCount(prev => {
+            if (prev <= 1) {
+                clearInterval(interval);
+                return 0;
+            }
+            return prev - 1;
+        });
+    }, 1000);
+  };
+
+  const handleAdComplete = () => {
+    setShowAdModal(false);
+    if (pendingAction) {
+        pendingAction(true); // Call with adWatched = true
+        setPendingAction(null);
+    }
+  };
+
+  const handleSolveDoubt = async (adWatched = false) => {
     if (!questionText.trim()) return toast.error("Please enter a question");
 
     setIsUploading(true);
@@ -36,27 +62,36 @@ const Doubts = () => {
     try {
       const res = await axios.post('/api/doubts/solve', { 
         questionText: questionText,
-        type: 'text'
+        type: 'text',
+        adWatched
       });
       setSolution(res.data);
       toast.success("AI solved your doubt!");
       setQuestionText('');
-      fetchHistory(); // Refresh history
+      fetchHistory();
     } catch (err) {
-      console.error(err);
-      const msg = err.response?.data?.message || "Failed to solve doubt";
-      toast.error(msg);
+      if (err.response?.data?.code === 'AD_OR_PRO_REQUIRED') {
+        toast.error("Free Limit Reached! Watch an ad to solve.");
+        startAd(handleSolveDoubt);
+      } else {
+        toast.error(err.response?.data?.message || "Failed to solve doubt");
+      }
     } finally {
       setIsUploading(false);
     }
   };
 
-  const handleImageUpload = async (e) => {
-    const file = e.target.files[0];
+  const handleImageUpload = async (e, adWatched = false) => {
+    let file = e?.target?.files?.[0];
+    
+    // If ad is completed, we need the stored file or trigger the input again
+    // For simplicity in this demo, we'll assume the user watches the ad BEFORE choosing the file 
+    // or we store the file in state.
     if (!file) return;
 
     const formData = new FormData();
     formData.append('image', file);
+    formData.append('adWatched', adWatched);
 
     setIsUploading(true);
     setSolution(null);
@@ -70,8 +105,12 @@ const Doubts = () => {
       toast.success("Image scanned successfully!", { id: loadToast });
       fetchHistory();
     } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Failed to scan image", { id: loadToast });
+      if (err.response?.data?.code === 'AD_OR_PRO_REQUIRED') {
+        toast.error("Ad required for image scan", { id: loadToast });
+        startAd((ad) => handleImageUpload(e, ad));
+      } else {
+        toast.error(err.response?.data?.message || "Failed to scan image", { id: loadToast });
+      }
     } finally {
       setIsUploading(false);
     }
@@ -82,7 +121,7 @@ const Doubts = () => {
       
       <div className="text-center max-w-2xl mx-auto mb-10">
          <h2 className="text-3xl font-heading font-bold mb-4">Snap or Type. Get Instant Solutions.</h2>
-         <p className="text-[var(--text-secondary)]">Our GPT-4 powered AI scans your questions and gives you a step-by-step verified breakdown. Costs 10 💰 per doubt.</p>
+         <p className="text-[var(--text-secondary)]">Our Gemini 1.5 AI scans your questions and gives you a step-by-step verified breakdown. Costs 10 Silver 💰 or 1 Ad per doubt.</p>
       </div>
 
       {!solution && (
@@ -228,6 +267,39 @@ const Doubts = () => {
         </div>
       </div>
 
+      {/* Ad Modal Simulation */}
+      <AnimatePresence>
+        {showAdModal && (
+            <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-6 backdrop-blur-md"
+            >
+                <div className="max-w-md w-full bg-[#1c2433] rounded-[2rem] p-10 text-center space-y-8 border border-white/10 shadow-2xl">
+                    <div className="w-20 h-20 bg-secondary/20 rounded-3xl flex items-center justify-center text-secondary mx-auto">
+                        <Smartphone size={40} />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-bold text-white mb-2">Video Ad Playing...</h3>
+                        <p className="text-white/60 text-sm italic">"Upgrade to PRO to skip all ads forever!"</p>
+                    </div>
+                    <div className="relative h-2 bg-white/10 rounded-full overflow-hidden">
+                        <motion.div 
+                            initial={{ width: "100%" }} animate={{ width: "0%" }} transition={{ duration: 5, ease: "linear" }}
+                            className="absolute inset-0 bg-secondary"
+                        />
+                    </div>
+                    <div className="text-4xl font-black text-white">{adCount}s</div>
+                    <button 
+                        onClick={handleAdComplete}
+                        disabled={adCount > 0}
+                        className={`btn w-full py-4 rounded-2xl font-black uppercase transition-all ${adCount > 0 ? 'bg-white/10 text-white/20 cursor-not-allowed' : 'btn-primary'}`}
+                    >
+                        {adCount > 0 ? "Watch to Unlock" : "Claim AI Solution"}
+                    </button>
+                </div>
+            </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
