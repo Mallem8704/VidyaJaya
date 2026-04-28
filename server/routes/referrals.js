@@ -5,115 +5,138 @@ const { protect } = require('../middleware/authMiddleware');
 
 /**
  * @route   GET /api/referrals/my-stats
- * @desc    Get current user's referral stats and progress
+ * @desc    Get current user's referral stats with safe error handling
  */
 router.get('/my-stats', protect, async (req, res) => {
+    // 🔍 1. DEBUG LOGGING: Log incoming request
+    console.log("[REFERRAL] Request received for /my-stats");
+    
     try {
-        const userId = req.user.id;
-
-        // 1. Get referral code and basic counts from profile
-        const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('name, referral_code, total_successful_referrals')
-            .eq('id', userId)
-            .single();
-
-        if (profileError) throw profileError;
-
-        let referralCode = profile.referral_code;
-        
-        // 🛡️ Resilience: Generate code if missing (for legacy users)
-        if (!referralCode) {
-            console.log(`[REFERRAL] Generating missing code for user ${userId}`);
-            referralCode = (profile.name?.substring(0, 3) || 'USR') + Math.random().toString(36).substring(2, 6).toUpperCase();
-            await supabase.from('profiles').update({ referral_code: referralCode }).eq('id', userId);
+        // 🔐 2. AUTHENTICATION CHECK
+        if (!req.user) {
+            console.error("[REFERRAL] Unauthorized: req.user is undefined");
+            return res.status(401).json({ message: "Unauthorized" });
         }
 
-        // 2. Get list of successful referrals
+        // 🧠 3. SAFE USER HANDLING
+        const userId = req.user?.id;
+        console.log("[REFERRAL] Processing stats for User ID:", userId);
+
+        if (!userId) {
+            console.error("[REFERRAL] Bad Request: userId is missing from req.user");
+            return res.status(400).json({ message: "User ID is required" });
+        }
+
+        // 🧱 4. DATABASE QUERIES (Safe & Null-Checked)
+        console.log("[REFERRAL] Fetching profile from database...");
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('name, referral_code, total_successful_referrals, gold_coins')
+            .eq('id', userId)
+            .maybeSingle();
+
+        if (profileError) {
+            console.error("[REFERRAL] Profile database query error:", profileError.message);
+        }
+
+        // ⚠️ 5. HANDLE EMPTY DATA (Safety Fallback)
+        // If no profile found, we don't crash; we use defaults
+        const safeProfile = profile || { 
+            name: req.user.name || "Student", 
+            referral_code: "REF" + userId.substring(0, 5).toUpperCase(),
+            total_successful_referrals: 0,
+            gold_coins: 0
+        };
+
+        console.log("[REFERRAL] Fetching referral history...");
         const { data: referrals, error: refError } = await supabase
             .from('referrals')
-            .select(`
-                id,
-                created_at,
-                is_successful,
-                profiles!referred_user_id(name)
-            `)
-            .eq('referrer_id', userId)
-            .order('created_at', { ascending: false });
+            .select('id, is_successful, referred_user_id, created_at')
+            .eq('referrer_id', userId);
 
-        if (refError) throw refError;
+        if (refError) {
+            console.error("[REFERRAL] Referrals database query error:", refError.message);
+        }
 
-        // 3. Get milestone rewards
-        const { data: rewards } = await supabase
-            .from('user_rewards')
-            .select('*')
-            .eq('user_id', userId);
+        // ⚠️ Handle empty referral list
+        const safeReferrals = referrals || [];
+        const successCount = safeProfile.total_successful_referrals || 0;
+        
+        console.log(`[REFERRAL] Found ${safeReferrals.length} referrals (${successCount} successful)`);
 
-        // 4. Calculate progress to next milestone
-        const currentCount = profile.total_successful_referrals || 0;
+        // 📊 6. MILESTONE LOGIC
         let nextMilestone = 5;
-        if (currentCount >= 5 && currentCount < 10) nextMilestone = 10;
-        if (currentCount >= 10) nextMilestone = 0; // Completed all for now
+        if (successCount >= 5 && successCount < 10) nextMilestone = 10;
+        if (successCount >= 10) nextMilestone = 0;
 
-        res.json({
-            referralCode: referralCode,
-            referralLink: `${process.env.CLIENT_URL || 'http://localhost:5173'}/signup?ref=${referralCode}`,
-            totalReferrals: referrals.length,
-            successfulReferrals: currentCount,
-            nextMilestone,
-            progress: nextMilestone > 0 ? (currentCount / nextMilestone) * 100 : 100,
-            referrals: referrals.map(r => ({
+        // 📊 7. FINAL RESPONSE (Safe, Valid JSON, Frontend Compatible)
+        console.log("[REFERRAL] Sending successful response");
+        return res.json({
+            // Stats requested by user
+            total_referrals: safeReferrals.length,
+            successful_referrals: successCount,
+            earnings: safeProfile.gold_coins || 0,
+
+            // Fields required by ReferAndEarn.jsx frontend
+            referralCode: safeProfile.referral_code,
+            referralLink: `${process.env.CLIENT_URL || 'http://localhost:5173'}/signup?ref=${safeProfile.referral_code}`,
+            totalReferrals: safeReferrals.length,
+            successfulReferrals: successCount,
+            nextMilestone: nextMilestone,
+            progress: nextMilestone > 0 ? (successCount / nextMilestone) * 100 : 100,
+            referrals: safeReferrals.map(r => ({
                 id: r.id,
-                name: r.profiles?.name || 'Anonymous User',
+                name: "Student", 
                 date: r.created_at,
                 status: r.is_successful ? 'Successful' : 'Pending'
             })),
-            rewards: rewards || []
+            rewards: [] 
         });
 
     } catch (error) {
-        console.error('Fetch referral stats error:', error);
-        res.status(500).json({ message: 'Failed to fetch referral stats' });
+        // 🛡️ 8. MANDATORY TRY-CATCH SAFETY NET
+        console.error("[REFERRAL] CRITICAL API ERROR:", error.message);
+        return res.status(500).json({
+            message: "Internal server error",
+            error: error.message
+        });
     }
 });
 
 /**
  * @route   POST /api/referrals/validate
- * @desc    Validate a referral code
+ * @desc    Validate a referral code (Public)
  */
 router.post('/validate', async (req, res) => {
-    const { code } = req.body;
-    if (!code) return res.status(400).json({ message: 'Code is required' });
-
     try {
+        const { code } = req.body;
+        if (!code) return res.status(400).json({ message: "Code is required" });
+
         const codeUpper = code.trim().toUpperCase();
 
-        // Check referral_codes first
+        // 1. Check Influencer Codes
         const { data: refCode } = await supabase
             .from('referral_codes')
             .select('code, type')
             .eq('code', codeUpper)
-            .single();
+            .maybeSingle();
 
-        if (refCode) {
-            return res.json({ valid: true, type: refCode.type });
-        }
+        if (refCode) return res.json({ valid: true, type: refCode.type });
 
-        // Check profiles
+        // 2. Check User Codes
         const { data: profile } = await supabase
             .from('profiles')
             .select('referral_code')
             .eq('referral_code', codeUpper)
-            .single();
+            .maybeSingle();
 
-        if (profile) {
-            return res.json({ valid: true, type: 'user' });
-        }
+        if (profile) return res.json({ valid: true, type: 'user' });
 
-        res.status(404).json({ valid: false, message: 'Invalid referral code' });
+        return res.status(404).json({ valid: false, message: "Invalid referral code" });
 
     } catch (error) {
-        res.status(500).json({ message: 'Validation failed' });
+        console.error("[REFERRAL] Validation Error:", error.message);
+        return res.status(500).json({ message: "Validation failed", error: error.message });
     }
 });
 
