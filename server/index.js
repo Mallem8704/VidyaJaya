@@ -29,6 +29,12 @@ const http = require('http');
 const { Server } = require('socket.io');
 
 const app = express();
+
+// Global Request Logger for Debugging
+app.use((req, res, next) => {
+  console.log(`[DEBUG] ${req.method} ${req.url}`);
+  next();
+});
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
