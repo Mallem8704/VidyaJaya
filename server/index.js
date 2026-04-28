@@ -97,6 +97,7 @@ app.use('/api/practice', practiceRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/verification', require('./routes/verification'));
 app.use('/api/referrals', require('./routes/referrals'));
+console.log('[SERVER] Referrals route mounted ✓');
 
 // Placeholder routes
 app.get('/health', (req, res) => {

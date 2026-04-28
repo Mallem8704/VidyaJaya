@@ -2,7 +2,7 @@ import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
 // Set dynamic base URL for production vs local
-const BACKEND_URL = window.location.hostname === 'localhost' 
+const BACKEND_URL = import.meta.env.DEV 
     ? 'http://localhost:3000' 
     : 'https://vidyajaya-server.onrender.com';
 axios.defaults.baseURL = BACKEND_URL;
