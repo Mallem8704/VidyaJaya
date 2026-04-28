@@ -17,11 +17,17 @@ const Auth = ({ type }) => {
 
     // 🔗 AUTO-APPLY REFERRAL CODE
     if (type === 'Signup') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlRef = urlParams.get('ref');
       const storedRef = localStorage.getItem('vidyajaya_ref_code');
-      if (storedRef) {
-        setFormData(prev => ({ ...prev, referralCode: storedRef }));
-        toast.success(`Referral Code Applied: ${storedRef} ✅`, {
-            id: 'ref-toast' // prevent duplicate toasts
+      
+      const finalRef = (urlRef || storedRef)?.toUpperCase();
+      
+      if (finalRef) {
+        setFormData(prev => ({ ...prev, referralCode: finalRef }));
+        localStorage.setItem('vidyajaya_ref_code', finalRef); // Ensure it's synced
+        toast.success(`Referral Applied: ${finalRef} ✅`, {
+            id: 'ref-toast'
         });
       }
     }

@@ -81,6 +81,7 @@ router.post('/register', async (req, res) => {
 
     if (referralCode) {
       const codeUpper = referralCode.trim().toUpperCase();
+      console.log(`[AUTH_REGISTER] Validating Referral Code: ${codeUpper}`);
       
       // 1. Check referral_codes table (Influencers/Admins)
       const { data: refCodeObj } = await supabase
@@ -90,6 +91,7 @@ router.post('/register', async (req, res) => {
         .single();
       
       if (refCodeObj) {
+        console.log(`[AUTH_REGISTER] FOUND INFLUENCER CODE: ${codeUpper} (Owner: ${refCodeObj.owner_user_id})`);
         referrerId = refCodeObj.owner_user_id;
         referralType = refCodeObj.type;
         refCodeStr = refCodeObj.code;
@@ -102,9 +104,12 @@ router.post('/register', async (req, res) => {
           .single();
         
         if (referrerUser) {
+          console.log(`[AUTH_REGISTER] FOUND USER CODE: ${codeUpper} (Owner: ${referrerUser.id})`);
           referrerId = referrerUser.id;
           referralType = 'user';
           refCodeStr = codeUpper;
+        } else {
+          console.log(`[AUTH_REGISTER] INVALID CODE: ${codeUpper}`);
         }
       }
     }

@@ -164,6 +164,54 @@ router.post('/withdrawals/:id/update-status', protect, adminProtect, async (req,
 });
 
 /**
+ * @route   GET /api/admin/referral-codes
+ * @desc    Get all created referral codes with owner data
+ */
+router.get('/referral-codes', protect, adminProtect, async (req, res) => {
+    try {
+        const { data: codes, error } = await supabase
+            .from('referral_codes')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const ownerIds = codes.map(c => c.owner_user_id);
+        const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, name, email')
+            .in('id', ownerIds);
+
+        const enrichedCodes = codes.map(c => ({
+            ...c,
+            owner: profiles?.find(p => p.id === c.owner_user_id) || { name: 'Unknown', email: 'N/A' }
+        }));
+
+        res.json(enrichedCodes);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch codes', error: err.message });
+    }
+});
+
+/**
+ * @route   DELETE /api/admin/referral-codes/:id
+ * @desc    Delete a referral code
+ */
+router.delete('/referral-codes/:id', protect, adminProtect, async (req, res) => {
+    try {
+        const { error } = await supabase
+            .from('referral_codes')
+            .delete()
+            .eq('id', req.params.id);
+
+        if (error) throw error;
+        res.json({ message: 'Referral code deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to delete code', error: err.message });
+    }
+});
+
+/**
  * @route   POST /api/admin/referral-codes
  * @desc    Create a new referral code (e.g. for Influencers)
  */
@@ -204,19 +252,38 @@ router.post('/referral-codes', protect, adminProtect, async (req, res) => {
  */
 router.get('/referrals', protect, adminProtect, async (req, res) => {
     try {
+        // 1. Get basic referral data
         const { data: referrals, error } = await supabase
             .from('referrals')
-            .select(`
-                *,
-                referrer:profiles!referrer_id(name, email, referral_type),
-                referee:profiles!referred_user_id(name, email, created_at)
-            `)
+            .select('*')
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        res.json(referrals);
+
+        // 2. Extract unique user IDs for both referrers and referees
+        const userIds = new Set();
+        referrals.forEach(r => {
+            if (r.referrer_id) userIds.add(r.referrer_id);
+            if (r.referred_user_id) userIds.add(r.referred_user_id);
+        });
+
+        // 3. Fetch all involved profiles in bulk
+        const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, name, email, referral_type')
+            .in('id', Array.from(userIds));
+
+        // 4. Map profiles back to the referral data
+        const enrichedReferrals = referrals.map(ref => ({
+            ...ref,
+            referrer: profiles?.find(p => p.id === ref.referrer_id) || { name: 'Unknown', email: 'N/A' },
+            referee: profiles?.find(p => p.id === ref.referred_user_id) || { name: 'Student', email: 'N/A' }
+        }));
+
+        res.json(enrichedReferrals);
     } catch (err) {
-        res.status(500).json({ message: 'Failed to fetch referrals' });
+        console.error('[ADMIN_REFERRALS] Fetch Error:', err);
+        res.status(500).json({ message: 'Failed to fetch referrals', error: err.message });
     }
 });
 
@@ -226,15 +293,38 @@ router.get('/referrals', protect, adminProtect, async (req, res) => {
  */
 router.get('/commissions', protect, adminProtect, async (req, res) => {
     try {
+        // 1. Get basic commission data
         const { data: commissions, error } = await supabase
             .from('commissions')
-            .select('*, referrer:profiles!referrer_id(name, email), referee:profiles!referred_user_id(name)')
+            .select('*')
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        res.json(commissions);
+
+        // 2. Extract unique user IDs
+        const userIds = new Set();
+        commissions.forEach(c => {
+            if (c.referrer_id) userIds.add(c.referrer_id);
+            if (c.referred_user_id) userIds.add(c.referred_user_id);
+        });
+
+        // 3. Fetch all involved profiles in bulk
+        const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, name, email')
+            .in('id', Array.from(userIds));
+
+        // 4. Map profiles back
+        const enrichedCommissions = commissions.map(comm => ({
+            ...comm,
+            referrer: profiles?.find(p => p.id === comm.referrer_id) || { name: 'Unknown' },
+            referee: profiles?.find(p => p.id === comm.referred_user_id) || { name: 'Student' }
+        }));
+
+        res.json(enrichedCommissions);
     } catch (err) {
-        res.status(500).json({ message: 'Failed to fetch commissions' });
+        console.error('[ADMIN_COMMISSIONS] Fetch Error:', err);
+        res.status(500).json({ message: 'Failed to fetch commissions', error: err.message });
     }
 });
 

@@ -62,6 +62,15 @@ function App() {
   const { loadUser, token, setAuth, _hasHydrated } = useAuthStore();
 
   useEffect(() => {
+    // 🔗 GLOBAL REFERRAL CAPTURE
+    // This captures the 'ref' code from any URL (Landing, Signup, etc.) and saves it
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    if (refCode) {
+      localStorage.setItem('vidyajaya_ref_code', refCode.toUpperCase());
+      console.log("[REFERRAL] Captured code from URL:", refCode.toUpperCase());
+    }
+
     // 🛡️ AGGRESSIVE AUTH SYNC
     if (token && !useAuthStore.getState().isAuthenticated) {
       setAuth(null, token);

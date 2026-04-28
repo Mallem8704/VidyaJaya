@@ -17,6 +17,7 @@ import toast from 'react-hot-toast';
 const AdminReferrals = () => {
     const [referrals, setReferrals] = useState([]);
     const [commissions, setCommissions] = useState([]);
+    const [codes, setCodes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('logs'); // 'logs', 'commissions', 'codes'
     
@@ -37,12 +38,20 @@ const AdminReferrals = () => {
             } else if (activeTab === 'commissions') {
                 const res = await axios.get('/api/admin/commissions');
                 setCommissions(res.data);
+            } else if (activeTab === 'codes') {
+                const res = await axios.get('/api/admin/referral-codes');
+                setCodes(res.data);
             }
         } catch (err) {
             toast.error("Failed to fetch data");
         } finally {
             setLoading(false);
         }
+    };
+
+    const copyToClipboard = (text, type) => {
+        navigator.clipboard.writeText(text);
+        toast.success(`${type} copied to clipboard!`);
     };
 
     const handleCreateCode = async (e) => {
@@ -52,8 +61,20 @@ const AdminReferrals = () => {
             toast.success("Referral code created!");
             setShowModal(false);
             setNewCode({ code: '', type: 'influencer', owner_email: '', commission_percent: 10 });
+            if (activeTab === 'codes') fetchData();
         } catch (err) {
             toast.error(err.response?.data?.message || "Creation failed");
+        }
+    };
+
+    const handleDeleteCode = async (id) => {
+        if (!window.confirm("Are you sure? This will disable this referral code permanently.")) return;
+        try {
+            await axios.delete(`/api/admin/referral-codes/${id}`);
+            toast.success("Code deleted");
+            fetchData();
+        } catch (err) {
+            toast.error("Delete failed");
         }
     };
 
@@ -84,13 +105,13 @@ const AdminReferrals = () => {
 
             {/* Tabs */}
             <div className="flex border-b border-[var(--border)] gap-8">
-                {['logs', 'commissions'].map(tab => (
+                {['logs', 'commissions', 'codes'].map(tab => (
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
                         className={`pb-4 text-sm font-bold uppercase tracking-wider transition-all relative ${activeTab === tab ? 'text-primary' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                     >
-                        {tab === 'logs' ? 'Referral Logs' : 'Influencer Payouts'}
+                        {tab === 'logs' ? 'Referral Logs' : tab === 'commissions' ? 'Influencer Payouts' : 'Active Codes'}
                         {activeTab === tab && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}
                     </button>
                 ))}
@@ -102,7 +123,7 @@ const AdminReferrals = () => {
             ) : (
                 <div className="card border border-[var(--border)] overflow-hidden bg-[var(--bg-card)]">
                     <div className="overflow-x-auto">
-                        {activeTab === 'logs' ? (
+                        {activeTab === 'logs' && (
                             <table className="w-full text-left">
                                 <thead className="bg-[var(--bg-light)] text-[var(--text-secondary)] text-xs font-bold uppercase tracking-wider">
                                     <tr>
@@ -138,7 +159,9 @@ const AdminReferrals = () => {
                                     ))}
                                 </tbody>
                             </table>
-                        ) : (
+                        )}
+
+                        {activeTab === 'commissions' && (
                             <table className="w-full text-left">
                                 <thead className="bg-[var(--bg-light)] text-[var(--text-secondary)] text-xs font-bold uppercase tracking-wider">
                                     <tr>
@@ -173,6 +196,51 @@ const AdminReferrals = () => {
                                                         <CheckCircle size={16} />
                                                     </button>
                                                 )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+
+                        {activeTab === 'codes' && (
+                            <table className="w-full text-left">
+                                <thead className="bg-[var(--bg-light)] text-[var(--text-secondary)] text-xs font-bold uppercase tracking-wider">
+                                        <tr>
+                                            <th className="px-6 py-4">Owner</th>
+                                            <th className="px-6 py-4">Code</th>
+                                            <th className="px-6 py-4">Type</th>
+                                            <th className="px-6 py-4">Commission</th>
+                                            <th className="px-6 py-4 text-center">Share Link</th>
+                                            <th className="px-6 py-4">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-[var(--border)]">
+                                        {codes.map((c) => (
+                                            <tr key={c.id} className="hover:bg-[var(--bg-light)] transition-colors text-sm">
+                                                <td className="px-6 py-4">
+                                                    <div className="font-bold">{c.owner?.name}</div>
+                                                    <div className="text-xs text-[var(--text-secondary)]">{c.owner?.email}</div>
+                                                </td>
+                                                <td className="px-6 py-4 font-mono font-bold text-primary">{c.code}</td>
+                                                <td className="px-6 py-4 uppercase text-[10px] font-black">{c.type}</td>
+                                                <td className="px-6 py-4 font-bold">{c.commission_percent}%</td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <button 
+                                                        onClick={() => copyToClipboard(`https://vidyajaya.in/signup?ref=${c.code}`, "Referral Link")}
+                                                        className="inline-flex items-center gap-1 text-[10px] font-bold text-primary hover:underline bg-primary/5 px-3 py-1.5 rounded-full"
+                                                    >
+                                                        <ExternalLink size={12} /> COPY LINK
+                                                    </button>
+                                                </td>
+                                            <td className="px-6 py-4">
+                                                <button 
+                                                    onClick={() => handleDeleteCode(c.id)}
+                                                    className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                    title="Delete Code"
+                                                >
+                                                    <XCircle size={18} />
+                                                </button>
                                             </td>
                                         </tr>
                                     ))}
