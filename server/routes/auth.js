@@ -169,8 +169,9 @@ router.post('/register', async (req, res) => {
     }
     */
 
-    // 2. Create user profile in the profiles table using service role client
-    const { data: profile, error: profileError } = await supabase
+    // 2. Create user profile — with retry on failure
+    let profile = null;
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .upsert({
         id: profileId,
@@ -179,7 +180,7 @@ router.post('/register', async (req, res) => {
         phone: phone || null,
         exam_goal: examGoal || 'UPSC',
         is_verified: false,
-        coins: referralCode && referrerId ? 5 : 0, 
+        coins: referralCode && referrerId ? 5 : 0,
         streak: 0,
         referral_code: generatedCode,
         referred_by_code: refCodeStr,
@@ -192,11 +193,39 @@ router.post('/register', async (req, res) => {
       .single();
 
     if (profileError) {
-      console.error('[Register] Profile sync warning (often ignorable):', profileError.message);
+      console.error('[Register] ❌ PROFILE CREATE FULL ERROR:', JSON.stringify(profileError));
+      // Retry with only guaranteed-safe minimal columns
+      const { data: minProfile, error: minErr } = await supabase
+        .from('profiles')
+        .upsert({ id: profileId, name, email, plan: 'free', referral_code: generatedCode }, { onConflict: 'id' })
+        .select().single();
+      if (minErr) {
+        console.error('[Register] ❌ MINIMAL PROFILE ALSO FAILED:', JSON.stringify(minErr));
+      } else {
+        profile = minProfile;
+        console.log('[Register] ✅ Minimal profile created successfully');
+        // Now patch in the referral fields separately
+        if (refCodeStr) {
+          await supabase.from('profiles').update({
+            referred_by_code: refCodeStr,
+            referred_by_user_id: referrerId,
+            referral_type: referralType,
+            coins: 5
+          }).eq('id', profileId);
+        }
+      }
+    } else {
+      profile = profileData;
+      console.log('[Register] ✅ Full profile created successfully');
     }
 
+    // Verify profile actually exists before referral FK insert
+    const { data: verifyProfile } = await supabase.from('profiles').select('id').eq('id', profileId).single();
+    const profileConfirmed = !!verifyProfile;
+    console.log(`[Register] Profile confirmed in DB: ${profileConfirmed}`);
+
     // 🔗 3. GUARANTEED REFERRAL RECORDING
-    if (referrerId && refCodeStr) {
+    if (referrerId && refCodeStr && profileConfirmed) {
       console.log(`[AUTH_REGISTER] 🚀 REFERRAL INSERT ATTEMPT: Referrer=${referrerId}, Referee=${profileId}, Code=${refCodeStr}`);
       
       // Primary attempt — full data
