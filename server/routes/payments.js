@@ -116,6 +116,29 @@ async function processReferralCommission(userId, planAmount, planType) {
 }
 
 /**
+ * @route   POST /api/payments/test-create-order
+ * @desc    Test Razorpay order creation (unprotected)
+ */
+router.post('/test-create-order', async (req, res) => {
+  try {
+    const rzp = getRazorpay();
+    if (!rzp) {
+      return res.status(500).json({ message: 'Payment gateway not configured', error: 'Missing Keys' });
+    }
+
+    const order = await rzp.orders.create({
+      amount: 6900,
+      currency: 'INR',
+      receipt: `receipt_test_${Date.now()}`
+    });
+    res.json(order);
+  } catch (error) {
+    console.error('Razorpay Test Order Error:', error);
+    res.status(500).json({ message: 'Failed to create payment order', error: error.message });
+  }
+});
+
+/**
  * @route   POST /api/payments/create-order
  * @desc    Create a Razorpay order
  * @access  Private
