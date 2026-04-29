@@ -180,7 +180,7 @@ router.post('/register', async (req, res) => {
 
     // 🔗 3. GUARANTEED REFERRAL RECORDING
     if (referrerId && refCodeStr) {
-      console.log(`[AUTH_REGISTER] Attempting to record referral for: ${refCodeStr}`);
+      console.log(`[AUTH_REGISTER] 🚀 REFERRAL INSERT ATTEMPT: Referrer=${referrerId}, Referee=${profileId}, Code=${refCodeStr}`);
       const { error: finalRefErr } = await supabase.from('referrals').upsert({
         referrer_id: referrerId,
         referred_user_id: profileId,
@@ -189,9 +189,9 @@ router.post('/register', async (req, res) => {
       }, { onConflict: 'referred_user_id' });
 
       if (finalRefErr) {
-          console.error('[AUTH_REGISTER] Final Referral Record Error:', finalRefErr.message);
+          console.error('[AUTH_REGISTER] ❌ DATABASE ERROR:', finalRefErr.message, finalRefErr.details);
       } else {
-          console.log('[AUTH_REGISTER] Referral successfully recorded in database! ✓');
+          console.log('[AUTH_REGISTER] ✅ REFERRAL SAVED SUCCESSFULLY ✓');
       }
     }
 
@@ -300,8 +300,8 @@ router.post('/login', async (req, res) => {
         browser_fingerprint: browserFingerprint
       }, { onConflict: 'user_id, device_id' });
     }
-      
-      // Check for account limit on this device
+
+    // Check for account limit on this device
       const { data: deviceUsers } = await supabase
         .from('user_devices')
         .select('user_id')

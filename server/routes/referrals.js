@@ -94,14 +94,20 @@ router.post('/sync', protect, async (req, res) => {
         }).eq('id', userId);
 
         // 4. Record in Referrals Table
-        await supabase.from('referrals').upsert({
+        console.log(`[REFERRAL_SYNC] 🚀 DB UPSERT ATTEMPT: Referrer=${referrerId}, Referee=${userId}, Code=${codeUpper}`);
+        const { error: finalRefErr } = await supabase.from('referrals').upsert({
             referrer_id: referrerId,
             referred_user_id: userId,
             referral_code: codeUpper,
             is_successful: false
         }, { onConflict: 'referred_user_id' });
 
-        console.log(`[REFERRAL_SYNC] Successfully synced ${codeUpper} for User ${userId} ✓`);
+        if (finalRefErr) {
+            console.error('[REFERRAL_SYNC] ❌ DATABASE ERROR:', finalRefErr.message, finalRefErr.details);
+            return res.status(500).json({ message: 'Database rejection', error: finalRefErr.message });
+        }
+
+        console.log(`[REFERRAL_SYNC] ✅ SYNC SUCCESSFUL for User ${userId} ✓`);
         res.json({ message: 'Referral synced successfully' });
 
     } catch (error) {
