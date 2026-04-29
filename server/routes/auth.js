@@ -290,15 +290,16 @@ router.post('/login', async (req, res) => {
     const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
     const browserFingerprint = req.headers['user-agent'];
 
-    if (deviceId) {
+    if (deviceId && authData?.user) {
       // Log this device session
-      await supabase.from('user_devices').insert({
-        user_id: profile.id,
+      await supabase.from('user_devices').upsert({
+        user_id: authData.user.id,
         device_id: deviceId,
         ip_address: ipAddress,
         browser_fingerprint: browserFingerprint
-      });
-
+      }, { onConflict: 'user_id, device_id' });
+    }
+      
       // Check for account limit on this device
       const { data: deviceUsers } = await supabase
         .from('user_devices')
