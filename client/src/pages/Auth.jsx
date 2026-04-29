@@ -8,9 +8,11 @@ import { Mail, Lock, User, Phone, BookOpen, ArrowRight, Eye, EyeOff, CheckCircle
 const Auth = ({ type }) => {
   const navigate = useNavigate();
   const { token } = useParams();
-  const { login, register, isloading, forgotPassword, resetPassword, isAuthenticated } = useAuthStore();
+  const { login, register, isloading, forgotPassword, resetPassword, isAuthenticated, resetLoading } = useAuthStore();
 
   React.useEffect(() => {
+    resetLoading(); // 🔓 CLEAR STUCK BUTTONS ON MOUNT
+    
     if (isAuthenticated && type !== 'Reset Password') {
       navigate('/dashboard');
     }

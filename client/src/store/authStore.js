@@ -12,6 +12,8 @@ export const useAuthStore = create(
       error: null,
       _hasHydrated: false,
 
+      resetLoading: () => set({ isloading: false, error: null }),
+
       setHasHydrated: (state) => {
         set({ _hasHydrated: state });
       },
