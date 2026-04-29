@@ -184,7 +184,7 @@ router.get('/referral-codes', protect, adminProtect, async (req, res) => {
 
         const enrichedCodes = codes.map(c => ({
             ...c,
-            owner: profiles?.find(p => p.id === c.owner_user_id) || { name: 'Unknown', email: 'N/A' }
+            owner: profiles?.find(p => p && p.id === c.owner_user_id) || { name: 'Unknown', email: 'N/A' }
         }));
 
         res.json(enrichedCodes);
@@ -274,11 +274,15 @@ router.get('/referrals', protect, adminProtect, async (req, res) => {
             .in('id', Array.from(userIds));
 
         // 4. Map profiles back to the referral data
-        const enrichedReferrals = referrals.map(ref => ({
-            ...ref,
-            referrer: profiles?.find(p => p.id === ref.referrer_id) || { name: 'Unknown', email: 'N/A' },
-            referee: profiles?.find(p => p.id === ref.referred_user_id) || { name: 'Student', email: 'N/A' }
-        }));
+        const enrichedReferrals = referrals.map(r => {
+            const referrer = profiles?.find(p => p && p.id === r.referrer_id);
+            const referee = profiles?.find(p => p && p.id === r.referred_user_id);
+            return {
+                ...r,
+                referrer: referrer || { name: 'Unknown', email: 'N/A' },
+                referee: referee || { name: 'Deleted User', email: 'N/A' }
+            };
+        });
 
         res.json(enrichedReferrals);
     } catch (err) {
@@ -317,8 +321,8 @@ router.get('/commissions', protect, adminProtect, async (req, res) => {
         // 4. Map profiles back
         const enrichedCommissions = commissions.map(comm => ({
             ...comm,
-            referrer: profiles?.find(p => p.id === comm.referrer_id) || { name: 'Unknown' },
-            referee: profiles?.find(p => p.id === comm.referred_user_id) || { name: 'Student' }
+            referrer: profiles?.find(p => p && p.id === comm.referrer_id) || { name: 'Unknown' },
+            referee: profiles?.find(p => p && p.id === comm.referred_user_id) || { name: 'Student' }
         }));
 
         res.json(enrichedCommissions);

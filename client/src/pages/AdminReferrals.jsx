@@ -175,8 +175,14 @@ const AdminReferrals = () => {
                                 <tbody className="divide-y divide-[var(--border)]">
                                     {commissions.map((comm) => (
                                         <tr key={comm.id} className="hover:bg-[var(--bg-light)] transition-colors text-sm">
-                                            <td className="px-6 py-4 font-bold">{comm.referrer?.name}</td>
-                                            <td className="px-6 py-4 text-[var(--text-secondary)]">{comm.referee?.name}</td>
+                                            <td className="px-6 py-4">
+                                                <div className="font-bold">{comm.referrer?.name || 'Unknown'}</div>
+                                                <div className="text-xs text-[var(--text-secondary)]">{comm.referrer?.email || 'N/A'}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="font-bold">{comm.referee?.name || 'Student'}</div>
+                                                <div className="text-xs text-[var(--text-secondary)]">{comm.referee?.email || 'N/A'}</div>
+                                            </td>
                                             <td className="px-6 py-4">
                                                 <div className="font-black text-accent-green">₹{comm.commission_amount}</div>
                                                 <div className="text-[10px] text-[var(--text-secondary)]">On ₹{comm.subscription_amount}</div>
