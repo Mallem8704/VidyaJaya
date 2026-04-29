@@ -149,12 +149,35 @@ router.post('/test-create-order', async (req, res) => {
   }
 });
 
+// GET version — open directly in browser to see Razorpay error
+router.get('/test-razorpay', async (req, res) => {
+  try {
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    if (!keyId || !keySecret) {
+      return res.json({ status: '❌ KEYS MISSING', keyId: keyId || 'NOT SET', keySecret: keySecret ? 'SET' : 'NOT SET' });
+    }
+    const rzp = new Razorpay({ key_id: keyId, key_secret: keySecret });
+    const order = await rzp.orders.create({ amount: 6900, currency: 'INR', receipt: `test_${Date.now()}` });
+    return res.json({ status: '✅ RAZORPAY WORKING', order_id: order.id, key_prefix: keyId.substring(0, 12) });
+  } catch (error) {
+    return res.json({ 
+      status: '❌ RAZORPAY FAILED',
+      key_prefix: process.env.RAZORPAY_KEY_ID?.substring(0, 12),
+      error_description: error.error?.description || error.message,
+      error_code: error.error?.code,
+      http_status: error.statusCode
+    });
+  }
+});
+
 /**
  * @route   POST /api/payments/create-order
  * @desc    Create a Razorpay order
  * @access  Private
  */
 router.post('/create-order', protect, async (req, res) => {
+
   const { planType } = req.body; // 'weekly' or 'monthly'
   
   let amount;
