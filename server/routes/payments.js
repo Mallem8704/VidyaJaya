@@ -121,9 +121,14 @@ async function processReferralCommission(userId, planAmount, planType) {
  */
 router.post('/test-create-order', async (req, res) => {
   try {
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    console.log('[PAYMENT_TEST] KEY_ID present:', !!keyId, '| First 8 chars:', keyId?.substring(0, 8));
+    console.log('[PAYMENT_TEST] KEY_SECRET present:', !!keySecret, '| Length:', keySecret?.length);
+
     const rzp = getRazorpay();
     if (!rzp) {
-      return res.status(500).json({ message: 'Payment gateway not configured', error: 'Missing Keys' });
+      return res.status(500).json({ status: '❌ KEYS MISSING', RAZORPAY_KEY_ID: keyId || 'NOT SET', RAZORPAY_KEY_SECRET: keySecret ? 'SET' : 'NOT SET' });
     }
 
     const order = await rzp.orders.create({
@@ -131,10 +136,16 @@ router.post('/test-create-order', async (req, res) => {
       currency: 'INR',
       receipt: `receipt_test_${Date.now()}`
     });
-    res.json(order);
+    res.json({ status: '✅ SUCCESS', order });
   } catch (error) {
-    console.error('Razorpay Test Order Error:', error);
-    res.status(500).json({ message: 'Failed to create payment order', error: error.message });
+    console.error('Razorpay Test Order Error:', JSON.stringify(error));
+    res.status(500).json({ 
+      status: '❌ RAZORPAY ERROR',
+      message: error.message,
+      error: error.error || error,
+      statusCode: error.statusCode,
+      description: error.error?.description
+    });
   }
 });
 
