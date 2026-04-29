@@ -201,7 +201,7 @@ router.post('/register', async (req, res) => {
 
     if (deviceId) {
       await supabase.from('user_devices').insert({
-        user_id: profile.id,
+        user_id: profileId,
         device_id: deviceId,
         ip_address: ipAddress,
         browser_fingerprint: browserFingerprint
@@ -218,12 +218,20 @@ router.post('/register', async (req, res) => {
         await supabase.from('profiles').update({ user_flagged: true }).in('id', Array.from(uniqueUsers));
       }
 
-      await supabase.from('profiles').update({ last_device_id: deviceId }).eq('id', profile.id);
+      await supabase.from('profiles').update({ last_device_id: deviceId }).eq('id', profileId);
     }
     
+    // 🛡️ ENSURE USER IS NEVER NULL
+    const finalUser = profile || {
+        id: profileId,
+        name: name,
+        email: email,
+        plan: 'free'
+    };
+
     res.status(201).json({
       message: 'Welcome to VidyaJaya!',
-      user: profile,
+      user: finalUser,
       token: authData.session?.access_token || null
     });
   } catch (error) {
