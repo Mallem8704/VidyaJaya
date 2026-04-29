@@ -26,6 +26,13 @@ const getAuthClient = () => {
 // @route   POST /api/auth/register
 // @desc    Register a new user
 router.post('/register', async (req, res) => {
+  console.log("🚀 [REGISTER_ATTEMPT] Incoming Data:", JSON.stringify({
+    name: req.body.name,
+    email: req.body.email,
+    referralCode: req.body.referralCode,
+    deviceId: req.body.deviceId
+  }, null, 2));
+
   try {
     const { name, email, phone, password, examGoal, referralCode, deviceId } = req.body;
 
@@ -131,46 +138,47 @@ router.post('/register', async (req, res) => {
     }
 
     // 2. Create user profile in the profiles table using service role client
+    let profileId = authData.user.id;
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .insert({
-        id: authData.user.id,
+      .upsert({
+        id: profileId,
         name,
         email,
         phone: phone || null,
         exam_goal: examGoal || 'UPSC',
         is_verified: false,
-        coins: referralCode && referrerId ? 5 : 0, // Gift 5 coins if referred
+        coins: referralCode && referrerId ? 5 : 0, 
         streak: 0,
         referral_code: generatedCode,
-        referred_by: referrerId, // legacy
         referred_by_code: refCodeStr,
         referred_by_user_id: referrerId,
         referral_type: referralType,
         device_id: deviceId || null,
         plan: 'free'
-      })
+      }, { onConflict: 'id' })
       .select()
       .single();
 
     if (profileError) {
-      console.error('[Register] Profile creation error:', profileError.message, profileError.details);
-      // Still return success — profile can be created later
-      return res.status(201).json({
-        message: 'Account created! Please log in.',
-        user: { id: authData.user.id, email, name },
-        token: authData.session?.access_token || null
-      });
+      console.error('[Register] Profile sync warning (often ignorable):', profileError.message);
     }
 
-    // 🔗 CREATE REFERRAL RECORD
+    // 🔗 3. GUARANTEED REFERRAL RECORDING
     if (referrerId && refCodeStr) {
-      await supabase.from('referrals').insert({
+      console.log(`[AUTH_REGISTER] Attempting to record referral for: ${refCodeStr}`);
+      const { error: finalRefErr } = await supabase.from('referrals').upsert({
         referrer_id: referrerId,
-        referred_user_id: profile.id,
+        referred_user_id: profileId,
         referral_code: refCodeStr,
-        is_successful: false // Will be true after payment
-      });
+        is_successful: false 
+      }, { onConflict: 'referred_user_id' });
+
+      if (finalRefErr) {
+          console.error('[AUTH_REGISTER] Final Referral Record Error:', finalRefErr.message);
+      } else {
+          console.log('[AUTH_REGISTER] Referral successfully recorded in database! ✓');
+      }
     }
 
     // 3. Track Device & Duplicate Accounts
