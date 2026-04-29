@@ -59,7 +59,7 @@ const AdminRoute = ({ children }) => {
 
 function App() {
   const { theme } = useAppStore();
-  const { loadUser, token, setAuth, _hasHydrated } = useAuthStore();
+  const { loadUser, token, setAuth, _hasHydrated, isAuthenticated, user } = useAuthStore();
 
   useEffect(() => {
     // 🔗 GLOBAL REFERRAL CAPTURE
