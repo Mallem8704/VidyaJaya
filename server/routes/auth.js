@@ -56,26 +56,40 @@ router.post('/register', async (req, res) => {
       }
     }
 
-    // 1. Get shared auth client (throws if env vars missing)
+    // 1. Sign up or Recover existing user
     const authClient = getAuthClient();
+    let authData, authError;
 
-    const { data: authData, error: authError } = await authClient.auth.signUp({
-      email,
-      password,
-      options: { data: { name, phone } }
-    });
-
-    if (authError) {
-      console.error('[Register] Supabase auth error:', authError.message);
-      // Map Supabase errors to user-friendly messages
-      if (authError.message.includes('already registered') || authError.message.includes('User already')) {
-        return res.status(400).json({ message: 'An account with this email already exists. Please log in.' });
-      }
-      return res.status(400).json({ message: authError.message });
+    try {
+        const result = await authClient.auth.signUp({
+            email,
+            password,
+            options: { data: { name, phone } }
+        });
+        authData = result.data;
+        authError = result.error;
+    } catch (e) {
+        console.error('[Register] Critical Auth Exception:', e);
     }
 
-    if (!authData.user) {
-      return res.status(400).json({ message: 'Registration failed. Please try again.' });
+    let profileId = authData?.user?.id;
+
+    if (authError) {
+        // Handle "Already Registered" cases
+        if (authError.message.includes('already registered') || authError.status === 422) {
+            console.log('[Register] User exists, recovering ID...');
+            const { data: users } = await authClient.auth.admin.listUsers();
+            profileId = users.users.find(u => u.email === email)?.id;
+        }
+        
+        if (!profileId) {
+            console.error('[Register] Auth Error:', authError.message);
+            return res.status(400).json({ message: authError.message });
+        }
+    }
+
+    if (!profileId) {
+        return res.status(400).json({ message: 'Could not establish user identity. Please try a different email.' });
     }
 
     // Generate unique referral code
@@ -138,7 +152,6 @@ router.post('/register', async (req, res) => {
     }
 
     // 2. Create user profile in the profiles table using service role client
-    let profileId = authData.user.id;
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .upsert({
