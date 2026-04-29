@@ -135,7 +135,7 @@ router.post('/register', async (req, res) => {
       }
     }
 
-    // 🛡️ FRAUD PREVENTION: Same Device Check
+    /* 🛡️ TEMPORARILY DISABLED FOR TESTING
     if (referrerId && deviceId) {
         const { data: sameDeviceCheck } = await supabase
             .from('user_devices')
@@ -150,6 +150,7 @@ router.post('/register', async (req, res) => {
             referralType = null;
         }
     }
+    */
 
     // 2. Create user profile in the profiles table using service role client
     const { data: profile, error: profileError } = await supabase
