@@ -302,6 +302,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Check for account limit on this device
+    if (deviceId) {
       const { data: deviceUsers } = await supabase
         .from('user_devices')
         .select('user_id')
