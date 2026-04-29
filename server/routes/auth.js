@@ -198,15 +198,30 @@ router.post('/register', async (req, res) => {
     // 🔗 3. GUARANTEED REFERRAL RECORDING
     if (referrerId && refCodeStr) {
       console.log(`[AUTH_REGISTER] 🚀 REFERRAL INSERT ATTEMPT: Referrer=${referrerId}, Referee=${profileId}, Code=${refCodeStr}`);
+      
+      // Primary attempt — full data
       const { error: finalRefErr } = await supabase.from('referrals').upsert({
         referrer_id: referrerId,
         referred_user_id: profileId,
         referral_code: refCodeStr,
-        is_successful: false 
+        is_successful: false
       }, { onConflict: 'referred_user_id' });
 
       if (finalRefErr) {
-          console.error('[AUTH_REGISTER] ❌ DATABASE ERROR:', finalRefErr.message, finalRefErr.details);
+          console.error('[AUTH_REGISTER] ❌ PRIMARY INSERT FAILED:', JSON.stringify(finalRefErr));
+          
+          // Fallback attempt — minimal columns in case schema is partial
+          const { error: fallbackErr } = await supabase.from('referrals').upsert({
+            referrer_id: referrerId,
+            referred_user_id: profileId
+          }, { onConflict: 'referred_user_id' });
+          
+          if (fallbackErr) {
+            console.error('[AUTH_REGISTER] ❌ FALLBACK INSERT ALSO FAILED:', JSON.stringify(fallbackErr));
+            console.error('[AUTH_REGISTER] 🚨 ACTION REQUIRED: Run FINAL_REFERRAL_FIX.sql in Supabase SQL Editor');
+          } else {
+            console.log('[AUTH_REGISTER] ✅ REFERRAL SAVED (minimal columns) ✓');
+          }
       } else {
           console.log('[AUTH_REGISTER] ✅ REFERRAL SAVED SUCCESSFULLY ✓');
       }
