@@ -106,6 +106,28 @@ function App() {
     }
   }, []);
 
+  // 🔗 AUTOMATIC REFERRAL SYNC (For Google Login Users)
+  React.useEffect(() => {
+    const syncReferral = async () => {
+      const storedCode = localStorage.getItem('vidyajaya_ref_code');
+      if (isAuthenticated && user && !user.referred_by_code && storedCode) {
+          try {
+              console.log(`[SYNC] Attaching referral ${storedCode} to Google account...`);
+              await axios.post('/api/referrals/sync', { referralCode: storedCode });
+              // Clear code so we don't sync again
+              localStorage.removeItem('vidyajaya_ref_code');
+              console.log('[SYNC] Referral attached successfully ✓');
+          } catch (err) {
+              console.error('[SYNC] Failed to attach referral:', err.response?.data?.message);
+          }
+      }
+    };
+
+    if (isAuthenticated && user) {
+      syncReferral();
+    }
+  }, [isAuthenticated, user]);
+
   if (!_hasHydrated) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[var(--bg-light)]">

@@ -128,8 +128,14 @@ export const useAuthStore = create(
 
       loginWithGoogle: async () => {
         try {
-          const { data, error } = await axios.post('/api/auth/google-url');
-          if (error) throw error;
+          const referralCode = localStorage.getItem('vidyajaya_ref_code');
+          const deviceId = localStorage.getItem('vidyajaya_device_id');
+          
+          const { data } = await axios.post('/api/auth/google-url', { 
+            referralCode,
+            deviceId 
+          });
+          
           if (data.url) {
             window.location.href = data.url;
           }
