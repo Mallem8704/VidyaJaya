@@ -23,6 +23,23 @@ const getAuthClient = () => {
   });
 };
 
+// 🧪 TEMPORARY DB TEST ROUTE
+router.get('/test-db', async (req, res) => {
+    try {
+        const { data, error } = await supabase.from('profiles').upsert({
+            id: '00000000-0000-0000-0000-000000000000',
+            name: 'DB_TEST_USER',
+            email: 'test@vidyajaya.in',
+            referral_code: 'TEST_REF_OK'
+        }).select();
+        
+        if (error) return res.status(500).json({ status: '❌ DATABASE ERROR', error });
+        return res.json({ status: '✅ DATABASE CONNECTED & WRITING OK', data });
+    } catch (err) {
+        return res.status(500).json({ status: '🔥 SERVER CRASH', message: err.message });
+    }
+});
+
 // @route   POST /api/auth/register
 // @desc    Register a new user
 router.post('/register', async (req, res) => {
