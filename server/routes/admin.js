@@ -78,6 +78,58 @@ router.post('/tests/create-ai-test', protect, adminProtect, async (req, res) => 
 });
 
 /**
+ * @route   GET /api/admin/tests
+ * @desc    Get all tests
+ */
+router.get('/tests', protect, adminProtect, async (req, res) => {
+    try {
+        const { data: tests, error } = await supabase
+            .from('tests')
+            .select('*')
+            .order('created_at', { ascending: false });
+        if (error) throw error;
+        res.json(tests);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch tests' });
+    }
+});
+
+/**
+ * @route   DELETE /api/admin/tests/:id
+ * @desc    Delete a test
+ */
+router.delete('/tests/:id', protect, adminProtect, async (req, res) => {
+    try {
+        const { error } = await supabase
+            .from('tests')
+            .delete()
+            .eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ message: 'Test deleted successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to delete test' });
+    }
+});
+
+/**
+ * @route   PUT /api/admin/tests/:id
+ * @desc    Update test metadata
+ */
+router.put('/tests/:id', protect, adminProtect, async (req, res) => {
+    const { title, category, is_premium } = req.body;
+    try {
+        const { error } = await supabase
+            .from('tests')
+            .update({ title, category, is_premium })
+            .eq('id', req.params.id);
+        if (error) throw error;
+        res.json({ message: 'Test updated successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to update test' });
+    }
+});
+
+/**
  * @route   GET /api/admin/stats
  * @desc    Get high-level platform statistics
  */
