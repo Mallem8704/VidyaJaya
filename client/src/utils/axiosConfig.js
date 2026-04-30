@@ -1,10 +1,15 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
-// Set dynamic base URL for production vs local
-const BACKEND_URL = import.meta.env.VITE_API_URL || ((import.meta.env.DEV || window.location.hostname === 'localhost')
+// Clean up VITE_API_URL to ensure no trailing slash or /api
+let envUrl = import.meta.env.VITE_API_URL || '';
+if (envUrl.endsWith('/')) envUrl = envUrl.slice(0, -1);
+if (envUrl.endsWith('/api')) envUrl = envUrl.slice(0, -4);
+
+const BACKEND_URL = envUrl || ((import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://localhost:3000' 
     : 'https://vidyajaya.onrender.com');
+
 axios.defaults.baseURL = BACKEND_URL;
 
 // Set up interceptor to append Token to outgoing requests
