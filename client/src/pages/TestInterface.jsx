@@ -24,9 +24,71 @@ const TestInterface = () => {
   const [submitting, setSubmitting] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
   const [finalResultId, setFinalResultId] = useState(null);
+  const [warningCount, setWarningCount] = useState(0);
 
   const qStartTimeRef = useRef(null);
   const totalStartTimeRef = useRef(null);
+
+  // --- PROCTORING: TAB PROTECTION ---
+  useEffect(() => {
+    if (!testStarted || finished) return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setWarningCount(prev => {
+          const next = prev + 1;
+          if (next >= 3) {
+            toast.error("⚠️ Multiple tab switches detected. Auto-submitting test!");
+            handleSubmit();
+          } else {
+            toast.error(`⚠️ Warning (${next}/3): Please do not leave the test screen.`);
+          }
+          return next;
+        });
+      }
+    };
+
+    const handleBlur = () => {
+      // Small timeout to allow for system alerts without triggering warning
+      setTimeout(() => {
+        if (!document.hasFocus() && testStarted && !finished) {
+          handleVisibilityChange();
+        }
+      }, 500);
+    };
+
+    const preventAbuse = (e) => {
+      if (testStarted) {
+        e.preventDefault();
+        toast.error("Content copying is disabled during the test.");
+      }
+    };
+
+    const preventKeys = (e) => {
+      // Prevent Ctrl+C, Ctrl+V, Ctrl+U, F12
+      if (
+        (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'u')) || 
+        e.key === 'F12'
+      ) {
+        e.preventDefault();
+        toast.error("Shortcut disabled for security.");
+      }
+    };
+
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('contextmenu', preventAbuse);
+    window.addEventListener('copy', preventAbuse);
+    window.addEventListener('keydown', preventKeys);
+
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('contextmenu', preventAbuse);
+      window.removeEventListener('copy', preventAbuse);
+      window.removeEventListener('keydown', preventKeys);
+    };
+  }, [testStarted, finished]);
 
   // --- AUTH CHECK ---
   useEffect(() => {
@@ -71,19 +133,22 @@ const TestInterface = () => {
   // --- ACTIONS ---
   const handleStart = async () => {
     try {
-      // Check for Pro/Free daily limits via backend
-      // (Backend /api/submissions route already does this, but we can do a soft check here)
-      const isPro = user?.plan === 'pro' || user?.plan === 'premium';
+      // Fullscreen enforcement
+      if (document.documentElement.requestFullscreen) {
+        await document.documentElement.requestFullscreen();
+      }
       
       setTestStarted(true);
       setCurrentIdx(0);
       setScore(0);
+      setWarningCount(0);
       setAnswers([]);
       setTimeLeft(15);
       totalStartTimeRef.current = Date.now();
       qStartTimeRef.current = Date.now();
     } catch (err) {
-      toast.error("Failed to initialize test.");
+      toast.error("Test requires Fullscreen mode to ensure integrity.");
+      console.error(err);
     }
   };
 
@@ -142,6 +207,11 @@ const TestInterface = () => {
     setSubmitting(true);
     setTestStarted(false);
     
+    // Exit fullscreen if active
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+    
     try {
       const res = await axios.post('/api/submissions', {
         testId: id,
@@ -175,21 +245,27 @@ const TestInterface = () => {
       <div className="min-h-screen bg-[var(--bg-light)] flex items-center justify-center p-6">
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="card max-w-md w-full p-10 text-center shadow-2xl">
           <div className="w-24 h-24 bg-orange-100 dark:bg-orange-900/30 rounded-3xl flex items-center justify-center mx-auto mb-8">
-            <Zap className="text-orange-500" size={48} />
+            <ShieldAlert className="text-orange-500" size={48} />
           </div>
           <h1 className="text-3xl font-black mb-4">{testData?.title || 'Daily Mock Test'}</h1>
           <p className="text-[var(--text-secondary)] mb-8">
-            {questions.length} Questions • {testData?.duration || 15} mins • High Precision Scoring
+            {questions.length} Questions • Integrity Protection Active
           </p>
           
-          <div className="bg-[var(--bg-card)] rounded-2xl p-4 mb-8 border border-[var(--border)] text-left space-y-2 text-sm">
-            <div className="flex justify-between"><span>Base Correct</span><span className="font-bold text-green-500">+10 XP</span></div>
-            <div className="flex justify-between"><span>Speed Bonus ({"<"} 5s)</span><span className="font-bold text-blue-500">+5 XP</span></div>
-            <div className="flex justify-between"><span>Skip / Timeout</span><span className="font-bold text-red-500">-2 XP</span></div>
+          <div className="bg-rose-50 dark:bg-rose-900/10 rounded-2xl p-6 mb-8 border border-rose-200 dark:border-rose-900/50 text-left space-y-3">
+            <h4 className="font-bold text-rose-700 dark:text-rose-400 text-sm flex items-center gap-2">
+              <ShieldAlert size={16} /> Anti-Cheat Rules:
+            </h4>
+            <ul className="text-xs text-rose-600 dark:text-rose-500 list-disc pl-4 space-y-1">
+              <li>Test will run in **Full Screen** mode.</li>
+              <li>Switching tabs or minimizing window will trigger a warning.</li>
+              <li>3 Warnings will lead to **Automatic Submission**.</li>
+              <li>Right-click and Copy-Paste are disabled.</li>
+            </ul>
           </div>
 
           <button onClick={handleStart} className="btn btn-primary w-full py-4 text-lg font-black shadow-lg">
-            START BATTLE
+            ENTER SECURE MODE
           </button>
         </motion.div>
       </div>
@@ -199,7 +275,7 @@ const TestInterface = () => {
   if (testStarted) {
     const q = questions[currentIdx];
     return (
-      <div className="min-h-screen bg-[var(--bg-light)] flex flex-col">
+      <div className="min-h-screen bg-[var(--bg-light)] flex flex-col select-none">
         <header className="h-20 bg-[var(--bg-card)] border-b border-[var(--border)] px-8 flex items-center justify-between sticky top-0 z-30 shadow-sm">
           <div className="flex items-center gap-4">
             <div className="text-xs font-black uppercase tracking-widest text-[var(--text-secondary)]">Question</div>
