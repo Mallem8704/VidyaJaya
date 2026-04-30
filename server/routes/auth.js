@@ -3,6 +3,7 @@ const router = express.Router();
 const { createClient } = require('@supabase/supabase-js');
 const supabase = require('../config/supabase');
 const { protect } = require('../middleware/authMiddleware');
+const { sendEmail, emailTemplates } = require('../utils/email');
 
 // ── Validate required env vars once at startup ──────────────────────────────
 if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
@@ -291,6 +292,12 @@ router.post('/register', async (req, res) => {
         plan: 'free'
     };
 
+    // Send Welcome Email (Non-blocking)
+    sendEmail({
+      email: email,
+      ...emailTemplates.welcome(name)
+    }).catch(err => console.error('[Auth] Welcome email failed:', err));
+
     res.status(201).json({
       message: 'Welcome to VidyaJaya!',
       user: finalUser,
@@ -306,13 +313,28 @@ router.post('/register', async (req, res) => {
 // @desc    Authenticate user & get token
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, phone, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Please provide email and password.' });
+    if ((!email && !phone) || !password) {
+      return res.status(400).json({ message: 'Please provide email/phone and password.' });
     }
 
-    // Get shared auth client (throws if env vars missing with a clear message)
+    // 1. Resolve email from phone if needed
+    if (!email && phone) {
+      console.log(`[Login] Attempting phone-to-email resolution for: ${phone}`);
+      const { data: profileByPhone, error: phoneErr } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('phone', phone)
+        .single();
+      
+      if (phoneErr || !profileByPhone) {
+        return res.status(401).json({ message: 'No account found with this phone number.' });
+      }
+      email = profileByPhone.email;
+    }
+
+    // Get shared auth client
     const authClient = getAuthClient();
 
     const { data: authData, error: authError } = await authClient.auth.signInWithPassword({

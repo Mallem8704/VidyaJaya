@@ -41,6 +41,8 @@ import AdminTestCreation from './pages/AdminTestCreation';
 import WhatIsVidyajaya from './pages/articles/WhatIsVidyajaya';
 import HowVidyajayaHelps from './pages/articles/HowVidyajayaHelps';
 import WhyVidyajayaIsBest from './pages/articles/WhyVidyajayaIsBest';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 
 import ProRoute from './components/ProRoute';
 import AdminLayout from './components/AdminLayout';
@@ -158,6 +160,8 @@ function App() {
         <Route path="/what-is-vidyajaya" element={<WhatIsVidyajaya />} />
         <Route path="/how-it-helps-students" element={<HowVidyajayaHelps />} />
         <Route path="/why-vidyajaya-is-best" element={<WhyVidyajayaIsBest />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsOfService />} />
 
         {/* Admin Routes (Separate from standard User Layout) */}
         <Route path="/admin/login" element={<AdminLogin />} />

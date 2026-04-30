@@ -18,7 +18,7 @@ export const useAuthStore = create(
         set({ _hasHydrated: state });
       },
 
-      login: async (email, password) => {
+      login: async (identifier, password) => {
         set({ isloading: true, error: null });
         try {
           // Device tracking
@@ -28,7 +28,15 @@ export const useAuthStore = create(
             localStorage.setItem('vidyajaya_device_id', deviceId);
           }
 
-          const response = await axios.post('/api/auth/login', { email, password, deviceId });
+          // Determine if identifier is email or phone
+          const isEmail = identifier.includes('@');
+          const payload = {
+            [isEmail ? 'email' : 'phone']: identifier,
+            password,
+            deviceId
+          };
+
+          const response = await axios.post('/api/auth/login', payload);
           const { user, token } = response.data;
           set({ 
             user, 

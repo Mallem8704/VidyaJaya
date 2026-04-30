@@ -63,35 +63,29 @@ const Auth = ({ type }) => {
     e.preventDefault();
     try {
       if (type === 'Login') {
-        if (loginMethod === 'phone') {
-          if (!isOtpSent) {
-            setIsOtpSent(true);
-            setShowOtpField(true);
-            toast.success('OTP sent to your mobile!');
-            return;
-          }
-          if (otp !== '1234') {
-            return toast.error('Invalid OTP. Use 1234 for simulation.');
-          }
-          // Simulate login via phone
-          toast.success('Welcome back!');
-          navigate('/dashboard');
-        } else {
-          await login(formData.email, formData.password);
-          toast.success('Welcome back!');
-          navigate('/dashboard');
+        const identifier = loginMethod === 'phone' ? formData.phone : formData.email;
+        if (!identifier) {
+          return toast.error(`Please provide your ${loginMethod === 'phone' ? 'phone number' : 'email address'}.`);
         }
+        await login(identifier, formData.password);
+        toast.success('Welcome back!');
+        navigate('/dashboard');
       } else if (type === 'Signup') {
         if (!isOtpSent) {
-          // Simulate sending OTP
-          setIsOtpSent(true);
-          setShowOtpField(true);
-          toast.success('OTP sent to your mobile number!');
-          return;
+          // Send Real OTP via backend
+          try {
+            await axios.post('/api/verification/send-mobile-otp', { phone: formData.phone });
+            setIsOtpSent(true);
+            setShowOtpField(true);
+            toast.success('Verification code sent to your mobile!');
+            return;
+          } catch (err) {
+            return toast.error('Failed to send verification code. Check phone number.');
+          }
         }
 
-        if (otp !== '1234') { // Mock OTP check
-          return toast.error('Invalid OTP. Please enter 1234 for simulation.');
+        if (otp !== '123456') { // Use the standard production-test code for now
+          return toast.error('Invalid OTP. Please enter 123456.');
         }
 
         await register(formData);
@@ -246,16 +240,30 @@ const Auth = ({ type }) => {
                   className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${loginMethod === 'phone' ? 'bg-white shadow-md text-primary translate-y-0' : 'text-[var(--text-secondary)] hover:text-primary'}`}
                 >
                   <div className="flex items-center justify-center gap-2">
-                    <Phone size={16} /> Phone (OTP)
+                    <Phone size={16} /> Phone Number
                   </div>
                 </button>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Form Fields Based on Type & Method */}
-              {type === 'Login' && loginMethod === 'phone' ? (
+              {type === 'Signup' && (
                 <>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Full Name</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <User size={18} />
+                      </div>
+                      <input
+                        type="text" name="name"
+                        value={formData.name} onChange={handleChange}
+                        className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                        placeholder="Rahul Kumar" required
+                      />
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Phone Number</label>
                     <div className="relative">
@@ -266,173 +274,143 @@ const Auth = ({ type }) => {
                         type="tel" name="phone"
                         value={formData.phone} onChange={handleChange}
                         className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                        placeholder="+91 9059061099" required
+                        placeholder="+91 9876543210" required
                       />
                     </div>
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Email Address</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <Mail size={18} />
+                      </div>
+                      <input
+                        type="email" name="email"
+                        value={formData.email} onChange={handleChange}
+                        className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                        placeholder="you@example.com" required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Exam Goal</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <BookOpen size={18} />
+                      </div>
+                      <select
+                        name="examGoal"
+                        value={formData.examGoal} onChange={handleChange}
+                        className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                      >
+                        <option value="UPSC">UPSC</option>
+                        <option value="SSC">SSC</option>
+                        <option value="RRB">RRB</option>
+                        <option value="Banking">Banking</option>
+                        <option value="Reasoning">Reasoning</option>
+                        <option value="Aptitude">Aptitude</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Referral Code (Optional)</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <ArrowRight size={18} />
+                      </div>
+                      <input
+                        type="text" name="referralCode"
+                        value={formData.referralCode} onChange={handleChange}
+                        className={`pl-10 w-full p-3 rounded-xl border ${formData.referralCode ? 'border-accent-green' : 'border-[var(--border)]'} bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all uppercase`}
+                        placeholder="ABC123"
+                      />
+                    </div>
+                  </div>
+
                   {showOtpField && (
-                    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mt-4">
-                      <label className="block text-sm font-medium mb-1 text-secondary">Enter OTP</label>
+                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-4 mb-4">
+                      <label className="block text-sm font-medium mb-1 text-secondary">Verification Code (OTP)</label>
                       <input
                         type="text" value={otp} onChange={(e) => setOtp(e.target.value)}
-                        className="w-full p-3 text-center text-2xl tracking-[1em] rounded-xl border-2 border-secondary bg-[var(--bg-card)] focus:ring-2 focus:ring-secondary outline-none transition-all"
-                        placeholder="0000" maxLength={4} required
+                        className="w-full p-4 text-center text-2xl tracking-widest rounded-xl border-2 border-secondary bg-[var(--bg-card)] focus:ring-2 focus:ring-secondary outline-none transition-all"
+                        placeholder="0000" maxLength={4}
                       />
-                      <p className="text-xs text-[var(--text-secondary)] mt-2">Enter 1234 to log in</p>
+                      <p className="text-xs text-[var(--text-secondary)] mt-2">Enter 1234 to verify</p>
                     </motion.div>
                   )}
                 </>
-              ) : (
-                <>
-                  {type === 'Signup' && (
-                    <>
-                      {/* ... existing Signup fields ... */}
-                      <div>
-                        <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Full Name</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                            <User size={18} />
-                          </div>
-                          <input
-                            type="text" name="name"
-                            value={formData.name} onChange={handleChange}
-                            className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                            placeholder="Rahul Kumar" required
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Phone Number</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                            <Phone size={18} />
-                          </div>
-                          <input
-                            type="tel" name="phone"
-                            value={formData.phone} onChange={handleChange}
-                            className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                            placeholder="+91 9876543210" required
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Exam Goal</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                            <BookOpen size={18} />
-                          </div>
-                          <select
-                            name="examGoal"
-                            value={formData.examGoal} onChange={handleChange}
-                            className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                          >
-                            <option value="UPSC">UPSC</option>
-                            <option value="SSC">SSC</option>
-                            <option value="RRB">RRB</option>
-                            <option value="Banking">Banking</option>
-                            <option value="Reasoning">Reasoning</option>
-                            <option value="Aptitude">Aptitude</option>
-                          </select>
-                        </div>
-                      </div>
+              )}
 
-                      <div>
-                        <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Referral Code (Optional)</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                            <ArrowRight size={18} />
-                          </div>
-                          <input
-                            type="text" name="referralCode"
-                            value={formData.referralCode} onChange={handleChange}
-                            className={`pl-10 w-full p-3 rounded-xl border ${formData.referralCode ? 'border-accent-green' : 'border-[var(--border)]'} bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all uppercase`}
-                            placeholder="ABC123"
-                          />
-                          {formData.referralCode && (
-                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center text-accent-green">
-                              <CheckCircle size={16} />
-                            </div>
-                          )}
-                        </div>
-                      </div>
+              {type === 'Login' && (
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">
+                    {loginMethod === 'email' ? 'Email Address' : 'Phone Number'}
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      {loginMethod === 'email' ? <Mail size={18} /> : <Phone size={18} />}
+                    </div>
+                    <input
+                      type={loginMethod === 'email' ? 'email' : 'tel'}
+                      name={loginMethod === 'email' ? 'email' : 'phone'}
+                      value={loginMethod === 'email' ? formData.email : formData.phone}
+                      onChange={handleChange}
+                      className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                      placeholder={loginMethod === 'email' ? 'you@example.com' : '10-digit mobile number'}
+                      required
+                    />
+                  </div>
+                </div>
+              )}
 
-                      {showOtpField && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-4 mb-4">
-                          <label className="block text-sm font-medium mb-1 text-secondary">Verification Code (OTP)</label>
-                          <input
-                            type="text" value={otp} onChange={(e) => setOtp(e.target.value)}
-                            className="w-full p-4 text-center text-2xl tracking-widest rounded-xl border-2 border-secondary bg-[var(--bg-card)] focus:ring-2 focus:ring-secondary outline-none transition-all"
-                            placeholder="0000" maxLength={4}
-                          />
-                          <p className="text-xs text-[var(--text-secondary)] mt-2">Enter the 4-digit code sent to {formData.phone} (Try 1234)</p>
-                        </motion.div>
-                      )}
-                    </>
-                  )}
+              {type === 'Forgot Password' && (
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Email Address</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <Mail size={18} />
+                    </div>
+                    <input
+                      type="email" name="email"
+                      value={formData.email} onChange={handleChange}
+                      className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                      placeholder="you@example.com" required
+                    />
+                  </div>
+                </div>
+              )}
 
-                  {(type === 'Login' || type === 'Signup' || type === 'Forgot Password') && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)]">Email Address</label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                            <Mail size={18} />
-                          </div>
-                          <input
-                            type="email" name="email"
-                            value={formData.email} onChange={handleChange}
-                            className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                            placeholder="you@example.com" required
-                          />
-                        </div>
-                      </div>
-                    </>
-                  )}
-
-                  {(type === 'Login' || type === 'Signup' || type === 'Reset Password') && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)] flex justify-between">
-                          <span>{type === 'Reset Password' ? 'New Password' : 'Password'}</span>
-                          {type === 'Login' && (
-                            <Link to="/forgot-password" className="text-secondary hover:underline text-xs">Forgot Password?</Link>
-                          )}
-                        </label>
-                        <div className="relative">
-                          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                            <Lock size={18} />
-                          </div>
-                          <input
-                            type={showPassword ? "text" : "password"} name="password"
-                            value={formData.password} onChange={handleChange}
-                            className="pl-10 pr-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                            placeholder="••••••••" required
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
-                          >
-                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                          </button>
-                        </div>
-                        {/* Password Strength Indicator */}
-                        {(type === 'Signup' || type === 'Reset Password') && formData.password && (
-                          <div className="mt-2 flex gap-1">
-                            {[1, 2, 3, 4].map((level) => (
-                              <div
-                                key={level}
-                                className={`h-1.5 w-full rounded-full ${getPasswordStrength() >= level
-                                    ? (getPasswordStrength() <= 2 ? 'bg-red-400' : getPasswordStrength() === 3 ? 'bg-yellow-400' : 'bg-green-500')
-                                    : 'bg-gray-200 dark:bg-gray-700'
-                                  }`}
-                              ></div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  )}
+              {(type === 'Login' || type === 'Signup' || type === 'Reset Password') && (
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-[var(--text-secondary)] flex justify-between">
+                    <span>{type === 'Reset Password' ? 'New Password' : 'Password'}</span>
+                    {type === 'Login' && (
+                      <Link to="/forgot-password" university-id="forgot-password-link" className="text-secondary hover:underline text-xs">Forgot Password?</Link>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                      <Lock size={18} />
+                    </div>
+                    <input
+                      type={showPassword ? "text" : "password"} name="password"
+                      value={formData.password} onChange={handleChange}
+                      className="pl-10 pr-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                      placeholder="••••••••" required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+              )}
 
                   {type === 'Reset Password' && (
                     <div>

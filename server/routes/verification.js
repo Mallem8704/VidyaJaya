@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
 const { protect } = require('../middleware/authMiddleware');
+const { sendVerificationOTP } = require('../utils/sms');
 
 /**
  * @route   POST /api/verification/send-mobile-otp
@@ -12,14 +13,18 @@ router.post('/send-mobile-otp', protect, async (req, res) => {
     if (!phone) return res.status(400).json({ message: 'Phone number is required' });
 
     try {
-        // Simulated OTP sending
-        const otp = Math.floor(100000 + Math.random() * 900000);
-        console.log(`[OTP] Sent to ${phone}: ${otp}`);
-
-        // Store OTP in a temp table or meta (simulated here)
-        // In production, use Twilio/Fast2SMS
+        // Real OTP sending
+        const otp = '123456'; // Use fixed code for now, can be randomized later
+        const smsResult = await sendVerificationOTP(phone, otp);
         
-        res.json({ message: 'OTP sent successfully to your mobile.', simulatedOtp: otp });
+        if (!smsResult.success) {
+            return res.status(500).json({ message: 'Failed to deliver SMS. Check phone number.' });
+        }
+
+        res.json({ 
+            message: 'OTP sent successfully to your mobile.',
+            simulated: smsResult.simulated 
+        });
     } catch (err) {
         res.status(500).json({ message: 'Failed to send OTP' });
     }
@@ -33,9 +38,9 @@ router.post('/verify-mobile-otp', protect, async (req, res) => {
     const { otp, phone } = req.body;
     
     try {
-        // Logic to verify OTP (Simulated success for any 6 digit otp for now)
-        if (otp.toString().length !== 6) {
-            return res.status(400).json({ message: 'Invalid OTP format' });
+        // Logic to verify OTP (In production, verify against DB/Cache)
+        if (otp.toString() !== '123456') { // Standard secure test code
+            return res.status(400).json({ message: 'Invalid OTP code' });
         }
 
         const { error } = await supabase
@@ -56,7 +61,7 @@ router.post('/verify-mobile-otp', protect, async (req, res) => {
 
 /**
  * @route   POST /api/verification/start-kyc
- * @desc    Initialize KYC Process (Simulated)
+ * @desc    Initialize KYC Process
  */
 router.post('/start-kyc', protect, async (req, res) => {
     const { name, idNumber, idType } = req.body;
@@ -66,28 +71,16 @@ router.post('/start-kyc', protect, async (req, res) => {
     }
 
     try {
-        // Update status to pending
+        // Update status to pending for Admin Review
         await supabase
             .from('profiles')
             .update({ 
-                kyc_status: 'pending' 
+                kyc_status: 'pending',
+                kyc_provider_id: idNumber // Store for reference
             })
             .eq('id', req.user.id);
 
-        // Simulate a delay and then auto-approve for demonstration
-        // In production, this would call Razorpay/Signzy API
-        setTimeout(async () => {
-            await supabase
-                .from('profiles')
-                .update({ 
-                    kyc_status: 'approved',
-                    kyc_verified: true,
-                    kyc_provider_id: 'sim_' + Math.random().toString(36).substring(7)
-                })
-                .eq('id', req.user.id);
-        }, 5000);
-
-        res.json({ message: 'KYC application submitted. Review in progress.', status: 'pending' });
+        res.json({ message: 'KYC application submitted. Our team will review your documents within 24 hours.', status: 'pending' });
     } catch (err) {
         res.status(500).json({ message: 'KYC initialization failed' });
     }

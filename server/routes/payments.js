@@ -4,6 +4,7 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const supabase = require('../config/supabase');
 const { protect } = require('../middleware/authMiddleware');
+const { sendEmail, emailTemplates } = require('../utils/email');
 
 // Lazy load Razorpay to prevent crash if env vars are missing at startup
 const getRazorpay = () => {
@@ -290,6 +291,12 @@ router.post('/verify', protect, async (req, res) => {
 
       // 3. Initialize/Sync wallet (if needed)
       // For now, we assume the wallet system is linked to the coins field
+      
+      // Send Payment Success Email (Non-blocking)
+      sendEmail({
+        email: req.user.email,
+        ...emailTemplates.paymentSuccess(req.user.name, planType)
+      }).catch(err => console.error('[Payment] Success email failed:', err));
       
       res.json({ message: 'Payment verified and PRO access granted!', success: true });
     } catch (error) {
