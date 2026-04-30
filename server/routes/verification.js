@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
 const { protect } = require('../middleware/authMiddleware');
-const { sendVerificationOTP } = require('../utils/sms');
+const { sendVerificationOTP, sendSignupOTP } = require('../utils/sms');
 
 // ============================================================
 // In-Memory OTP Store (Fallback if DB table doesn't exist yet)
@@ -55,7 +55,7 @@ router.post('/send-mobile-otp', async (req, res) => {
         storeOtpInMemory(phone, otp);
 
         // 2. Try to send real SMS
-        const smsResult = await sendVerificationOTP(phone, otp);
+        const smsResult = await sendSignupOTP(phone, otp);
 
         if (smsResult.success && !smsResult.simulated) {
             // Real SMS sent successfully
