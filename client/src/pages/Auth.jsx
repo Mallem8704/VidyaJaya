@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 import { Mail, Lock, User, Phone, BookOpen, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react';
 

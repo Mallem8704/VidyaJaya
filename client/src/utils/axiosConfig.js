@@ -8,7 +8,7 @@ if (envUrl.endsWith('/api')) envUrl = envUrl.slice(0, -4);
 
 const BACKEND_URL = envUrl || ((import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
     ? 'http://localhost:3000' 
-    : 'https://vidyajaya.onrender.com');
+    : 'https://vidyajaya-1.onrender.com');
 
 axios.defaults.baseURL = BACKEND_URL;
 
