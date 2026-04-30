@@ -132,8 +132,19 @@ const Rewards = () => {
 
   const handleWithdraw = async (e) => {
     e.preventDefault();
-    if (!user?.is_verified) {
-      return toast.error("Please complete KYC verification first!");
+    if (!user?.kyc_verified) {
+      return toast((t) => (
+        <span className="flex flex-col gap-2">
+          <span className="font-bold text-sm">KYC Verification Required</span>
+          <span className="text-xs text-gray-500">You must verify your identity to withdraw cash rewards.</span>
+          <button 
+            onClick={() => { toast.dismiss(t.id); window.location.href='/kyc'; }}
+            className="bg-orange-500 text-white text-[10px] font-bold py-1.5 px-3 rounded-lg uppercase tracking-wider"
+          >
+            Verify Now
+          </button>
+        </span>
+      ), { duration: 5000, icon: '🛡️' });
     }
     const amountNum = Number(withdrawAmount);
     if (amountNum < 50) {

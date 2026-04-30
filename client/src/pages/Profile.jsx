@@ -83,6 +83,7 @@ const Profile = () => {
 
   const tabs = [
     { icon: UserIcon, label: 'Account Details' },
+    { icon: ShieldCheck, label: 'KYC Verification' },
     { icon: Shield, label: 'Password & Security' },
     { icon: Bell, label: 'Notifications' },
     { icon: CreditCard, label: 'Subscription' },
@@ -170,9 +171,9 @@ const Profile = () => {
              <span className={`px-3 py-1 font-bold rounded-full text-xs shadow-md ${user?.is_pro ? 'bg-accent-gold text-yellow-900' : 'bg-gray-200 text-gray-700'}`}>
                {user?.is_pro ? '👑 Plan: PRO' : '🎓 Plan: Free'}
              </span>
-             <span className={`px-3 py-1 font-bold rounded-full text-xs shadow-md ${user?.is_verified ? 'bg-accent-green text-green-900' : 'bg-gray-300 text-gray-700'}`}>
-               {user?.is_verified ? '✓ Verified Student' : '⚠ Unverified'}
-             </span>
+             <Link to="/kyc" className={`px-3 py-1 font-bold rounded-full text-xs shadow-md transition-all hover:scale-105 ${user?.kyc_verified || user?.is_verified ? 'bg-accent-green text-green-900' : 'bg-rose-100 text-rose-700 border border-rose-200'}`}>
+               {user?.kyc_verified || user?.is_verified ? '✓ Verified Student' : '⚠ KYC Unverified'}
+             </Link>
            </div>
         </div>
       </div>
@@ -290,7 +291,38 @@ const Profile = () => {
                 </div>
               )}
 
-              {/* BUG 11 FIX: Password change now has real handler */}
+              {activeTab === 'KYC Verification' && (
+                <div className="text-center space-y-6 pt-4">
+                  <div className={`w-20 h-20 rounded-full flex items-center justify-center text-4xl mx-auto border-4 ${user?.kyc_verified ? 'bg-green-100 border-green-200 text-green-600' : 'bg-rose-50 border-rose-100 text-rose-500'}`}>
+                    {user?.kyc_verified ? '✅' : '🛡️'}
+                  </div>
+                  <h4 className="font-bold text-2xl">
+                    {user?.kyc_verified ? 'Identity Verified' : 'KYC Required'}
+                  </h4>
+                  <p className="text-[var(--text-secondary)] px-10">
+                    {user?.kyc_verified 
+                      ? "Congratulations! Your identity is verified. You have full access to withdrawals and premium rewards." 
+                      : "To withdraw cash rewards and join high-stakes contests, you need to verify your identity via Aadhaar/DigiLocker."
+                    }
+                  </p>
+                  
+                  {!user?.kyc_verified && (
+                    <div className="pt-6">
+                      <Link to="/kyc" className="btn btn-primary px-10 py-4 text-lg shadow-xl shadow-orange-500/20">
+                        START VERIFICATION
+                      </Link>
+                    </div>
+                  )}
+                  
+                  {user?.kyc_verified && (
+                    <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl text-xs text-gray-500 max-w-xs mx-auto">
+                      KYC Method: Aadhaar (DigiLocker)<br/>
+                      Verified On: {new Date(user.updated_at || Date.now()).toLocaleDateString()}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {activeTab === 'Password & Security' && (
                 <div className="space-y-6">
                   <div className="p-4 bg-blue-50 dark:bg-[rgba(59,130,246,0.1)] rounded-xl border border-blue-100 dark:border-blue-900 text-sm text-blue-700 dark:text-blue-300">
