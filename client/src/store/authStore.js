@@ -92,8 +92,13 @@ export const useAuthStore = create(
           const response = await axios.get('/api/auth/me');
           set({ user: response.data, isAuthenticated: true });
         } catch (error) {
-          // Handled by interceptor, but we ensure state clear here too
-          set({ user: null, token: null, isAuthenticated: false });
+          // Only log the user out if the token is explicitly rejected
+          if (error.response && error.response.status === 401) {
+            set({ user: null, token: null, isAuthenticated: false });
+          } else {
+            console.warn("Could not verify session with backend, keeping local session active:", error.message);
+            // We do NOT clear the session here so the user isn't kicked out if Render is sleeping
+          }
         }
       },
 
