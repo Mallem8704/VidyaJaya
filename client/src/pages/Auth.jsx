@@ -406,6 +406,20 @@ const Auth = ({ type }) => {
                       {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                   </div>
+                  {(type === 'Signup' || type === 'Reset Password') && formData.password && (
+                    <div className="mt-2 flex gap-1">
+                      {[...Array(4)].map((_, i) => (
+                        <div
+                          key={i}
+                          className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                            i < getPasswordStrength()
+                              ? getPasswordStrength() <= 2 ? 'bg-red-500' : getPasswordStrength() === 3 ? 'bg-yellow-500' : 'bg-green-500'
+                              : 'bg-gray-200 dark:bg-gray-700'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
