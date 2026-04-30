@@ -58,24 +58,41 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Please provide name, email, and password.' });
     }
 
-    // 1. Mandatory OTP Verification for Production
+    // 1. OTP Verification — checks DB first, then in-memory store (fallback)
     if (phone && otp) {
-        const { data: otpRecords } = await supabase
-            .from('verification_otps')
-            .select('*')
-            .eq('phone', phone)
-            .eq('otp', otp)
-            .eq('is_verified', false)
-            .gt('expires_at', new Date().toISOString())
-            .order('created_at', { ascending: false })
-            .limit(1);
+        let otpVerified = false;
 
-        if (!otpRecords || otpRecords.length === 0) {
-            return res.status(400).json({ message: 'Invalid or expired OTP. Please resend.' });
+        // Try DB check first
+        try {
+            const { data: otpRecords } = await supabase
+                .from('verification_otps')
+                .select('*')
+                .eq('phone', phone)
+                .eq('otp', otp)
+                .eq('is_verified', false)
+                .gt('expires_at', new Date().toISOString())
+                .order('created_at', { ascending: false })
+                .limit(1);
+
+            if (otpRecords && otpRecords.length > 0) {
+                await supabase.from('verification_otps').update({ is_verified: true }).eq('id', otpRecords[0].id);
+                otpVerified = true;
+            }
+        } catch (dbErr) {
+            console.warn('[REGISTER_OTP_DB] DB check failed, trying memory store:', dbErr.message);
         }
 
-        // Mark as verified
-        await supabase.from('verification_otps').update({ is_verified: true }).eq('id', otpRecords[0].id);
+        // Fallback: check in-memory store (used when DB table missing or SMS bypassed)
+        if (!otpVerified) {
+            const { verifyOtpFromMemory } = require('./verification');
+            if (typeof verifyOtpFromMemory === 'function') {
+                otpVerified = verifyOtpFromMemory(phone, otp);
+            }
+        }
+
+        if (!otpVerified) {
+            return res.status(400).json({ message: 'Invalid or expired OTP. Please request a new code.' });
+        }
     }
 
     if (password.length < 6) {

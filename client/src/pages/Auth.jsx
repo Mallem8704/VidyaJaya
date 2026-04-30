@@ -72,15 +72,33 @@ const Auth = ({ type }) => {
         navigate('/dashboard');
       } else if (type === 'Signup') {
         if (!isOtpSent) {
-          // Send Real OTP via backend
           try {
-            await axios.post('/api/verification/send-mobile-otp', { phone: formData.phone });
+            const response = await axios.post('/api/verification/send-mobile-otp', { phone: formData.phone });
             setIsOtpSent(true);
             setShowOtpField(true);
-            toast.success('Verification code sent to your mobile!');
+
+            if (response.data?.bypass) {
+              // SMS failed (IP blocked etc.) — bypass mode
+              toast('SMS unavailable. Use code: 123456 to continue.', {
+                icon: '⚠️',
+                duration: 6000,
+                style: { background: '#fff3cd', color: '#856404' }
+              });
+            } else {
+              toast.success(`OTP sent to ${formData.phone}! Check your messages.`);
+            }
             return;
           } catch (err) {
-            return toast.error('Failed to send verification code. Check phone number.');
+            // Even if the request fully fails, let the user try with bypass code
+            console.error('[SIGNUP_OTP]', err?.response?.data || err.message);
+            setIsOtpSent(true);
+            setShowOtpField(true);
+            toast('Could not send SMS. Use code: 123456 to continue.', {
+              icon: '⚠️',
+              duration: 6000,
+              style: { background: '#fff3cd', color: '#856404' }
+            });
+            return;
           }
         }
 
