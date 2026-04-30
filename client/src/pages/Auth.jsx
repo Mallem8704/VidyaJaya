@@ -237,7 +237,7 @@ const Auth = ({ type }) => {
                   className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${loginMethod === 'phone' ? 'bg-white shadow-md text-primary translate-y-0' : 'text-[var(--text-secondary)] hover:text-primary'}`}
                 >
                   <div className="flex items-center justify-center gap-2">
-                    <Phone size={16} /> Phone Number
+                    <Phone size={16} /> Phone + Password
                   </div>
                 </button>
               </div>
@@ -356,7 +356,7 @@ const Auth = ({ type }) => {
                       value={loginMethod === 'email' ? formData.email : formData.phone}
                       onChange={handleChange}
                       className="pl-10 w-full p-3 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-                      placeholder={loginMethod === 'email' ? 'you@example.com' : '10-digit mobile number'}
+                      placeholder={loginMethod === 'email' ? 'you@example.com' : 'Enter registered mobile number'}
                       required
                     />
                   </div>
