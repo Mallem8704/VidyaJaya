@@ -333,9 +333,9 @@ const Auth = ({ type }) => {
                       <input
                         type="text" value={otp} onChange={(e) => setOtp(e.target.value)}
                         className="w-full p-4 text-center text-2xl tracking-widest rounded-xl border-2 border-secondary bg-[var(--bg-card)] focus:ring-2 focus:ring-secondary outline-none transition-all"
-                        placeholder="0000" maxLength={4}
+                        placeholder="000000" maxLength={6}
                       />
-                      <p className="text-xs text-[var(--text-secondary)] mt-2">Enter the 4-digit code sent to {formData.phone}</p>
+                      <p className="text-xs text-[var(--text-secondary)] mt-2">Enter the 6-digit code sent to {formData.phone}</p>
                     </motion.div>
                   )}
                 </>
