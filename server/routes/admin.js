@@ -3,6 +3,79 @@ const router = express.Router();
 const supabase = require('../config/supabase');
 const { protect } = require('../middleware/authMiddleware');
 const { adminProtect } = require('../middleware/adminMiddleware');
+const groq = require('../utils/groq');
+const gemini = require('../utils/gemini');
+
+/**
+ * @route   POST /api/admin/tests/create-ai-test
+ * @desc    Generate a new test using AI and publish it
+ */
+router.post('/tests/create-ai-test', protect, adminProtect, async (req, res) => {
+    const { title, category, difficulty, targetGroup, questionCount, llmType } = req.body;
+
+    try {
+        console.log(`[ADMIN] Generating ${questionCount} questions for "${title}" using ${llmType}...`);
+        
+        let questionsData;
+        if (llmType === 'gemini') {
+            questionsData = await gemini.generateQuestions(category, difficulty, questionCount);
+        } else {
+            questionsData = await groq.generateQuestions(category, difficulty, questionCount);
+        }
+
+        if (!questionsData || !Array.isArray(questionsData)) {
+            throw new Error("AI failed to generate a valid question array.");
+        }
+
+        // 1. Create the Test entry
+        const { data: test, error: testError } = await supabase
+            .from('tests')
+            .insert({
+                title,
+                category,
+                description: `AI-Generated ${category} test (${difficulty} level).`,
+                total_questions: questionsData.length,
+                is_premium: targetGroup === 'pro',
+                duration: questionsData.length * 60, // 1 min per question
+                total_marks: questionsData.length * 2, // 2 marks per question
+                negative_marking: 0.5
+            })
+            .select()
+            .single();
+
+        if (testError) throw testError;
+
+        // 2. Prepare and Insert Questions
+        const questionsToInsert = questionsData.map(q => ({
+            test_id: test.id,
+            text: q.question,
+            options: q.options,
+            correct_index: q.options.indexOf(q.answer),
+            explanation: q.explanation,
+            category: q.topic || category,
+            difficulty: difficulty.toLowerCase().includes('high') ? 'hard' : difficulty.toLowerCase()
+        }));
+
+        const { error: questionsError } = await supabase
+            .from('questions')
+            .insert(questionsToInsert);
+
+        if (questionsError) throw questionsError;
+
+        // 3. Log Audit
+        await supabase.from('admin_audit_logs').insert({
+            admin_id: req.user.id,
+            action: 'CREATE_AI_TEST',
+            target_id: test.id,
+            details: { title, category, questionCount, llmType }
+        });
+
+        res.json({ message: 'Test created and published successfully!', testId: test.id });
+    } catch (err) {
+        console.error('[ADMIN_TEST_ERROR]', err);
+        res.status(500).json({ message: err.message || 'Failed to generate AI test' });
+    }
+});
 
 /**
  * @route   GET /api/admin/stats

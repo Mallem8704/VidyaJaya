@@ -12,11 +12,11 @@ const groq = new OpenAI({
  * @param {string[]} weakTopics 
  * @returns {Promise<Array>}
  */
-const generateQuestions = async (subject, difficulty = "medium", weakTopics = []) => {
+const generateQuestions = async (subject, difficulty = "medium", count = 5, weakTopics = []) => {
   const randomSeed = Math.floor(Math.random() * 1000000);
   const prompt = `
     You are a senior exam setter for professional and competitive examinations.
-    Generate 5 high-quality, conceptual, and challenging Multiple Choice Questions (MCQs) for the category: "${subject}".
+    Generate ${count} high-quality, conceptual, and challenging Multiple Choice Questions (MCQs) for the category: "${subject}".
     Difficulty level: ${difficulty}.
     ${weakTopics.length > 0 ? `Focus on these specific topics: ${weakTopics.join(", ")}.` : ""}
 

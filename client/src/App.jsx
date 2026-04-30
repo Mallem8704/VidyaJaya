@@ -35,6 +35,7 @@ import AdminReferrals from './pages/AdminReferrals';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUserManagement from './pages/AdminUserManagement';
 import AdminWithdrawals from './pages/AdminWithdrawals';
+import AdminTestCreation from './pages/AdminTestCreation';
 
 // SEO Articles
 import WhatIsVidyajaya from './pages/articles/WhatIsVidyajaya';
@@ -169,6 +170,7 @@ function App() {
           <Route path="users" element={<AdminUserManagement />} />
           <Route path="withdrawals" element={<AdminWithdrawals />} />
           <Route path="referrals" element={<AdminReferrals />} />
+          <Route path="create-test" element={<AdminTestCreation />} />
         </Route>
         
         {/* Protected User Routes inside Layout */}

@@ -28,6 +28,7 @@ const AdminLayout = () => {
         { name: 'User Management', icon: Users, path: '/admin/users' },
         { name: 'Withdrawals', icon: CreditCard, path: '/admin/withdrawals' },
         { name: 'Referrals', icon: Share2, path: '/admin/referrals' },
+        { name: 'AI Test Factory', icon: TrendingUp, path: '/admin/create-test' },
         { name: 'Audit Logs', icon: History, path: '/admin/logs' },
     ];
 
