@@ -283,8 +283,8 @@ router.post('/withdrawals/:id/update-status', protect, adminProtect, async (req,
 
         res.json({ message: `Withdrawal status updated to ${status} successfully.` });
     } catch (err) {
-        console.error('Update Withdrawal Error:', err);
-        res.status(500).json({ message: 'Failed to update status' });
+        console.error('[ADMIN_WITHDRAWAL_UPDATE_ERROR]', err);
+        res.status(500).json({ message: err.message || 'Failed to update status' });
     }
 });
 
