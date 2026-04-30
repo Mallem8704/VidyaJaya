@@ -335,7 +335,7 @@ const Auth = ({ type }) => {
                         className="w-full p-4 text-center text-2xl tracking-widest rounded-xl border-2 border-secondary bg-[var(--bg-card)] focus:ring-2 focus:ring-secondary outline-none transition-all"
                         placeholder="0000" maxLength={4}
                       />
-                      <p className="text-xs text-[var(--text-secondary)] mt-2">Enter 1234 to verify</p>
+                      <p className="text-xs text-[var(--text-secondary)] mt-2">Enter the 4-digit code sent to {formData.phone}</p>
                     </motion.div>
                   )}
                 </>
@@ -425,8 +425,6 @@ const Auth = ({ type }) => {
                       </div>
                     </div>
                   )}
-                </>
-              )}
 
               {type === 'Signup' && (
                 <div className="flex items-start mb-6">
