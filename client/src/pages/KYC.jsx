@@ -24,7 +24,7 @@ const KYC = () => {
             setLoading(false);
             setShowOtp(true);
             const last4 = user?.phone ? user.phone.slice(-4) : '3356';
-            toast.success(`OTP sent to your registered mobile number ending in ${last4}`);
+            toast.success(`OTP sent to your registered mobile number ending in ${last4}. (Use 123456 for testing)`, { duration: 6000 });
         }, 1500);
     };
 
