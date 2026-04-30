@@ -497,7 +497,8 @@ router.post('/kyc/:id/approve', protect, adminProtect, async (req, res) => {
 
         res.json({ message: 'KYC approved successfully' });
     } catch (err) {
-        res.status(500).json({ message: 'Failed to approve KYC' });
+        console.error('[ADMIN_KYC_APPROVE_ERROR]', err);
+        res.status(500).json({ message: err.message || 'Failed to approve KYC' });
     }
 });
 
@@ -523,7 +524,8 @@ router.post('/kyc/:id/reject', protect, adminProtect, async (req, res) => {
 
         res.json({ message: 'KYC rejected successfully' });
     } catch (err) {
-        res.status(500).json({ message: 'Failed to reject KYC' });
+        console.error('[ADMIN_KYC_REJECT_ERROR]', err);
+        res.status(500).json({ message: err.message || 'Failed to reject KYC' });
     }
 });
 

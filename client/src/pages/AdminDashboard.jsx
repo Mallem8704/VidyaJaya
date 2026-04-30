@@ -48,7 +48,7 @@ const AdminDashboard = () => {
             toast.success('KYC application approved!');
             fetchData();
         } catch (err) {
-            toast.error('Failed to approve KYC');
+            toast.error(err.response?.data?.message || 'Failed to approve KYC');
         } finally {
             setProcessingKyc(null);
         }
@@ -61,7 +61,7 @@ const AdminDashboard = () => {
             toast.success('KYC application rejected');
             fetchData();
         } catch (err) {
-            toast.error('Failed to reject KYC');
+            toast.error(err.response?.data?.message || 'Failed to reject KYC');
         } finally {
             setProcessingKyc(null);
         }
