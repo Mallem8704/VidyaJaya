@@ -228,7 +228,7 @@ router.post('/', protect, async (req, res) => {
     // 6. UPDATE PROFILE STATS & ANTI-CHEAT
     const { data: profile } = await supabase
       .from('profiles')
-      .select('coins, streak, weekly_score, total_score, last_streak_update, referred_by, daily_reward_accumulated, last_reward_reset')
+      .select('coins, silver_coins, gold_coins, streak, weekly_score, total_score, last_streak_update, referred_by, daily_reward_accumulated, last_reward_reset')
       .eq('id', user.id)
       .single();
 
@@ -332,9 +332,9 @@ router.post('/', protect, async (req, res) => {
 
       // Mark referral as completed
       await supabase.from('referrals')
-        .update({ status: 'completed', reward_paid: true })
+        .update({ status: 'completed', reward_paid: true, is_successful: true })
         .eq('referrer_id', referrerId)
-        .eq('referee_id', user.id);
+        .eq('referred_user_id', user.id);
     }
 
     const responseData = mapSubmission(submission) || {};
