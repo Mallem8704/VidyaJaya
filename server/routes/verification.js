@@ -6,9 +6,9 @@ const { sendVerificationOTP } = require('../utils/sms');
 
 /**
  * @route   POST /api/verification/send-mobile-otp
- * @desc    Send dynamic OTP to mobile
+ * @desc    Send dynamic OTP to mobile (Public for Signup, Private for KYC)
  */
-router.post('/send-mobile-otp', protect, async (req, res) => {
+router.post('/send-mobile-otp', async (req, res) => {
     const { phone } = req.body;
     if (!phone) return res.status(400).json({ message: 'Phone number is required' });
 
