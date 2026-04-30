@@ -229,6 +229,8 @@ router.post('/users/:id/toggle-block', protect, adminProtect, async (req, res) =
     }
 });
 
+const { initiatePayout } = require('../utils/payoutService');
+
 /**
  * @route   GET /api/admin/withdrawals
  * @desc    Get all withdrawal requests with stats
@@ -273,15 +275,43 @@ router.post('/withdrawals/:id/update-status', protect, adminProtect, async (req,
             return res.status(400).json({ message: 'Invalid status' });
         }
 
+        // 1. Fetch withdrawal details for the payout
+        const { data: withdrawal, error: fetchErr } = await supabase
+            .from('withdrawals')
+            .select('*, profiles(id, name, email)')
+            .eq('id', id)
+            .single();
+        
+        if (fetchErr) throw fetchErr;
+
+        // 2. If status is 'approved', attempt automated RazorpayX Payout
+        let payoutResult = null;
+        if (status === 'approved' && process.env.RAZORPAYX_ACCOUNT_NUMBER) {
+            console.log(`[ADMIN] Initiating RazorpayX payout for withdrawal: ${id}`);
+            payoutResult = await initiatePayout(withdrawal, withdrawal.profiles);
+            
+            if (!payoutResult.success) {
+                return res.status(400).json({ 
+                    message: `Payout Error: ${payoutResult.error}` 
+                });
+            }
+        }
+
+        // 3. Update Database Status
+        const adminNotes = notes || (payoutResult ? `RazorpayX Payout: ${payoutResult.payoutId} (${payoutResult.status})` : `Updated to ${status} by admin.`);
+        
         const { error: rpcErr } = await supabase.rpc('update_withdrawal_status', {
             p_withdrawal_id: id,
             p_status: status,
-            p_admin_notes: notes || `Request updated to ${status} by admin.`
+            p_admin_notes: adminNotes
         });
 
         if (rpcErr) throw rpcErr;
 
-        res.json({ message: `Withdrawal status updated to ${status} successfully.` });
+        res.json({ 
+            message: payoutResult ? `Payout initiated via RazorpayX (${payoutResult.status})` : `Withdrawal status updated to ${status} successfully.`,
+            payout: payoutResult
+        });
     } catch (err) {
         console.error('[ADMIN_WITHDRAWAL_UPDATE_ERROR]', err);
         res.status(500).json({ message: err.message || 'Failed to update status' });
