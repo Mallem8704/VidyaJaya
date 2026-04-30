@@ -37,41 +37,75 @@ const mapSubmission = (sub) => {
  */
 router.post('/', protect, async (req, res) => {
   try {
-    const { testId, answers } = req.body;
+    const { testId, aiSetId, answers } = req.body;
     const user = req.user;
 
-    // 1. CONTEST WINDOW CHECK (9 AM - 9 PM)
-    const now = new Date();
-    const currentHour = now.getHours();
-    
-    if (currentHour < 9) {
-       return res.status(403).json({ 
-         message: 'Contest Not Started! The battle begins at 09:00 AM IST. Prepare yourself!' 
-       });
-    }
+    // 1. CONTEST WINDOW CHECK (Only for non-AI tests)
+    if (!aiSetId) {
+      const now = new Date();
+      const currentHour = now.getHours();
+      
+      if (currentHour < 9) {
+         return res.status(403).json({ 
+           message: 'Contest Not Started! The battle begins at 09:00 AM IST. Prepare yourself!' 
+         });
+      }
 
-    if (currentHour >= 21) {
-       return res.status(403).json({ 
-         message: 'Contest Ended! Submissions for today are closed. Come back tomorrow at 09:00 AM!' 
-       });
+      if (currentHour >= 21) {
+         return res.status(403).json({ 
+           message: 'Contest Ended! Submissions for today are closed. Come back tomorrow at 09:00 AM!' 
+         });
+      }
     }
 
     // 2. FETCH TEST & QUESTIONS
-    const { data: testData, error: testErr } = await supabase
-        .from('tests')
-        .select('*, questions(*)')
-        .eq('id', testId)
-        .single();
+    let test;
+    let questionsToGrade;
+
+    if (aiSetId) {
+        // AI Test Logic
+        const { data: setData, error: setErr } = await supabase
+            .from('ai_question_sets')
+            .select('*')
+            .eq('id', aiSetId)
+            .single();
+            
+        if (setErr || !setData) return res.status(404).json({ message: 'AI Test not found' });
         
-    if (testErr || !testData) return res.status(404).json({ message: 'Test not found' });
-    const test = testData;
-    const questionsToGrade = testData.questions;
+        let parsedQuestions = typeof setData.questions === 'string' ? JSON.parse(setData.questions) : setData.questions;
+        
+        // AI questions usually lack an ID, so we assign their index as ID to match frontend
+        questionsToGrade = parsedQuestions.map((q, idx) => ({
+            id: q.id || idx,
+            category: q.category || setData.category || 'General',
+            correct_index: q.correct_index !== undefined ? q.correct_index : (q.options ? q.options.indexOf(q.answer) : 0)
+        }));
+        
+        test = { 
+            id: null, 
+            total_marks: questionsToGrade.length * 10, 
+            is_premium: false,
+            total_questions: questionsToGrade.length,
+            category: setData.category || 'AI Practice'
+        };
+    } else {
+        // Standard Mock Test Logic
+        const { data: testData, error: testErr } = await supabase
+            .from('tests')
+            .select('*, questions(*)')
+            .eq('id', testId)
+            .single();
+            
+        if (testErr || !testData) return res.status(404).json({ message: 'Test not found' });
+        test = testData;
+        questionsToGrade = testData.questions;
+    }
 
     // 3. TIER LIMITS CHECK
     const isProUser = user.is_pro && (!user.pro_expiry || new Date(user.pro_expiry) > new Date());
     const isPremium = isProUser || (user.plan === 'premium') || (user.plan === 'pro') || (user.plan === 'pro+');
     
-    if (test.category === 'Daily Streak') {
+    if (!aiSetId && test.category === 'Daily Streak') {
         const today = new Date().toISOString().split('T')[0];
         const { data: todaySubs } = await supabase
             .from('submissions')
@@ -98,7 +132,7 @@ router.post('/', protect, async (req, res) => {
     }
 
     // 3b. PREMIUM TEST ATTEMPT LIMIT
-    if (test.is_premium) {
+    if (!aiSetId && test.is_premium) {
       const today = new Date().toISOString().split('T')[0];
       const { data: premiumSubs, error: premErr } = await supabase
         .from('submissions')
@@ -117,13 +151,12 @@ router.post('/', protect, async (req, res) => {
     // 4. SCORING
     const result = calculateScore(answers, questionsToGrade, test);
 
-    // BUG 3 FIX: Removed coins_earned from submissions insert (column doesn't exist)
     // 5. SAVE SUBMISSION
     const { data: submission, error: subError } = await supabase
       .from('submissions')
       .insert({
         user_id: user.id,
-        test_id: test.id,
+        test_id: test.id, // null for AI tests
         score: result.score,
         total_marks: test.total_marks,
         accuracy: result.accuracy,

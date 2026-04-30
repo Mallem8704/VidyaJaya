@@ -13,11 +13,17 @@ const groq = new OpenAI({
  * @returns {Promise<Array>}
  */
 const generateQuestions = async (subject, difficulty = "medium", weakTopics = []) => {
+  const randomSeed = Math.floor(Math.random() * 1000000);
   const prompt = `
     You are a senior exam setter for professional and competitive examinations.
     Generate 5 high-quality, conceptual, and challenging Multiple Choice Questions (MCQs) for the category: "${subject}".
     Difficulty level: ${difficulty}.
     ${weakTopics.length > 0 ? `Focus on these specific topics: ${weakTopics.join(", ")}.` : ""}
+
+    CRITICAL INSTRUCTION FOR VARIETY: 
+    - Do NOT generate common, widely known questions.
+    - Pick highly specific, obscure, or recent sub-topics within the category to ensure the user rarely sees the same question twice.
+    - Use this random seed to completely randomize your topic selection: ${randomSeed}.
 
     Requirements for each question:
     1. Standard examination format with 4 options.
@@ -43,6 +49,7 @@ const generateQuestions = async (subject, difficulty = "medium", weakTopics = []
   try {
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
+      temperature: 0.9,
       messages: [
         { role: "system", content: "You are a helpful AI assistant that outputs only valid JSON arrays." },
         { role: "user", content: prompt }

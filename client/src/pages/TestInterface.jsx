@@ -1,25 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, CheckCircle, Target, Award, Timer, ShieldAlert, Zap } from 'lucide-react';
+import { Clock, CheckCircle, Target, Award, Timer, ShieldAlert, Zap, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
-const MOCK_QUESTIONS = [
-  { id: 1, text: "Which article of the Indian Constitution deals with the Right to Equality?", options: ["Article 14", "Article 19", "Article 21", "Article 32"], correct_index: 0, category: "Polity" },
-  { id: 2, text: "Who was the first Governor-General of independent India?", options: ["Lord Mountbatten", "C. Rajagopalachari", "Dr. Rajendra Prasad", "Jawaharlal Nehru"], correct_index: 0, category: "History" },
-  { id: 3, text: "The 'Green Revolution' in India was most successful in which crops?", options: ["Rice and Wheat", "Tea and Coffee", "Cotton and Jute", "Oilseeds"], correct_index: 0, category: "Economy" },
-  { id: 4, text: "Which pass connects Srinagar to Leh?", options: ["Zoji La Pass", "Bara Lacha Pass", "Rohtang Pass", "Nathu La Pass"], correct_index: 0, category: "Geography" },
-  { id: 5, text: "Who is known as the 'Father of the Indian Constitution'?", options: ["B.R. Ambedkar", "Mahatma Gandhi", "Sardar Patel", "Jawaharlal Nehru"], correct_index: 0, category: "Polity" },
-  { id: 6, text: "What is the capital of Kazakhstan?", options: ["Astana", "Almaty", "Bishkek", "Tashkent"], correct_index: 0, category: "GK" },
-  { id: 7, text: "The Quit India Movement was started in which year?", options: ["1942", "1930", "1920", "1947"], correct_index: 0, category: "History" },
-  { id: 8, text: "Which planet is known as the 'Red Planet'?", options: ["Mars", "Venus", "Jupiter", "Saturn"], correct_index: 0, category: "Science" },
-  { id: 9, text: "The 'Statue of Unity' is dedicated to which Indian leader?", options: ["Sardar Vallabhbhai Patel", "Subhash Chandra Bose", "B.R. Ambedkar", "Atal Bihari Vajpayee"], correct_index: 0, category: "GK" },
-  { id: 10, text: "Which river is known as the 'Ganges of the South'?", options: ["Cauvery", "Godavari", "Krishna", "Narmada"], correct_index: 0, category: "Geography" }
-];
-
 const TestInterface = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
 
@@ -27,6 +15,9 @@ const TestInterface = () => {
   const [testStarted, setTestStarted] = useState(false);
   const [finished, setFinished] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
+  const [testData, setTestData] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [loadingTest, setLoadingTest] = useState(true);
   const [timeLeft, setTimeLeft] = useState(15);
   const [score, setScore] = useState(0);
   const [answers, setAnswers] = useState([]);
@@ -42,8 +33,23 @@ const TestInterface = () => {
     if (!isAuthenticated) {
       toast.error("Please login to attempt tests.");
       navigate('/login');
+    } else {
+      fetchTestDetails();
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, id]);
+
+  const fetchTestDetails = async () => {
+    try {
+      const res = await axios.get(`/api/tests/${id}`);
+      setTestData(res.data);
+      setQuestions(res.data.questions);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to load test. Returning to dashboard.");
+      navigate('/dashboard');
+    } finally {
+      setLoadingTest(false);
+    }
+  };
 
   // --- TIMER ---
   useEffect(() => {
@@ -82,7 +88,7 @@ const TestInterface = () => {
   };
 
   const handleTimeout = () => {
-    const q = MOCK_QUESTIONS[currentIdx];
+    const q = questions[currentIdx];
     setAnswers(prev => [...prev, {
       questionId: q.id,
       selectedIndex: -1,
@@ -97,7 +103,7 @@ const TestInterface = () => {
 
     const now = Date.now();
     const elapsed = now - qStartTimeRef.current;
-    const q = MOCK_QUESTIONS[currentIdx];
+    const q = questions[currentIdx];
     const isCorrect = idx === q.correct_index;
 
     // Local UI Score Update (for immediate feedback)
@@ -123,7 +129,7 @@ const TestInterface = () => {
   };
 
   const moveToNext = () => {
-    if (currentIdx < MOCK_QUESTIONS.length - 1) {
+    if (currentIdx < questions.length - 1) {
       setCurrentIdx(prev => prev + 1);
       setTimeLeft(15);
       qStartTimeRef.current = Date.now();
@@ -137,10 +143,8 @@ const TestInterface = () => {
     setTestStarted(false);
     
     try {
-      // In a real scenario, 'testId' would come from the route or selection
-      // For this MVP, we use a constant ID or 'drill'
       const res = await axios.post('/api/submissions', {
-        testId: 'daily-streak-1', // Placeholder for actual test ID
+        testId: id,
         answers: answers
       });
 
@@ -157,6 +161,15 @@ const TestInterface = () => {
   };
 
   // --- RENDERING ---
+  if (loadingTest) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-light)] flex flex-col items-center justify-center space-y-6">
+        <Loader2 className="animate-spin text-orange-500" size={48} />
+        <h1 className="text-2xl font-bold animate-pulse">Initializing Test...</h1>
+      </div>
+    );
+  }
+
   if (!testStarted && !finished) {
     return (
       <div className="min-h-screen bg-[var(--bg-light)] flex items-center justify-center p-6">
@@ -164,9 +177,9 @@ const TestInterface = () => {
           <div className="w-24 h-24 bg-orange-100 dark:bg-orange-900/30 rounded-3xl flex items-center justify-center mx-auto mb-8">
             <Zap className="text-orange-500" size={48} />
           </div>
-          <h1 className="text-3xl font-black mb-4">Daily Mock Test</h1>
+          <h1 className="text-3xl font-black mb-4">{testData?.title || 'Daily Mock Test'}</h1>
           <p className="text-[var(--text-secondary)] mb-8">
-            10 Questions • 15s Per Question • High Precision Scoring
+            {questions.length} Questions • {testData?.duration || 15} mins • High Precision Scoring
           </p>
           
           <div className="bg-[var(--bg-card)] rounded-2xl p-4 mb-8 border border-[var(--border)] text-left space-y-2 text-sm">
@@ -184,7 +197,7 @@ const TestInterface = () => {
   }
 
   if (testStarted) {
-    const q = MOCK_QUESTIONS[currentIdx];
+    const q = questions[currentIdx];
     return (
       <div className="min-h-screen bg-[var(--bg-light)] flex flex-col">
         <header className="h-20 bg-[var(--bg-card)] border-b border-[var(--border)] px-8 flex items-center justify-between sticky top-0 z-30 shadow-sm">
@@ -272,7 +285,7 @@ const TestInterface = () => {
             <div className="text-xs font-black uppercase text-[var(--text-secondary)] mt-2">XP Points</div>
           </div>
           <div className="p-8 bg-[var(--bg-light)] rounded-[32px] border border-[var(--border)]">
-            <div className="text-4xl font-black text-blue-500">{(answers.filter(a => a.selectedIndex !== -1).length / MOCK_QUESTIONS.length) * 100}%</div>
+            <div className="text-4xl font-black text-blue-500">{(answers.filter(a => a.selectedIndex !== -1).length / questions.length) * 100}%</div>
             <div className="text-xs font-black uppercase text-[var(--text-secondary)] mt-2">Participation</div>
           </div>
         </div>

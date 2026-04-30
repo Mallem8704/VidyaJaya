@@ -28,19 +28,21 @@ const DailyAiQuestions = () => {
   const [revealedAnswers, setRevealedAnswers] = useState({});
   const [isCompleted, setIsCompleted] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [currentSetId, setCurrentSetId] = useState(null);
 
   // Load session or fetch daily on mount
   useEffect(() => {
     const savedSession = localStorage.getItem('ai_session');
     if (savedSession) {
       try {
-        const { questions: savedQs, selections, revealed, sub, diff } = JSON.parse(savedSession);
+        const { questions: savedQs, selections, revealed, sub, diff, setId } = JSON.parse(savedSession);
         if (savedQs && savedQs.length > 0) {
           setQuestions(savedQs);
           setUserSelections(selections || {});
           setRevealedAnswers(revealed || {});
           setSubject(sub || subjects[0]);
           setDifficulty(diff || 'medium');
+          setCurrentSetId(setId || null);
           setFetchingDaily(false);
           return;
         }
@@ -75,6 +77,7 @@ const DailyAiQuestions = () => {
     try {
       const res = await axios.get(`/api/questions/ai-set/${setId}`);
       setQuestions(res.data.questions);
+      setCurrentSetId(setId);
       setUserSelections({});
       setRevealedAnswers({});
       setIsCompleted(false);
@@ -94,11 +97,12 @@ const DailyAiQuestions = () => {
         selections: userSelections,
         revealed: revealedAnswers,
         sub: subject,
-        diff: difficulty
+        diff: difficulty,
+        setId: currentSetId
       };
       localStorage.setItem('ai_session', JSON.stringify(session));
     }
-  }, [questions, userSelections, revealedAnswers, isCompleted]);
+  }, [questions, userSelections, revealedAnswers, isCompleted, currentSetId]);
 
   const fetchDailyQuestions = async () => {
     setFetchingDaily(true);
@@ -134,8 +138,10 @@ const DailyAiQuestions = () => {
         difficulty,
         weakTopics: [] 
       });
-      
       setQuestions(res.data.questions);
+      if (res.data.setId) {
+        setCurrentSetId(res.data.setId);
+      }
       toast.success('Successfully generated 5 new UPSC-style questions!', { id: loadingToast });
     } catch (err) {
       console.error('Generation error:', err);
@@ -175,13 +181,33 @@ const DailyAiQuestions = () => {
     }
   };
 
-  const handleCompleteSet = () => {
-    setIsCompleted(true);
-    localStorage.removeItem('ai_session');
-    toast.success("Great job! Practice set completed.", {
-      icon: <CheckCircle size={20} className="text-green-500" />,
-      duration: 4000
-    });
+  const handleCompleteSet = async () => {
+    const loadingToast = toast.loading("Saving your practice result...");
+    try {
+      if (currentSetId) {
+        // Format answers for backend
+        const formattedAnswers = Object.entries(userSelections).map(([qId, index]) => ({
+          questionId: qId,
+          selectedIndex: index,
+          timeTaken: 15000 // default for untimed AI tests
+        }));
+
+        await axios.post('/api/submissions', {
+          aiSetId: currentSetId,
+          answers: formattedAnswers
+        });
+        toast.success("Practice set saved to Leaderboard!", { id: loadingToast, icon: <CheckCircle className="text-green-500" /> });
+      } else {
+        toast.success("Great job! Practice set completed.", { id: loadingToast, icon: <CheckCircle className="text-green-500" /> });
+      }
+
+      setIsCompleted(true);
+      localStorage.removeItem('ai_session');
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to save practice result", { id: loadingToast });
+      setIsCompleted(true); // Let them proceed anyway
+      localStorage.removeItem('ai_session');
+    }
   };
 
   const toggleAnswer = (id) => {
