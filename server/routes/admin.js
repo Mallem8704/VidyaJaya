@@ -482,7 +482,7 @@ router.post('/kyc/:id/approve', protect, adminProtect, async (req, res) => {
         const { error } = await supabase
             .from('profiles')
             .update({ 
-                kyc_status: 'verified',
+                kyc_status: 'approved',
                 kyc_verified: true
             })
             .eq('id', id);
