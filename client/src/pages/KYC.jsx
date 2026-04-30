@@ -23,7 +23,8 @@ const KYC = () => {
         setTimeout(() => {
             setLoading(false);
             setShowOtp(true);
-            toast.success('OTP sent to your registered mobile number ending in 8704');
+            const last4 = user?.phone ? user.phone.slice(-4) : '3356';
+            toast.success(`OTP sent to your registered mobile number ending in ${last4}`);
         }, 1500);
     };
 
@@ -89,11 +90,13 @@ const KYC = () => {
                         </div>
                     ))}
                     
-                    <div className="p-6 bg-orange-50 dark:bg-orange-900/10 rounded-2xl border border-orange-200 dark:border-orange-800/30 text-orange-700 dark:text-orange-400">
+                    <div className="p-6 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border border-blue-200 dark:border-blue-800/30 text-blue-700 dark:text-blue-400">
                         <div className="flex items-center gap-2 mb-2">
-                           <Lock size={16} /> <span className="font-bold text-xs uppercase">Security Note</span>
+                           <ShieldCheck size={16} /> <span className="font-bold text-xs uppercase">Integration Status</span>
                         </div>
-                        <p className="text-[10px] leading-relaxed">VidyaJaya never stores your full Aadhaar number. All data is processed via encrypted DigiLocker nodes.</p>
+                        <p className="text-[10px] leading-relaxed">
+                            The DigiLocker node is currently in **Simulation Mode**. To connect your live Production API, please provide your DigiLocker Partner Credentials in the Admin Panel.
+                        </p>
                     </div>
                 </div>
 
