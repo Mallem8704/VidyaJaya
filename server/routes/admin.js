@@ -472,4 +472,59 @@ router.post('/commissions/:id/pay', protect, adminProtect, async (req, res) => {
     }
 });
 
+/**
+ * @route   POST /api/admin/kyc/:id/approve
+ * @desc    Approve user KYC
+ */
+router.post('/kyc/:id/approve', protect, adminProtect, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { error } = await supabase
+            .from('profiles')
+            .update({ 
+                kyc_status: 'verified',
+                kyc_verified: true
+            })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        await supabase.from('admin_audit_logs').insert({
+            admin_id: req.user.id,
+            action: 'APPROVE_KYC',
+            target_id: id
+        });
+
+        res.json({ message: 'KYC approved successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to approve KYC' });
+    }
+});
+
+/**
+ * @route   POST /api/admin/kyc/:id/reject
+ * @desc    Reject user KYC
+ */
+router.post('/kyc/:id/reject', protect, adminProtect, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { error } = await supabase
+            .from('profiles')
+            .update({ kyc_status: 'rejected' })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        await supabase.from('admin_audit_logs').insert({
+            admin_id: req.user.id,
+            action: 'REJECT_KYC',
+            target_id: id
+        });
+
+        res.json({ message: 'KYC rejected successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to reject KYC' });
+    }
+});
+
 module.exports = router;

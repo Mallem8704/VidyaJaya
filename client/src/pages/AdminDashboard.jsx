@@ -19,6 +19,7 @@ const AdminDashboard = () => {
     const [flaggedUsers, setFlaggedUsers] = useState([]);
     const [kycPending, setKycPending] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [processingKyc, setProcessingKyc] = useState(null);
 
     useEffect(() => {
         fetchData();
@@ -37,6 +38,32 @@ const AdminDashboard = () => {
             toast.error('Failed to load administrative data');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleApproveKYC = async (userId) => {
+        setProcessingKyc(userId);
+        try {
+            await axios.post(`/api/admin/kyc/${userId}/approve`);
+            toast.success('KYC application approved!');
+            fetchData();
+        } catch (err) {
+            toast.error('Failed to approve KYC');
+        } finally {
+            setProcessingKyc(null);
+        }
+    };
+
+    const handleRejectKYC = async (userId) => {
+        setProcessingKyc(userId);
+        try {
+            await axios.post(`/api/admin/kyc/${userId}/reject`);
+            toast.success('KYC application rejected');
+            fetchData();
+        } catch (err) {
+            toast.error('Failed to reject KYC');
+        } finally {
+            setProcessingKyc(null);
         }
     };
 
@@ -134,8 +161,20 @@ const AdminDashboard = () => {
                                         <p className="text-xs text-gray-500">ID: {user.kyc_provider_id || 'Pending'}</p>
                                     </div>
                                     <div className="flex gap-2">
-                                        <button className="px-3 py-1 bg-white dark:bg-gray-800 text-xs font-bold rounded-lg border border-[var(--border)]">Reject</button>
-                                        <button className="px-3 py-1 bg-accent-gold text-yellow-900 text-xs font-bold rounded-lg shadow-lg">Approve</button>
+                                        <button 
+                                            onClick={() => handleRejectKYC(user.id)}
+                                            disabled={processingKyc === user.id}
+                                            className="px-3 py-1 bg-white dark:bg-gray-800 text-xs font-bold rounded-lg border border-[var(--border)] disabled:opacity-50"
+                                        >
+                                            {processingKyc === user.id ? '...' : 'Reject'}
+                                        </button>
+                                        <button 
+                                            onClick={() => handleApproveKYC(user.id)}
+                                            disabled={processingKyc === user.id}
+                                            className="px-3 py-1 bg-accent-gold text-yellow-900 text-xs font-bold rounded-lg shadow-lg disabled:opacity-50"
+                                        >
+                                            {processingKyc === user.id ? '...' : 'Approve'}
+                                        </button>
                                     </div>
                                 </div>
                             ))}
