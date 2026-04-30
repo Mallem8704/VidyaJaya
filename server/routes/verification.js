@@ -6,15 +6,24 @@ const { sendVerificationOTP } = require('../utils/sms');
 
 /**
  * @route   POST /api/verification/send-mobile-otp
- * @desc    Send OTP to mobile (Simulated)
+ * @desc    Send dynamic OTP to mobile
  */
 router.post('/send-mobile-otp', protect, async (req, res) => {
     const { phone } = req.body;
     if (!phone) return res.status(400).json({ message: 'Phone number is required' });
 
     try {
-        // Real OTP sending
-        const otp = '123456'; // Use fixed code for now, can be randomized later
+        // 1. Generate 6-digit random OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        
+        // 2. Store in database
+        const { error: otpErr } = await supabase
+            .from('verification_otps')
+            .insert({ phone, otp });
+
+        if (otpErr) throw otpErr;
+
+        // 3. Send Real SMS
         const smsResult = await sendVerificationOTP(phone, otp);
         
         if (!smsResult.success) {
@@ -22,27 +31,50 @@ router.post('/send-mobile-otp', protect, async (req, res) => {
         }
 
         res.json({ 
-            message: 'OTP sent successfully to your mobile.',
+            message: 'Verification code sent to your mobile.',
             simulated: smsResult.simulated 
         });
     } catch (err) {
-        res.status(500).json({ message: 'Failed to send OTP' });
+        console.error('[SEND_OTP_ERROR]', err);
+        res.status(500).json({ message: 'Failed to process verification request' });
     }
 });
 
 /**
  * @route   POST /api/verification/verify-mobile-otp
- * @desc    Verify mobile OTP
+ * @desc    Verify mobile OTP against database
  */
 router.post('/verify-mobile-otp', protect, async (req, res) => {
     const { otp, phone } = req.body;
     
     try {
-        // Logic to verify OTP (In production, verify against DB/Cache)
-        if (otp.toString() !== '123456') { // Standard secure test code
+        // 1. Check latest valid OTP for this phone
+        const { data: otpRecords, error: fetchErr } = await supabase
+            .from('verification_otps')
+            .select('*')
+            .eq('phone', phone)
+            .eq('is_verified', false)
+            .gt('expires_at', new Date().toISOString())
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+        if (fetchErr || !otpRecords || otpRecords.length === 0) {
+            return res.status(400).json({ message: 'OTP expired or not found. Please resend.' });
+        }
+
+        const latestOtp = otpRecords[0];
+
+        if (otp.toString() !== latestOtp.otp) {
             return res.status(400).json({ message: 'Invalid OTP code' });
         }
 
+        // 2. Mark OTP as used
+        await supabase
+            .from('verification_otps')
+            .update({ is_verified: true })
+            .eq('id', latestOtp.id);
+
+        // 3. Update profile
         const { error } = await supabase
             .from('profiles')
             .update({ 
@@ -53,9 +85,10 @@ router.post('/verify-mobile-otp', protect, async (req, res) => {
 
         if (error) throw error;
 
-        res.json({ message: 'Mobile verified successfully!', is_verified: true });
+        res.json({ message: 'Mobile verified successfully!', success: true });
     } catch (err) {
-        res.status(500).json({ message: 'Verification failed' });
+        console.error('[VERIFY_OTP_ERROR]', err);
+        res.status(500).json({ message: 'Verification process failed' });
     }
 });
 

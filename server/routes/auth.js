@@ -52,10 +52,30 @@ router.post('/register', async (req, res) => {
   }, null, 2));
 
   try {
-    const { name, email, phone, password, examGoal, referralCode, deviceId } = req.body;
+    const { name, email, phone, password, examGoal, referralCode, deviceId, otp } = req.body;
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Please provide name, email, and password.' });
+    }
+
+    // 1. Mandatory OTP Verification for Production
+    if (phone && otp) {
+        const { data: otpRecords } = await supabase
+            .from('verification_otps')
+            .select('*')
+            .eq('phone', phone)
+            .eq('otp', otp)
+            .eq('is_verified', false)
+            .gt('expires_at', new Date().toISOString())
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+        if (!otpRecords || otpRecords.length === 0) {
+            return res.status(400).json({ message: 'Invalid or expired OTP. Please resend.' });
+        }
+
+        // Mark as verified
+        await supabase.from('verification_otps').update({ is_verified: true }).eq('id', otpRecords[0].id);
     }
 
     if (password.length < 6) {

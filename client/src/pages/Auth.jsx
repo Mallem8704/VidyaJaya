@@ -84,11 +84,8 @@ const Auth = ({ type }) => {
           }
         }
 
-        if (otp !== '123456') { // Use the standard production-test code for now
-          return toast.error('Invalid OTP. Please enter 123456.');
-        }
-
-        await register(formData);
+        // Proceed to registration (Backend will verify the OTP)
+        await register({ ...formData, otp });
         toast.success('Registration successful. Welcome to VidyaJaya!');
         navigate('/dashboard');
       } else if (type === 'Forgot Password') {

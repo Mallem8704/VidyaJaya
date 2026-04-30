@@ -13,33 +13,43 @@ const KYC = () => {
     const [otp, setOtp] = useState('');
     const [showOtp, setShowOtp] = useState(false);
 
-    const handleAadhaarSubmit = (e) => {
+    const handleAadhaarSubmit = async (e) => {
         e.preventDefault();
         if (aadhaar.length !== 12) {
             return toast.error("Please enter a valid 12-digit Aadhaar number");
         }
+        if (!user?.phone) {
+            return toast.error("Please add a phone number to your profile first.");
+        }
+        
         setLoading(true);
-        // Simulate sending OTP
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            await axios.post('/api/verification/send-mobile-otp', { phone: user.phone });
             setShowOtp(true);
-            const last4 = user?.phone ? user.phone.slice(-4) : '3356';
+            const last4 = user.phone.slice(-4);
             toast.success(`OTP sent to your registered mobile number ending in ${last4}.`, { duration: 6000 });
-        }, 1500);
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Failed to send OTP");
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleOtpVerify = (e) => {
+    const handleOtpVerify = async (e) => {
         e.preventDefault();
-        if (otp.length !== 6) {
-            return toast.error("Please enter 6-digit OTP");
+        if (otp.length < 4) {
+            return toast.error("Please enter a valid OTP");
         }
         setLoading(true);
-        // Simulate OTP verification and DigiLocker link
-        setTimeout(() => {
-            setLoading(false);
+        try {
+            await axios.post('/api/verification/verify-mobile-otp', { phone: user.phone, otp });
             setStep(2);
-            toast.success('Aadhaar Verified via DigiLocker!');
-        }, 2000);
+            toast.success('Aadhaar Verified Successfully!');
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Invalid OTP");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleFinalSubmit = async () => {
