@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Settings, LogOut, Bell, Shield, CreditCard, ChevronRight, Edit3, User as UserIcon, Loader } from 'lucide-react';
+import { Settings, LogOut, Bell, Shield, ShieldCheck, CreditCard, ChevronRight, Edit3, User as UserIcon, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
