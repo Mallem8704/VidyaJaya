@@ -559,4 +559,35 @@ router.post('/kyc/:id/reject', protect, adminProtect, async (req, res) => {
     }
 });
 
+/**
+ * @route   POST /api/admin/debug-sms
+ * @desc    Test SMS delivery from the live server
+ */
+const { sendSMS } = require('../utils/sms');
+router.post('/debug-sms', protect, adminProtect, async (req, res) => {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ message: 'Phone number required' });
+
+    try {
+        console.log(`[ADMIN] Triggering diagnostic SMS to ${phone}...`);
+        const result = await sendSMS(phone, "123456"); // Test OTP
+        
+        if (result.success) {
+            res.json({ 
+                success: true, 
+                message: 'Fast2SMS accepted the request!', 
+                data: result.data 
+            });
+        } else {
+            res.status(400).json({ 
+                success: false, 
+                message: result.error, 
+                details: result 
+            });
+        }
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 module.exports = router;

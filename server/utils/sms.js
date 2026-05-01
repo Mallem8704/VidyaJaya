@@ -20,6 +20,7 @@ const sendSMS = async (phone, message) => {
         // Fast2SMS requires phone WITHOUT country code for Indian numbers
         const cleanPhone = phone.replace(/^\+91/, '').replace(/\D/g, '');
         
+        // Using 'q' (Quick SMS) route as it doesn't require website verification
         const response = await axios.post('https://www.fast2sms.com/dev/bulkV2', {
             route: 'q',
             message: message,
@@ -30,35 +31,33 @@ const sendSMS = async (phone, message) => {
                 "authorization": API_KEY,
                 "Content-Type": "application/json"
             },
-            timeout: 10000
+            timeout: 15000
         });
 
         const data = response.data;
         console.log(`[SMS] Fast2SMS Response:`, JSON.stringify(data));
 
-        if (data.return === true || data.status === true) {
-            console.log(`[SMS] ✅ OTP sent successfully to ${cleanPhone}`);
+        if (data.return === true || data.status === true || data.request_id) {
+            console.log(`[SMS] ✅ SMS sent successfully to ${cleanPhone}`);
             return { success: true, data };
         } else {
             console.error(`[SMS] ❌ Fast2SMS returned failure:`, data.message);
-            return { success: false, error: data.message, code: data.status_code };
+            return { success: false, error: data.message || 'Unknown Fast2SMS Error' };
         }
     } catch (err) {
         const errData = err.response?.data;
-        const statusCode = errData?.status_code;
+        const statusCode = err.response?.status;
         const errMsg = errData?.message || err.message;
         
-        console.error(`[SMS] ❌ Fast2SMS Error [${statusCode}]: ${errMsg}`);
+        console.error(`[SMS] ❌ Fast2SMS HTTP Error [${statusCode}]:`, JSON.stringify(errData || errMsg));
         
-        if (statusCode === 414) {
-            console.error('[SMS] IP ADDRESS IS BLACKLISTED by Fast2SMS. Real SMS unavailable from this server.');
-        } else if (statusCode === 412) {
-            console.error('[SMS] INVALID API KEY. Check FAST2SMS_API_KEY in Render environment variables.');
-        } else if (statusCode === 406) {
-            console.error('[SMS] INSUFFICIENT BALANCE. Recharge your Fast2SMS wallet.');
-        }
+        // Provide human-readable errors for common failures
+        let friendlyError = errMsg;
+        if (statusCode === 414 || errMsg.includes('414')) friendlyError = "Server IP is blocked by Fast2SMS. Try using a proxy or different server.";
+        if (statusCode === 412 || errMsg.includes('412')) friendlyError = "Invalid API Key. Please check your FAST2SMS_API_KEY.";
+        if (statusCode === 406 || errMsg.includes('406')) friendlyError = "Insufficient Balance in your Fast2SMS wallet.";
         
-        return { success: false, error: errMsg, code: statusCode };
+        return { success: false, error: friendlyError, code: statusCode };
     }
 };
 
