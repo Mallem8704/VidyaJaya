@@ -12,6 +12,30 @@ const KYC = () => {
     const [aadhaar, setAadhaar] = useState('');
     const [otp, setOtp] = useState('');
     const [showOtp, setShowOtp] = useState(false);
+    const [resendCountdown, setResendCountdown] = useState(0);
+
+    // Resend Timer Logic
+    React.useEffect(() => {
+        let timer;
+        if (resendCountdown > 0) {
+            timer = setInterval(() => {
+                setResendCountdown(prev => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(timer);
+    }, [resendCountdown]);
+
+    const handleResendOtp = async () => {
+        if (resendCountdown > 0) return;
+        
+        try {
+            await axios.post('/api/verification/send-mobile-otp', { phone: user.phone });
+            setResendCountdown(60);
+            toast.success("OTP resent successfully!");
+        } catch (err) {
+            toast.error("Failed to resend OTP.");
+        }
+    };
 
     const handleAadhaarSubmit = async (e) => {
         e.preventDefault();
@@ -26,6 +50,7 @@ const KYC = () => {
         try {
             await axios.post('/api/verification/send-mobile-otp', { phone: user.phone });
             setShowOtp(true);
+            setResendCountdown(60);
             const last4 = user.phone.slice(-4);
             toast.success(`OTP sent to your registered mobile number ending in ${last4}.`, { duration: 6000 });
         } catch (err) {
@@ -171,13 +196,23 @@ const KYC = () => {
                                             {loading ? <Loader2 className="animate-spin" /> : <Key size={24} />}
                                             VERIFY & LINK
                                         </button>
-                                        <button 
-                                            type="button" 
-                                            onClick={() => setShowOtp(false)}
-                                            className="w-full text-xs font-bold text-gray-400 hover:text-secondary uppercase"
-                                        >
-                                            Edit Aadhaar Number
-                                        </button>
+                                        <div className="flex justify-between items-center px-1">
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setShowOtp(false)}
+                                                className="text-[10px] font-black text-gray-400 hover:text-secondary uppercase tracking-widest"
+                                            >
+                                                Edit Aadhaar
+                                            </button>
+                                            <button 
+                                                type="button"
+                                                onClick={handleResendOtp}
+                                                disabled={resendCountdown > 0}
+                                                className={`text-[10px] font-black uppercase tracking-widest ${resendCountdown > 0 ? 'text-gray-300' : 'text-secondary hover:underline'}`}
+                                            >
+                                                {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : 'Resend OTP'}
+                                            </button>
+                                        </div>
                                     </form>
                                 )}
                             </motion.div>
