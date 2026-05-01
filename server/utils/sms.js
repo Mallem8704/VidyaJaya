@@ -14,7 +14,6 @@ const sendSMS = async (phone, message) => {
     }
 
     console.log(`[SMS] Attempting to send to ${phone} via Fast2SMS...`);
-    console.log(`[SMS] Using API key: ${API_KEY.substring(0, 6)}...`);
 
     try {
         // Fast2SMS requires phone WITHOUT country code for Indian numbers
@@ -34,7 +33,6 @@ const sendSMS = async (phone, message) => {
         });
 
         const data = response.data;
-        console.log(`[SMS] Fast2SMS Response:`, JSON.stringify(data));
 
         if (data.return === true || data.status === true) {
             console.log(`[SMS] ✅ OTP sent successfully to ${cleanPhone}`);
@@ -45,18 +43,10 @@ const sendSMS = async (phone, message) => {
         }
     } catch (err) {
         const errData = err.response?.data;
-        const statusCode = errData?.status_code;
+        const statusCode = errData?.status_code || err.response?.status;
         const errMsg = errData?.message || err.message;
         
         console.error(`[SMS] ❌ Fast2SMS Error [${statusCode}]: ${errMsg}`);
-        
-        if (statusCode === 414) {
-            console.error('[SMS] IP ADDRESS IS BLACKLISTED by Fast2SMS. Real SMS unavailable from this server.');
-        } else if (statusCode === 412) {
-            console.error('[SMS] INVALID API KEY. Check FAST2SMS_API_KEY in Render environment variables.');
-        } else if (statusCode === 406) {
-            console.error('[SMS] INSUFFICIENT BALANCE. Recharge your Fast2SMS wallet.');
-        }
         
         return { success: false, error: errMsg, code: statusCode };
     }
@@ -66,7 +56,7 @@ const sendSMS = async (phone, message) => {
  * Send OTP specifically for signup verification
  */
 const sendSignupOTP = async (phone, otp) => {
-    const message = `Your VidyaJaya verification code is ${otp}. Valid for 10 minutes. Do NOT share this with anyone.`;
+    const message = `Your VidyaJaya verification code is ${otp}. Valid for 10 minutes.`;
     return await sendSMS(phone, message);
 };
 
@@ -74,7 +64,7 @@ const sendSignupOTP = async (phone, otp) => {
  * Send OTP for KYC
  */
 const sendVerificationOTP = async (phone, otp) => {
-    const message = `Your VidyaJaya KYC verification code is ${otp}. Valid for 10 minutes. Do NOT share this with anyone.`;
+    const message = `Your VidyaJaya KYC verification code is ${otp}. Valid for 10 minutes.`;
     return await sendSMS(phone, message);
 };
 
