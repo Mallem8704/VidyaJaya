@@ -229,6 +229,8 @@ router.post('/users/:id/toggle-block', protect, adminProtect, async (req, res) =
     }
 });
 
+const { initiatePayout } = require('../utils/payoutService');
+
 /**
  * @route   GET /api/admin/withdrawals
  * @desc    Get all withdrawal requests with stats
@@ -273,18 +275,46 @@ router.post('/withdrawals/:id/update-status', protect, adminProtect, async (req,
             return res.status(400).json({ message: 'Invalid status' });
         }
 
+        // 1. Fetch withdrawal details for the payout
+        const { data: withdrawal, error: fetchErr } = await supabase
+            .from('withdrawals')
+            .select('*, profiles(id, name, email)')
+            .eq('id', id)
+            .single();
+        
+        if (fetchErr) throw fetchErr;
+
+        // 2. If status is 'approved', attempt automated RazorpayX Payout
+        let payoutResult = null;
+        if (status === 'approved' && process.env.RAZORPAYX_ACCOUNT_NUMBER) {
+            console.log(`[ADMIN] Initiating RazorpayX payout for withdrawal: ${id}`);
+            payoutResult = await initiatePayout(withdrawal, withdrawal.profiles);
+            
+            if (!payoutResult.success) {
+                return res.status(400).json({ 
+                    message: `Payout Error: ${payoutResult.error}` 
+                });
+            }
+        }
+
+        // 3. Update Database Status
+        const adminNotes = notes || (payoutResult ? `RazorpayX Payout: ${payoutResult.payoutId} (${payoutResult.status})` : `Updated to ${status} by admin.`);
+        
         const { error: rpcErr } = await supabase.rpc('update_withdrawal_status', {
             p_withdrawal_id: id,
             p_status: status,
-            p_admin_notes: notes || `Request updated to ${status} by admin.`
+            p_admin_notes: adminNotes
         });
 
         if (rpcErr) throw rpcErr;
 
-        res.json({ message: `Withdrawal status updated to ${status} successfully.` });
+        res.json({ 
+            message: payoutResult ? `Payout initiated via RazorpayX (${payoutResult.status})` : `Withdrawal status updated to ${status} successfully.`,
+            payout: payoutResult
+        });
     } catch (err) {
-        console.error('Update Withdrawal Error:', err);
-        res.status(500).json({ message: 'Failed to update status' });
+        console.error('[ADMIN_WITHDRAWAL_UPDATE_ERROR]', err);
+        res.status(500).json({ message: err.message || 'Failed to update status' });
     }
 });
 
@@ -469,6 +499,94 @@ router.post('/commissions/:id/pay', protect, adminProtect, async (req, res) => {
         res.json({ message: 'Commission marked as paid' });
     } catch (err) {
         res.status(500).json({ message: 'Failed to update commission' });
+    }
+});
+
+/**
+ * @route   POST /api/admin/kyc/:id/approve
+ * @desc    Approve user KYC
+ */
+router.post('/kyc/:id/approve', protect, adminProtect, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { error } = await supabase
+            .from('profiles')
+            .update({ 
+                kyc_status: 'approved',
+                kyc_verified: true
+            })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        await supabase.from('admin_audit_logs').insert({
+            admin_id: req.user.id,
+            action: 'APPROVE_KYC',
+            target_id: id
+        });
+
+        res.json({ message: 'KYC approved successfully' });
+    } catch (err) {
+        console.error('[ADMIN_KYC_APPROVE_ERROR]', err);
+        res.status(500).json({ message: err.message || 'Failed to approve KYC' });
+    }
+});
+
+/**
+ * @route   POST /api/admin/kyc/:id/reject
+ * @desc    Reject user KYC
+ */
+router.post('/kyc/:id/reject', protect, adminProtect, async (req, res) => {
+    const { id } = req.params;
+    try {
+        const { error } = await supabase
+            .from('profiles')
+            .update({ kyc_status: 'rejected' })
+            .eq('id', id);
+
+        if (error) throw error;
+
+        await supabase.from('admin_audit_logs').insert({
+            admin_id: req.user.id,
+            action: 'REJECT_KYC',
+            target_id: id
+        });
+
+        res.json({ message: 'KYC rejected successfully' });
+    } catch (err) {
+        console.error('[ADMIN_KYC_REJECT_ERROR]', err);
+        res.status(500).json({ message: err.message || 'Failed to reject KYC' });
+    }
+});
+
+/**
+ * @route   POST /api/admin/debug-sms
+ * @desc    Test SMS delivery from the live server
+ */
+const { sendSMS } = require('../utils/sms');
+router.post('/debug-sms', protect, adminProtect, async (req, res) => {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ message: 'Phone number required' });
+
+    try {
+        console.log(`[ADMIN] Triggering diagnostic SMS to ${phone}...`);
+        const result = await sendSMS(phone, "123456"); // Test OTP
+        
+        if (result.success) {
+            res.json({ 
+                success: true, 
+                message: 'Fast2SMS accepted the request!', 
+                data: result.data 
+            });
+        } else {
+            res.status(400).json({ 
+                success: false, 
+                message: result.error, 
+                details: result 
+            });
+        }
+    } catch (err) {
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 

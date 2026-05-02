@@ -75,6 +75,18 @@ router.post('/withdraw', protect, async (req, res) => {
             return res.status(403).json({ message: 'KYC Verification required via DigiLocker to withdraw rewards.' });
         }
 
+        // Check for duplicate UPI ID
+        const { data: duplicateUpi } = await supabase
+            .from('withdrawals')
+            .select('id')
+            .eq('upi_id', upiId)
+            .neq('user_id', user.id)
+            .limit(1);
+
+        if (duplicateUpi && duplicateUpi.length > 0) {
+            return res.status(403).json({ message: 'This UPI ID is already linked to another account. Duplicate accounts are not allowed.' });
+        }
+
         // 3. CONVERSION & BALANCE CHECK
         // 100 Gold = ₹50 => GoldNeeded = RupeeAmount * 2
         const goldNeeded = amount * 2;
@@ -90,11 +102,20 @@ router.post('/withdraw', protect, async (req, res) => {
         }
 
         // 4. RECORD TRANSACTION
-        const { error: withdrawError } = await supabase.from('rewards').insert({
+        const { error: rewardError } = await supabase.from('rewards').insert({
             user_id: user.id,
             type: 'withdrawn',
             amount: -goldNeeded,
             description: `Withdrawal request: ₹${amount} (Deducted ${goldNeeded} Gold Coins) to UPI: ${upiId}`
+        });
+
+        if (rewardError) throw rewardError;
+
+        const { error: withdrawError } = await supabase.from('withdrawals').insert({
+            user_id: user.id,
+            amount: amount,
+            upi_id: upiId,
+            status: 'pending'
         });
 
         if (withdrawError) throw withdrawError;

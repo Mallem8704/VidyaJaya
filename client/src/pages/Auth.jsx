@@ -45,6 +45,39 @@ const Auth = ({ type }) => {
   const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
+
+  // Resend Timer Logic
+  React.useEffect(() => {
+    let timer;
+    if (resendCountdown > 0) {
+      timer = setInterval(() => {
+        setResendCountdown(prev => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [resendCountdown]);
+
+  const handleResendOtp = async () => {
+    if (resendCountdown > 0) return;
+    
+    try {
+      const response = await axios.post('/api/verification/send-mobile-otp', { phone: formData.phone });
+      setResendCountdown(60); // 60 seconds cooldown
+      
+      if (response.data?.bypass) {
+        toast('SMS unavailable. Use code: 123456 to continue.', {
+          icon: '⚠️',
+          duration: 6000,
+          style: { background: '#fff3cd', color: '#856404' }
+        });
+      } else {
+        toast.success(`OTP resent to ${formData.phone}!`);
+      }
+    } catch (err) {
+      toast.error("Failed to resend OTP. Please try again later.");
+    }
+  };
 
   // Password Strength
   const getPasswordStrength = () => {
@@ -77,6 +110,7 @@ const Auth = ({ type }) => {
             const response = await axios.post('/api/verification/send-mobile-otp', { phone: formData.phone });
             setIsOtpSent(true);
             setShowOtpField(true);
+            setResendCountdown(60);
 
             if (response.data?.bypass) {
               // SMS failed (IP blocked etc.) — bypass mode
@@ -354,7 +388,17 @@ const Auth = ({ type }) => {
                         className="w-full p-4 text-center text-2xl tracking-widest rounded-xl border-2 border-secondary bg-[var(--bg-card)] focus:ring-2 focus:ring-secondary outline-none transition-all"
                         placeholder="000000" maxLength={6}
                       />
-                      <p className="text-xs text-[var(--text-secondary)] mt-2">Enter the 6-digit code sent to {formData.phone}</p>
+                      <div className="flex justify-between items-center mt-2">
+                        <p className="text-xs text-[var(--text-secondary)]">Enter the 6-digit code sent to {formData.phone}</p>
+                        <button 
+                          type="button"
+                          onClick={handleResendOtp}
+                          disabled={resendCountdown > 0}
+                          className={`text-xs font-bold ${resendCountdown > 0 ? 'text-gray-400 cursor-not-allowed' : 'text-secondary hover:underline'}`}
+                        >
+                          {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : 'Resend OTP'}
+                        </button>
+                      </div>
                     </motion.div>
                   )}
                 </>

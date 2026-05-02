@@ -162,6 +162,18 @@ router.post('/start-kyc', protect, async (req, res) => {
     }
 
     try {
+        // Check for duplicate Aadhaar
+        const { data: existingUser } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('kyc_provider_id', idNumber)
+            .neq('id', req.user.id)
+            .limit(1);
+
+        if (existingUser && existingUser.length > 0) {
+            return res.status(403).json({ message: 'This Aadhaar number is already linked to another account. Duplicate accounts are not allowed.' });
+        }
+
         await supabase
             .from('profiles')
             .update({

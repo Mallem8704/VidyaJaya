@@ -16,6 +16,7 @@ const Rewards = () => {
   const [transactions, setTransactions] = useState([]);
   const [loadingTransactions, setLoadingTransactions] = useState(true);
   const [realCoins, setRealCoins] = useState(user?.coins || 0);
+  const [goldCoins, setGoldCoins] = useState(0);
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [upiId, setUpiId] = useState('');
   const [isWithdrawing, setIsWithdrawing] = useState(false);
@@ -28,7 +29,8 @@ const Rewards = () => {
           axios.get('/api/rewards/balance')
         ]);
         setTransactions(transRes.data);
-        setRealCoins(balRes.data.coins);
+        setRealCoins(balRes.data.coins || balRes.data.silver_coins || 0);
+        setGoldCoins(balRes.data.gold_coins || 0);
       } catch (err) {
         console.error("Failed to fetch rewards data", err);
       } finally {
@@ -150,8 +152,9 @@ const Rewards = () => {
     if (amountNum < 50) {
       return toast.error("Minimum withdrawal is ₹50");
     }
-    if (amountNum > coins) {
-      return toast.error("Insufficient coin balance!");
+    const requiredGold = amountNum * 2;
+    if (requiredGold > goldCoins) {
+      return toast.error(`Insufficient Gold Coins! You need ${requiredGold} Gold Coins.`);
     }
     if (!upiId.includes('@')) {
       return toast.error("Please enter a valid UPI ID");
@@ -168,7 +171,8 @@ const Rewards = () => {
       setUpiId('');
       // Refresh balance
       const balRes = await axios.get('/api/rewards/balance');
-      setRealCoins(balRes.data.coins);
+      setRealCoins(balRes.data.coins || balRes.data.silver_coins || 0);
+      setGoldCoins(balRes.data.gold_coins || 0);
       const transRes = await axios.get('/api/rewards');
       setTransactions(transRes.data);
     } catch (err) {
@@ -195,6 +199,55 @@ const Rewards = () => {
               {coins} <span className="text-lg">Coins</span>
            </div>
         </div>
+      </div>
+
+      {/* NEW WITHDRAWAL UI */}
+      <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-8 shadow-xl">
+         <h3 className="text-2xl font-heading font-bold flex items-center gap-2 mb-4">
+            <Diamond className="text-accent-gold" /> Cash Withdrawal
+         </h3>
+         <p className="text-[var(--text-secondary)] mb-6 text-sm">
+            Convert your Gold Coins to real cash directly to your bank account via UPI. <br/>
+            <strong className="text-accent-gold">Exchange Rate: 100 Gold Coins = ₹50</strong>
+         </p>
+         
+         <form onSubmit={handleWithdraw} className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+            <div className="space-y-2">
+               <label className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Withdrawal Amount (₹)</label>
+               <input 
+                  type="number" 
+                  min="50" 
+                  step="10"
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                  placeholder="Min ₹50"
+                  className="w-full bg-[var(--bg-light)] border border-[var(--border)] rounded-xl p-3 focus:outline-none focus:border-secondary transition-colors"
+                  required
+               />
+            </div>
+            <div className="space-y-2">
+               <label className="text-xs font-bold uppercase tracking-wider text-[var(--text-secondary)]">Your UPI ID</label>
+               <input 
+                  type="text" 
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
+                  placeholder="name@okbank"
+                  className="w-full bg-[var(--bg-light)] border border-[var(--border)] rounded-xl p-3 focus:outline-none focus:border-secondary transition-colors"
+                  required
+               />
+            </div>
+            <button 
+               type="submit" 
+               disabled={isWithdrawing}
+               className="btn bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl flex justify-center items-center h-[50px] shadow-lg shadow-green-500/20"
+            >
+               {isWithdrawing ? <Loader2 className="animate-spin" /> : "Request Payout"}
+            </button>
+         </form>
+         <div className="mt-4 text-xs flex justify-between items-center bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 p-3 rounded-lg border border-yellow-500/20">
+            <span><strong>Available Gold Coins:</strong> {goldCoins}</span>
+            <span><strong>Required Gold:</strong> {withdrawAmount ? Number(withdrawAmount) * 2 : 0}</span>
+         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
