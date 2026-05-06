@@ -3,27 +3,28 @@ const router = express.Router();
 const supabase = require('../config/supabase');
 const { protect } = require('../middleware/authMiddleware');
 const { sendVerificationOTP, sendSignupOTP } = require('../utils/sms');
+const { sendOTP: sendEmailOTP } = require('../utils/email');
 
 // ============================================================
 // In-Memory OTP Store (Fallback if DB table doesn't exist yet)
-// Format: phone -> { otp, expiresAt }
+// Format: identifier (email or phone) -> { otp, expiresAt }
 // ============================================================
 const memOtpStore = new Map();
 
-const storeOtpInMemory = (phone, otp) => {
+const storeOtpInMemory = (identifier, otp) => {
     const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-    memOtpStore.set(phone, { otp, expiresAt });
+    memOtpStore.set(identifier, { otp, expiresAt });
 };
 
-const verifyOtpFromMemory = (phone, otp) => {
-    const record = memOtpStore.get(phone);
+const verifyOtpFromMemory = (identifier, otp) => {
+    const record = memOtpStore.get(identifier);
     if (!record) return false;
     if (Date.now() > record.expiresAt) {
-        memOtpStore.delete(phone);
+        memOtpStore.delete(identifier);
         return false;
     }
     if (record.otp !== otp.toString()) return false;
-    memOtpStore.delete(phone); // One-time use
+    memOtpStore.delete(identifier); // One-time use
     return true;
 };
 
@@ -92,6 +93,42 @@ router.post('/send-mobile-otp', async (req, res) => {
 });
 
 /**
+ * @route   POST /api/verification/send-email-otp
+ * @desc    Send OTP to email (Public - for Signup)
+ */
+router.post('/send-email-otp', async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email address is required' });
+
+    try {
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // 1. Try to store in Database
+        try {
+            await supabase
+                .from('verification_otps')
+                .insert({ phone: email, otp }); // Reusing phone column for email if needed, or if schema allows
+        } catch (dbEx) {
+            console.warn('[OTP_DB] Using memory store only.');
+        }
+
+        // Always store in memory
+        storeOtpInMemory(email, otp);
+
+        // 2. Send Email
+        await sendEmailOTP(email, otp);
+
+        console.log(`[OTP_SENT] Email OTP sent to ${email}`);
+        return res.json({ message: 'Verification code sent to your email.', success: true });
+
+    } catch (err) {
+        console.error('[SEND_EMAIL_OTP_ERROR]', err);
+        return res.status(500).json({ message: 'Failed to send email OTP. Please try again later.' });
+    }
+});
+
+/**
  * @route   POST /api/verification/verify-mobile-otp
  * @desc    Verify mobile OTP (Checks DB first, then memory)
  */
@@ -147,6 +184,34 @@ router.post('/verify-mobile-otp', protect, async (req, res) => {
     } catch (err) {
         console.error('[VERIFY_OTP_ERROR]', err);
         res.status(500).json({ message: 'Verification process failed' });
+    }
+});
+
+/**
+ * @route   POST /api/verification/verify-email-otp
+ * @desc    Verify email OTP
+ */
+router.post('/verify-email-otp', async (req, res) => {
+    const { otp, email } = req.body;
+
+    if (!otp || !email) {
+        return res.status(400).json({ message: 'OTP and email are required' });
+    }
+
+    try {
+        let verified = false;
+
+        // Check memory store (Simple and effective for email)
+        verified = verifyOtpFromMemory(email, otp);
+
+        if (!verified) {
+            return res.status(400).json({ message: 'Invalid or expired OTP. Please resend.' });
+        }
+
+        res.json({ message: 'Email verified successfully!', success: true });
+    } catch (err) {
+        console.error('[VERIFY_EMAIL_OTP_ERROR]', err);
+        res.status(500).json({ message: 'Verification failed' });
     }
 });
 

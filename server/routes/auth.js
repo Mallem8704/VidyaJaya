@@ -59,15 +59,16 @@ router.post('/register', async (req, res) => {
     }
 
     // 1. OTP Verification — checks DB first, then in-memory store (fallback)
-    if (phone && otp) {
+    if (otp) {
         let otpVerified = false;
+        const identifier = email; // Prioritize email for OTP verification now
 
         // Try DB check first
         try {
             const { data: otpRecords } = await supabase
                 .from('verification_otps')
                 .select('*')
-                .eq('phone', phone)
+                .or(`phone.eq.${identifier},phone.eq.${phone || 'none'}`)
                 .eq('otp', otp)
                 .eq('is_verified', false)
                 .gt('expires_at', new Date().toISOString())
@@ -82,11 +83,11 @@ router.post('/register', async (req, res) => {
             console.warn('[REGISTER_OTP_DB] DB check failed, trying memory store:', dbErr.message);
         }
 
-        // Fallback: check in-memory store (used when DB table missing or SMS bypassed)
+        // Fallback: check in-memory store
         if (!otpVerified) {
             const { verifyOtpFromMemory } = require('./verification');
             if (typeof verifyOtpFromMemory === 'function') {
-                otpVerified = verifyOtpFromMemory(phone, otp);
+                otpVerified = verifyOtpFromMemory(identifier, otp);
             }
         }
 
