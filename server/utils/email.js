@@ -1,16 +1,19 @@
 const nodemailer = require('nodemailer');
 
 const createTransporter = () => {
-    // Explicit SMTP settings for Gmail are more reliable than 'service: gmail'
+    // Port 587 with secure: false (STARTTLS) is more compatible with cloud hosts like Render
     return nodemailer.createTransport({
         host: 'smtp.gmail.com',
-        port: 465,
-        secure: true, // use SSL
+        port: 587,
+        secure: false, // use STARTTLS
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
         },
-        timeout: 10000 // 10 seconds timeout
+        tls: {
+            rejectUnauthorized: false // Helps avoid certificate issues on some cloud hosts
+        },
+        timeout: 15000
     });
 };
 
