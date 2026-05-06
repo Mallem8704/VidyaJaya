@@ -58,293 +58,130 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Please provide name, email, and password.' });
     }
 
-    // 1. OTP Verification — checks DB first, then in-memory store (fallback)
-    if (otp) {
-        let otpVerified = false;
-        const identifier = email; // Prioritize email for OTP verification now
-
-        // Try DB check first
-        try {
-            const { data: otpRecords } = await supabase
-                .from('verification_otps')
-                .select('*')
-                .or(`phone.eq.${identifier},phone.eq.${phone || 'none'}`)
-                .eq('otp', otp)
-                .eq('is_verified', false)
-                .gt('expires_at', new Date().toISOString())
-                .order('created_at', { ascending: false })
-                .limit(1);
-
-            if (otpRecords && otpRecords.length > 0) {
-                await supabase.from('verification_otps').update({ is_verified: true }).eq('id', otpRecords[0].id);
-                otpVerified = true;
-            }
-        } catch (dbErr) {
-            console.warn('[REGISTER_OTP_DB] DB check failed, trying memory store:', dbErr.message);
-        }
-
-        // Fallback: check in-memory store
-        if (!otpVerified) {
-            const { verifyOtpFromMemory } = require('./verification');
-            if (typeof verifyOtpFromMemory === 'function') {
-                otpVerified = verifyOtpFromMemory(identifier, otp);
-            }
-        }
-
-        if (!otpVerified) {
-            return res.status(400).json({ message: 'Invalid or expired OTP. Please request a new code.' });
-        }
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({ message: 'Password must be at least 6 characters.' });
-    }
-
-    // Anti-Abuse: Check if deviceId already has many accounts (optional but recommended)
-    if (deviceId) {
-      const { data: deviceAccounts } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('device_id', deviceId);
-      
-      if (deviceAccounts && deviceAccounts.length >= 3) {
-        return res.status(403).json({ message: 'Maximum account limit reached for this device.' });
-      }
-    }
-
-    // 1. Sign up or Recover existing user
-    const authClient = getAuthClient();
-    let authData, authError;
-
-    try {
-        const result = await authClient.auth.signUp({
-            email,
-            password,
-            options: { data: { name, phone } }
-        });
-        authData = result.data;
-        authError = result.error;
-    } catch (e) {
-        console.error('[Register] Critical Auth Exception:', e);
-    }
-
-    let profileId = authData?.user?.id;
-
-    if (authError) {
-        // Handle "Already Registered" cases
-        if (authError.message.includes('already registered') || authError.status === 422) {
-            console.log('[Register] User exists, recovering ID...');
-            const { data: users } = await authClient.auth.admin.listUsers();
-            profileId = users.users.find(u => u.email === email)?.id;
-        }
-        
-        if (!profileId) {
-            console.error('[Register] Auth Error:', authError.message);
-            return res.status(400).json({ message: authError.message });
-        }
-    }
-
-    if (!profileId) {
-        return res.status(400).json({ message: 'Could not establish user identity. Please try a different email.' });
-    }
-
-    // Generate unique referral code
-    const generatedCode = (name.substring(0, 3) + Math.random().toString(36).substring(2, 6)).toUpperCase();
-
-    // 🛡️ REFERRAL VALIDATION
+    // 1. Parallelize Validations and Auth Signup
+    let otpVerified = !otp;
     let referrerId = null;
     let referralType = null;
     let refCodeStr = null;
+    let authData, authError;
 
-    if (referralCode) {
-      const codeUpper = referralCode.trim().toUpperCase();
-      console.log(`[AUTH_REGISTER] Validating Referral Code: ${codeUpper}`);
-      
-      // 1. Check referral_codes table (Influencers/Admins)
-      const { data: refCodeObj } = await supabase
-        .from('referral_codes')
-        .select('*')
-        .eq('code', codeUpper)
-        .single();
-      
-      if (refCodeObj) {
-        console.log(`[AUTH_REGISTER] FOUND INFLUENCER CODE: ${codeUpper} (Owner: ${refCodeObj.owner_user_id})`);
-        referrerId = refCodeObj.owner_user_id;
-        referralType = refCodeObj.type;
-        refCodeStr = refCodeObj.code;
-      } else {
-        // 2. Check profiles table (Regular users)
-        const { data: referrerUser } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('referral_code', codeUpper)
-          .single();
-        
-        if (referrerUser) {
-          console.log(`[AUTH_REGISTER] FOUND USER CODE: ${codeUpper} (Owner: ${referrerUser.id})`);
-          referrerId = referrerUser.id;
-          referralType = 'user';
-          refCodeStr = codeUpper;
-        } else {
-          console.log(`[AUTH_REGISTER] INVALID CODE: ${codeUpper}`);
+    const [otpRes, refRes, authRes] = await Promise.all([
+            // OTP Task
+            (async () => {
+                if (!otp) return;
+                try {
+                    const { data } = await supabase
+                        .from('verification_otps')
+                        .select('*')
+                        .or(`phone.eq.${email},phone.eq.${phone || 'none'}`)
+                        .eq('otp', otp)
+                        .eq('is_verified', false)
+                        .gt('expires_at', new Date().toISOString())
+                        .limit(1);
+                    if (data?.length > 0) {
+                        otpVerified = true;
+                        supabase.from('verification_otps').update({ is_verified: true }).eq('id', data[0].id).then();
+                    } else {
+                        // Fallback to memory
+                        const { verifyOtpFromMemory } = require('./verification');
+                        otpVerified = verifyOtpFromMemory(email, otp);
+                    }
+                } catch (e) { console.warn('[OTP_PARALLEL_ERR]', e.message); }
+            })(),
+
+            // Referral Task
+            (async () => {
+                if (!referralCode) return;
+                const codeUpper = referralCode.trim().toUpperCase();
+                // Check both tables in parallel
+                const [influencerRes, userRes] = await Promise.all([
+                    supabase.from('referral_codes').select('*').eq('code', codeUpper).single(),
+                    supabase.from('profiles').select('id').eq('referral_code', codeUpper).single()
+                ]);
+                if (influencerRes.data) {
+                    referrerId = influencerRes.data.owner_user_id;
+                    referralType = influencerRes.data.type;
+                    refCodeStr = codeUpper;
+                } else if (userRes.data) {
+                    referrerId = userRes.data.id;
+                    referralType = 'user';
+                    refCodeStr = codeUpper;
+                }
+            })(),
+
+            // Auth Signup Task
+            (async () => {
+                const authClient = getAuthClient();
+                const res = await authClient.auth.signUp({
+                    email,
+                    password,
+                    options: { data: { name, phone } }
+                });
+                authData = res.data;
+                authError = res.error;
+            })()
+        ]);
+
+        if (!otpVerified) return res.status(400).json({ message: 'Invalid or expired OTP.' });
+        if (authError && !authError.message.includes('already registered')) {
+            return res.status(400).json({ message: authError.message });
         }
-      }
-    }
 
-    /* 🛡️ TEMPORARILY DISABLED FOR TESTING
-    if (referrerId && deviceId) {
-        const { data: sameDeviceCheck } = await supabase
-            .from('user_devices')
-            .select('id')
-            .eq('user_id', referrerId)
-            .eq('device_id', deviceId);
-        
-        if (sameDeviceCheck && sameDeviceCheck.length > 0) {
-            console.warn(`[FRAUD] Self-referral detected. Device: ${deviceId}`);
-            referrerId = null;
-            refCodeStr = null;
-            referralType = null;
+        // Recover ID if user already exists
+        let profileId = authData?.user?.id;
+        if (!profileId && authError?.message.includes('already registered')) {
+            const authClient = getAuthClient();
+            const { data: users } = await authClient.auth.admin.listUsers();
+            profileId = users.users.find(u => u.email === email)?.id;
         }
+
+        if (!profileId) throw new Error('Identity establishment failed.');
+
+        // 2. Create Profile (Critical Path)
+        const generatedCode = (name.substring(0, 3) + Math.random().toString(36).substring(2, 6)).toUpperCase();
+        const { data: profile, error: pErr } = await supabase.from('profiles').upsert({
+            id: profileId, name, email, phone: phone || null, exam_goal: examGoal || 'UPSC',
+            is_verified: false, coins: referrerId ? 5 : 0, streak: 0, referral_code: generatedCode,
+            referred_by_code: refCodeStr, referred_by_user_id: referrerId, referral_type: referralType,
+            device_id: deviceId || null, plan: 'free'
+        }, { onConflict: 'id' }).select().single();
+
+        if (pErr) throw pErr;
+
+        // 3. Post-Registration Background Tasks (NON-BLOCKING)
+        (async () => {
+            try {
+                // Background: Record Referral
+                if (referrerId && refCodeStr) {
+                    await supabase.from('referrals').upsert({
+                        referrer_id: referrerId, referred_user_id: profileId,
+                        referral_code: refCodeStr, is_successful: false
+                    }, { onConflict: 'referred_user_id' });
+                }
+                // Background: Track Device
+                if (deviceId) {
+                    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+                    await supabase.from('user_devices').insert({
+                        user_id: profileId, device_id: deviceId,
+                        ip_address: ip, browser_fingerprint: req.headers['user-agent']
+                    });
+                }
+                // Background: Welcome Email
+                sendEmail({ email, ...emailTemplates.welcome(name) }).catch(() => {});
+            } catch (bgErr) { console.error('[REGISTER_BG_ERR]', bgErr.message); }
+        })();
+
+        // 4. Send Instant Response
+        return res.status(201).json({
+            message: 'Welcome to VidyaJaya!',
+            user: profile,
+            token: authData?.session?.access_token || null
+        });
+
+    } catch (err) {
+        console.error('[REGISTER_CRITICAL_ERR]', err);
+        res.status(500).json({ message: 'Registration failed. Please try again.' });
     }
-    */
-
-    // 2. Create user profile — with retry on failure
-    let profile = null;
-    const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
-      .upsert({
-        id: profileId,
-        name,
-        email,
-        phone: phone || null,
-        exam_goal: examGoal || 'UPSC',
-        is_verified: false,
-        coins: referralCode && referrerId ? 5 : 0,
-        streak: 0,
-        referral_code: generatedCode,
-        referred_by_code: refCodeStr,
-        referred_by_user_id: referrerId,
-        referral_type: referralType,
-        device_id: deviceId || null,
-        plan: 'free'
-      }, { onConflict: 'id' })
-      .select()
-      .single();
-
-    if (profileError) {
-      console.error('[Register] ❌ PROFILE CREATE FULL ERROR:', JSON.stringify(profileError));
-      // Retry with only guaranteed-safe minimal columns
-      const { data: minProfile, error: minErr } = await supabase
-        .from('profiles')
-        .upsert({ id: profileId, name, email, plan: 'free', referral_code: generatedCode }, { onConflict: 'id' })
-        .select().single();
-      if (minErr) {
-        console.error('[Register] ❌ MINIMAL PROFILE ALSO FAILED:', JSON.stringify(minErr));
-      } else {
-        profile = minProfile;
-        console.log('[Register] ✅ Minimal profile created successfully');
-        // Now patch in the referral fields separately
-        if (refCodeStr) {
-          await supabase.from('profiles').update({
-            referred_by_code: refCodeStr,
-            referred_by_user_id: referrerId,
-            referral_type: referralType,
-            coins: 5
-          }).eq('id', profileId);
-        }
-      }
-    } else {
-      profile = profileData;
-      console.log('[Register] ✅ Full profile created successfully');
-    }
-
-    // Verify profile actually exists before referral FK insert
-    const { data: verifyProfile } = await supabase.from('profiles').select('id').eq('id', profileId).single();
-    const profileConfirmed = !!verifyProfile;
-    console.log(`[Register] Profile confirmed in DB: ${profileConfirmed}`);
-
-    // 🔗 3. GUARANTEED REFERRAL RECORDING
-    if (referrerId && refCodeStr && profileConfirmed) {
-      console.log(`[AUTH_REGISTER] 🚀 REFERRAL INSERT ATTEMPT: Referrer=${referrerId}, Referee=${profileId}, Code=${refCodeStr}`);
-      
-      // Primary attempt — full data
-      const { error: finalRefErr } = await supabase.from('referrals').upsert({
-        referrer_id: referrerId,
-        referred_user_id: profileId,
-        referral_code: refCodeStr,
-        is_successful: false
-      }, { onConflict: 'referred_user_id' });
-
-      if (finalRefErr) {
-          console.error('[AUTH_REGISTER] ❌ PRIMARY INSERT FAILED:', JSON.stringify(finalRefErr));
-          
-          // Fallback attempt — minimal columns in case schema is partial
-          const { error: fallbackErr } = await supabase.from('referrals').upsert({
-            referrer_id: referrerId,
-            referred_user_id: profileId
-          }, { onConflict: 'referred_user_id' });
-          
-          if (fallbackErr) {
-            console.error('[AUTH_REGISTER] ❌ FALLBACK INSERT ALSO FAILED:', JSON.stringify(fallbackErr));
-            console.error('[AUTH_REGISTER] 🚨 ACTION REQUIRED: Run FINAL_REFERRAL_FIX.sql in Supabase SQL Editor');
-          } else {
-            console.log('[AUTH_REGISTER] ✅ REFERRAL SAVED (minimal columns) ✓');
-          }
-      } else {
-          console.log('[AUTH_REGISTER] ✅ REFERRAL SAVED SUCCESSFULLY ✓');
-      }
-    }
-
-    // 3. Track Device & Duplicate Accounts
-    // Fixed: Removed duplicate deviceId declaration
-    const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    const browserFingerprint = req.headers['user-agent'];
-
-    if (deviceId) {
-      await supabase.from('user_devices').insert({
-        user_id: profileId,
-        device_id: deviceId,
-        ip_address: ipAddress,
-        browser_fingerprint: browserFingerprint
-      });
-
-      const { data: deviceUsers } = await supabase
-        .from('user_devices')
-        .select('user_id')
-        .eq('device_id', deviceId);
-      
-      const uniqueUsers = new Set(deviceUsers?.map(d => d.user_id) || []);
-      
-      if (uniqueUsers.size > 2) {
-        await supabase.from('profiles').update({ user_flagged: true }).in('id', Array.from(uniqueUsers));
-      }
-
-      await supabase.from('profiles').update({ last_device_id: deviceId }).eq('id', profileId);
-    }
-    
-    // 🛡️ ENSURE USER IS NEVER NULL
-    const finalUser = profile || {
-        id: profileId,
-        name: name,
-        email: email,
-        plan: 'free'
-    };
-
-    // Send Welcome Email (Non-blocking)
-    sendEmail({
-      email: email,
-      ...emailTemplates.welcome(name)
-    }).catch(err => console.error('[Auth] Welcome email failed:', err));
-
-    res.status(201).json({
-      message: 'Welcome to VidyaJaya!',
-      user: finalUser,
-      token: authData.session?.access_token || null
-    });
-  } catch (error) {
-    console.error('[Register] Unexpected error:', error.message);
-    res.status(500).json({ message: error.message || 'Registration failed. Please try again.' });
-  }
 });
 
 // @route   POST /api/auth/login

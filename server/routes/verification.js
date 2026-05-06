@@ -37,58 +37,32 @@ router.post('/send-mobile-otp', async (req, res) => {
     if (!phone) return res.status(400).json({ message: 'Phone number is required' });
 
     try {
-        // Generate 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        let dbStored = false;
-
-        // 1. Try to store in Database (non-fatal if table missing)
-        try {
-            const { error: otpErr } = await supabase
-                .from('verification_otps')
-                .insert({ phone, otp });
-            if (!otpErr) dbStored = true;
-            else console.warn('[OTP_DB] Table may not exist, using memory store:', otpErr.message);
-        } catch (dbEx) {
-            console.warn('[OTP_DB] DB exception, using memory store:', dbEx.message);
-        }
-
-        // Always store in memory as backup
+        
+        // 1. Instant Memory Store
         storeOtpInMemory(phone, otp);
 
-        // 2. Try to send real SMS
-        const smsResult = await sendSignupOTP(phone, otp);
+        // 2. Background Tasks (DB + SMS)
+        (async () => {
+            try {
+                // Background DB Log
+                await supabase.from('verification_otps').insert({ phone, otp });
+                // Background SMS Send
+                await sendSignupOTP(phone, otp);
+            } catch (err) {
+                console.error('[OTP_BACKGROUND_PROCESS_ERROR]', err.message);
+            }
+        })();
 
-        if (smsResult.success && !smsResult.simulated) {
-            // Real SMS sent successfully
-            console.log(`[OTP_SENT] Real OTP sent to ${phone}`);
-            return res.json({ message: 'Verification code sent to your mobile.', success: true });
-        }
-
-        if (smsResult.simulated) {
-            // No API key configured, simulation mode
-            console.log(`[OTP_SIMULATED] Code for ${phone}: ${otp}`);
-            return res.json({ message: 'OTP simulated (no API key). Check server logs.', success: true, simulated: true });
-        }
-
-        // SMS failed (IP blocked, API error, etc.) — use bypass
-        console.warn(`[OTP_BYPASS] SMS failed for ${phone}. Storing bypass code 123456.`);
-        storeOtpInMemory(phone, '123456'); // Override with bypass
-
-        return res.json({
-            message: 'SMS delivery unavailable. Please use code 123456 to continue.',
-            success: true,
-            bypass: true
+        // 3. Instant Response
+        return res.json({ 
+            message: 'Verification code sent to your mobile.', 
+            success: true 
         });
 
     } catch (err) {
         console.error('[SEND_OTP_ERROR]', err);
-        // Even on full failure, allow bypass so user isn't stuck
-        storeOtpInMemory(phone, '123456');
-        return res.json({
-            message: 'SMS service error. Please use code 123456 to continue.',
-            success: true,
-            bypass: true
-        });
+        return res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -101,36 +75,32 @@ router.post('/send-email-otp', async (req, res) => {
     if (!email) return res.status(400).json({ message: 'Email address is required' });
 
     try {
-        // Generate 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // 1. Try to store in Database
-        try {
-            await supabase
-                .from('verification_otps')
-                .insert({ phone: email, otp }); // Reusing phone column for email if needed, or if schema allows
-        } catch (dbEx) {
-            console.warn('[OTP_DB] Using memory store only.');
-        }
-
-        // Always store in memory
+        // 1. Instant Memory Store
         storeOtpInMemory(email, otp);
 
-        // 2. Send Email (IN THE BACKGROUND - don't 'await' it)
-        // This makes the API response instant for the user
-        sendEmailOTP(email, otp)
-            .then(() => console.log(`[OTP_SENT] Email OTP delivered to ${email}`))
-            .catch(err => console.error(`[OTP_BACKGROUND_ERROR] Failed to send to ${email}:`, err.message));
+        // 2. Background Tasks (DB + Email)
+        (async () => {
+            try {
+                // Background DB Log
+                await supabase.from('verification_otps').insert({ phone: email, otp });
+                // Background Email Send
+                await sendEmailOTP(email, otp);
+            } catch (err) {
+                console.error('[EMAIL_BACKGROUND_PROCESS_ERROR]', err.message);
+            }
+        })();
 
+        // 3. Instant Response
         return res.json({ 
             message: 'Verification code sent to your email.', 
-            success: true,
-            note: 'Sending in background' 
+            success: true 
         });
 
     } catch (err) {
         console.error('[SEND_EMAIL_OTP_ERROR]', err);
-        return res.status(500).json({ message: 'Failed to send email OTP. Please try again later.' });
+        return res.status(500).json({ message: 'Internal server error' });
     }
 });
 
