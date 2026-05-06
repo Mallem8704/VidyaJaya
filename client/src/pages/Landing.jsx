@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppStore } from '../store/appStore';
 import { 
@@ -85,6 +86,22 @@ export default function Landing() {
     return () => clearTimeout(timeout);
   }, []);
 
+  // Real-time Ticker Data hook
+  const [tickerData, setTickerData] = useState(null);
+  useEffect(() => {
+    const fetchTicker = async () => {
+      try {
+        const res = await axios.get('/api/public/ticker');
+        setTickerData(res.data);
+      } catch (err) {
+        console.error("Ticker fetch failed:", err);
+      }
+    };
+    fetchTicker();
+    const interval = setInterval(fetchTicker, 60000); // Update every minute
+    return () => clearInterval(interval);
+  }, []);
+
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setIsMobileMenuOpen(false);
@@ -94,23 +111,42 @@ export default function Landing() {
     navigate('/signup');
   };
 
+  const tickerItems = [
+    ...(tickerData?.recentScores?.map(s => ({
+      icon: <TrendingUp size={14} className="text-secondary" />,
+      text: <span><span>{s.profiles?.name || 'Student'}</span> scored {s.accuracy}% in {s.tests?.title || 'Mock Test'}</span>
+    })) || []),
+    ...(tickerData?.topStreaks?.map(s => ({
+      icon: <Trophy size={14} className="text-accent-gold" />,
+      text: <span><span>{s.name}</span> unlocked Gold Badge — {s.streak} day streak!</span>
+    })) || []),
+    ...(tickerData?.recentPayouts?.map(p => ({
+      icon: <Coins size={14} className="text-accent-gold" />,
+      text: <span><span>{p.profiles?.name || 'Student'}</span> earned ₹{p.amount} in weekly rewards</span>
+    })) || []),
+    {
+      icon: <Rocket size={14} className="text-primary" />,
+      text: <span><span>{(tickerData?.totalUsers || 12483).toLocaleString()} students</span> active on VidyaJaya now</span>
+    },
+    {
+      icon: <Target size={14} className="text-secondary" />,
+      text: <span><span>VidyaJaya AI</span> generated {tickerData?.questionsToday || 180} fresh questions today</span>
+    }
+  ];
+
+  // Repeat items to ensure smooth scrolling
+  const fullTickerItems = [...tickerItems, ...tickerItems];
+
   return (
     <div className="landing-page">
       {/* TICKER */}
       <div className="ticker">
         <div className="ticker-inner">
-          <span className="ticker-item"><TrendingUp size={14} className="text-secondary" /> <span>Priya from Delhi</span> scored 94% in UPSC Mock #47</span>
-          <span className="ticker-item"><Trophy size={14} className="text-accent-gold" /> <span>Rahul from Mumbai</span> unlocked Gold Badge — 30 day streak!</span>
-          <span className="ticker-item"><Coins size={14} className="text-accent-gold" /> <span>SSC student</span> earned ₹500 in weekly reward pool</span>
-          <span className="ticker-item"><Rocket size={14} className="text-primary" /> <span>12,483 students</span> active on VidyaJaya right now</span>
-          <span className="ticker-item"><Star size={14} className="text-accent-gold" fill="currentColor" /> <span>Sneha from Hyderabad</span> cleared SBI PO with 99 marks</span>
-          <span className="ticker-item"><Target size={14} className="text-secondary" /> <span>VidyaJaya AI</span> generated 180 fresh questions today</span>
-          <span className="ticker-item"><TrendingUp size={14} className="text-secondary" /> <span>Priya from Delhi</span> scored 94% in UPSC Mock #47</span>
-          <span className="ticker-item"><Trophy size={14} className="text-accent-gold" /> <span>Rahul from Mumbai</span> unlocked Gold Badge — 30 day streak!</span>
-          <span className="ticker-item"><Coins size={14} className="text-accent-gold" /> <span>SSC student</span> earned ₹500 in weekly reward pool</span>
-          <span className="ticker-item"><Rocket size={14} className="text-primary" /> <span>12,483 students</span> active on VidyaJaya right now</span>
-          <span className="ticker-item"><Star size={14} className="text-accent-gold" fill="currentColor" /> <span>Sneha from Hyderabad</span> cleared SBI PO with 99 marks</span>
-          <span className="ticker-item"><Target size={14} className="text-secondary" /> <span>VidyaJaya AI</span> generated 180 fresh questions today</span>
+          {fullTickerItems.map((item, idx) => (
+            <span key={idx} className="ticker-item">
+              {item.icon} {item.text}
+            </span>
+          ))}
         </div>
       </div>
 
