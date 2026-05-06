@@ -17,7 +17,8 @@ import {
   ShieldCheck,
   Lock,
   Wallet as WalletIcon,
-  Share2
+  Share2,
+  TrendingUp
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -48,6 +49,7 @@ const Sidebar = () => {
     { name: 'Doubts', icon: HelpCircle, path: '/doubts' },
     { name: 'Wallet', icon: WalletIcon, path: '/wallet' },
     { name: 'Refer & Earn', icon: Share2, path: '/refer-and-earn' },
+    ...(user?.is_influencer || user?.referral_type === 'influencer' ? [{ name: 'Influencer Panel', icon: TrendingUp, path: '/influencer-dashboard' }] : []),
     ...(user?.role === 'admin' || user?.is_admin || user?.email === 'mallem8704@gmail.com' ? [{ name: 'Admin Panel', icon: ShieldCheck, path: '/admin' }] : []),
     { name: 'Pricing', icon: Sparkles, path: '/pricing' },
     { name: 'Profile', icon: User, path: '/profile' },
@@ -65,20 +67,20 @@ const Sidebar = () => {
 
       {/* Sidebar sidebar */}
       <aside className={`
-        fixed top-0 left-0 z-50 h-screen w-64 bg-primary text-white transition-transform duration-300 ease-in-out
+        fixed top-0 left-0 z-50 h-screen w-64 bg-[var(--bg-card)] text-[var(--text-primary)] border-r border-[var(--border)] transition-all duration-300 ease-in-out
         flex flex-col
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}>
         {/* Logo area */}
-        <div className="flex items-center justify-between p-4 border-b border-primary-light">
+        <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-secondary rounded flex items-center justify-center overflow-hidden shadow-lg border border-secondary/20">
               <img src="/logo.png" alt="V" className="w-full h-full object-contain" />
             </div>
-            <span className="font-heading font-bold text-xl tracking-wide">VidyaJaya</span>
+            <span className="font-heading font-bold text-xl tracking-wide text-[var(--text-primary)]">VidyaJaya</span>
           </div>
           <button 
-            className="lg:hidden text-gray-300 hover:text-white"
+            className="lg:hidden text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
             onClick={() => setSidebarOpen(false)}
           >
             <X size={24} />
@@ -86,7 +88,7 @@ const Sidebar = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 scrollbar-thin scrollbar-thumb-white/10">
+        <nav className="flex-1 overflow-y-auto py-4 scrollbar-thin scrollbar-thumb-[var(--border)]">
           <ul className="space-y-1 px-3">
             {navItems.map((item) => (
               <li key={item.name}>
@@ -95,7 +97,7 @@ const Sidebar = () => {
                   onClick={() => setSidebarOpen(false)}
                   className={({ isActive }) => `
                     flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-200
-                    ${isActive ? 'bg-secondary text-white shadow-lg shadow-secondary/20' : 'hover:bg-primary-light text-gray-300 hover:text-white'}
+                    ${isActive ? 'bg-secondary text-white shadow-lg shadow-secondary/20' : 'hover:bg-[var(--bg-light)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}
                   `}
                 >
                   <div className="flex items-center gap-3">
@@ -112,15 +114,15 @@ const Sidebar = () => {
 
           {/* Upgrade Card */}
           {!user?.is_pro && (
-            <div className="mx-4 mt-6 p-4 rounded-xl bg-gradient-to-br from-secondary/40 to-accent-gold/40 border border-secondary/30 relative overflow-hidden group">
-              <div className="absolute -right-4 -bottom-4 w-12 h-12 bg-white/5 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
-              <p className="text-xs font-bold text-accent-gold mb-1 flex items-center gap-1 relative z-10">
+            <div className="mx-4 mt-6 p-4 rounded-xl bg-gradient-to-br from-secondary/10 to-accent-gold/10 border border-secondary/20 relative overflow-hidden group">
+              <div className="absolute -right-4 -bottom-4 w-12 h-12 bg-secondary/5 rounded-full blur-xl group-hover:scale-150 transition-transform"></div>
+              <p className="text-xs font-bold text-secondary mb-1 flex items-center gap-1 relative z-10 uppercase tracking-tight">
                 <Sparkles size={12}/> UPGRADE TO PRO
               </p>
-              <p className="text-[10px] text-gray-100 mb-3 relative z-10">Unlock unlimited AI doubt solving & cash rewards.</p>
+              <p className="text-[10px] text-[var(--text-secondary)] mb-3 relative z-10 leading-tight">Unlock unlimited AI doubt solving & cash rewards.</p>
               <NavLink 
                 to="/pricing" 
-                className="block w-full py-2 text-center text-[10px] font-bold bg-white text-secondary rounded-lg hover:bg-opacity-90 transition-all shadow-sm relative z-10"
+                className="block w-full py-2 text-center text-[10px] font-bold bg-secondary text-white rounded-lg hover:bg-opacity-90 transition-all shadow-sm relative z-10"
               >
                 GET PRO NOW
               </NavLink>
@@ -129,10 +131,10 @@ const Sidebar = () => {
         </nav>
 
         {/* User Card */}
-        <div className="p-4 border-t border-primary-light bg-primary-light bg-opacity-30">
+        <div className="p-4 border-t border-[var(--border)] bg-[var(--bg-light)] bg-opacity-50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-accent-gold flex items-center justify-center text-white font-bold uppercase shadow-md border-2 border-white/10 overflow-hidden">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-secondary to-accent-gold flex items-center justify-center text-white font-bold uppercase shadow-md border-2 border-white/20 overflow-hidden">
                 {(user?.avatar_url || user?.avatar) ? (
                   <img src={user?.avatar_url || user?.avatar} alt="Avatar" className="w-full h-full object-cover" />
                 ) : (
@@ -140,19 +142,19 @@ const Sidebar = () => {
                 )}
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold truncate w-24">{user?.name || 'Student'}</span>
-                <span className="text-[10px] text-accent-gold font-bold uppercase tracking-wider">
+                <span className="text-sm font-semibold truncate w-24 text-[var(--text-primary)]">{user?.name || 'Student'}</span>
+                <span className="text-[10px] text-secondary font-bold uppercase tracking-wider">
                   {user?.is_pro ? 'PRO MEMBER' : 'Free Plan'}
                 </span>
               </div>
             </div>
-            <button title="Settings" className="text-gray-300 hover:text-white transition-colors">
+            <button title="Settings" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
               <Settings size={18} />
             </button>
           </div>
           <button 
             onClick={logout}
-            className="mt-3 flex items-center gap-2 text-sm text-gray-400 hover:text-red-400 w-full transition-colors"
+            className="mt-3 flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-red-500 w-full transition-colors"
           >
             <LogOut size={16} /> Logout
           </button>

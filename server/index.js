@@ -105,6 +105,7 @@ app.use('/api/questions', questionRoutes);
 app.use('/api/verification', require('./routes/verification'));
 app.use('/api/referrals', require('./routes/referrals'));
 app.use('/api/public', require('./routes/public'));
+app.use('/api/influencer', require('./routes/influencer'));
 console.log('[SERVER] Public route mounted ✓');
 console.log('[SERVER] Referrals route mounted ✓');
 

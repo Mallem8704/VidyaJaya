@@ -5,12 +5,16 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { CheckCircle, XCircle, Clock, ChevronRight, Share2, Award, Loader2, FastForward, Bot } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '../store/authStore';
+import CertificateModal from '../components/CertificateModal';
 
 const Result = () => {
   const { id } = useParams();
+  const { user } = useAuthStore();
   const [submission, setSubmission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAllAnswers, setShowAllAnswers] = useState(false);
+  const [isCertificateOpen, setIsCertificateOpen] = useState(false);
 
   useEffect(() => {
     const fetchResult = async () => {
@@ -30,6 +34,18 @@ const Result = () => {
     };
     fetchResult();
   }, [id]);
+
+  const handleShare = () => {
+    if (!submission) return;
+    
+    const referralCode = user?.referral_code || '';
+    const shareUrl = `${window.location.origin}/signup?ref=${referralCode}`;
+    const text = `🏆 I just scored ${submission.accuracy}% in ${submission.testId?.title || 'Mock Test'} on VidyaJaya! \n\nJoin me to crack UPSC/SSC with AI and earn cash rewards. \n\nCheck it out: ${shareUrl}`;
+    
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    window.open(whatsappUrl, '_blank');
+    toast.success("Opening WhatsApp...");
+  };
 
   if (loading) {
     return (
@@ -84,7 +100,7 @@ const Result = () => {
           <ChevronRight className="rotate-180" size={16} /> Back to Dashboard
         </Link>
         <div className="flex gap-3">
-          <button className="btn btn-outline text-sm py-1.5 px-3 flex gap-2"><Share2 size={16}/> Share</button>
+          <button onClick={handleShare} className="btn btn-outline text-sm py-1.5 px-3 flex gap-2"><Share2 size={16}/> Share</button>
           <Link to="/tests" className="btn btn-primary text-sm py-1.5 px-3">Take Another</Link>
         </div>
       </div>
@@ -136,7 +152,28 @@ const Result = () => {
                 <div className="text-xl font-bold">Completed</div>
               </div>
             </div>
+
+            {/* CLAIM CERTIFICATE CTA */}
+            {percentage >= 40 && (
+              <button 
+                onClick={() => setIsCertificateOpen(true)}
+                className="mt-6 w-full py-3 bg-gradient-to-r from-accent-gold to-yellow-600 rounded-xl font-black text-[#0A2540] flex items-center justify-center gap-2 shadow-lg hover:scale-[1.02] transition-all group"
+              >
+                <Award size={20} className="group-hover:rotate-12 transition-transform" />
+                CLAIM RANK CERTIFICATE
+              </button>
+            )}
           </motion.div>
+
+          <CertificateModal 
+            isOpen={isCertificateOpen} 
+            onClose={() => setIsCertificateOpen(false)}
+            data={{
+              userName: user?.name || 'Vidyajaya Student',
+              testTitle: submission.testId?.title || 'Daily Mock Test',
+              accuracy: percentage
+            }}
+          />
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-4">

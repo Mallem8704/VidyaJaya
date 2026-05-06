@@ -1,19 +1,17 @@
-/* ── TOKENS ── */
-:root {
-  --navy:   #0A2540;
+/* ── TOKENS consumed from index.css ── */
+
+/* ── Landing Page Specific Variables (Scoped) ── */
+.landing-page {
+  --navy:   var(--primary);
   --navy2:  #0D3060;
-  --orange: #FF6B00;
-  --orange2:#FF8C3A;
-  --green:  #00C853;
-  --gold:   #FFD700;
-  --purple: #7C3AED;
-  --bg:     #F8FAFC;
-  --white:  #FFFFFF;
-  --gray1:  #F1F5F9;
-  --gray2:  #E2E8F0;
-  --gray3:  #94A3B8;
-  --gray4:  #64748B;
-  --text:   #0A2540;
+  --orange: var(--secondary);
+  --bg:     var(--bg-light);
+  --white:  var(--bg-card);
+  --gray1:  var(--bg-light);
+  --gray2:  var(--border);
+  --gray3:  var(--text-secondary);
+  --gray4:  var(--text-secondary);
+  --text:   var(--text-primary);
   --r8:     8px;
   --r12:    12px;
   --r16:    16px;
@@ -24,17 +22,7 @@
   --shadow-lg: 0 12px 48px rgba(10,37,64,.15);
 }
 
-/* Syncing with html.dark as defined in index.css */
-html.dark .landing-page, 
-.dark .landing-page {
-  --bg:    #060e1a;
-  --white: #0d1b2e;
-  --gray1: #111f35;
-  --gray2: #1a2f4a;
-  --gray3: #6a8aaa; /* Lighter for dark mode */
-  --gray4: #94A3B8; /* Lighter for readability on dark */
-  --text:  #f1f5f9;
-  --navy:  #e8f0fe; /* Invert navy for text when in dark mode */
+html.dark .landing-page {
   --shadow: 0 4px 24px rgba(0,0,0,.4);
   --shadow-lg: 0 12px 48px rgba(0,0,0,.5);
 }

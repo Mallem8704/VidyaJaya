@@ -142,7 +142,7 @@ const Profile = () => {
         <div className="absolute top-0 right-0 w-64 h-64 bg-secondary rounded-full blur-3xl opacity-20 -mr-20 -mt-20"></div>
         
         <div className="relative group z-10">
-          <div className="w-28 h-28 bg-[var(--bg-light)] bg-opacity-20 rounded-full border-4 border-[rgba(255,255,255,0.2)] flex items-center justify-center text-4xl font-bold text-gray-200 overflow-hidden shadow-xl backdrop-blur-md relative">
+          <div className="w-28 h-28 bg-white/20 rounded-full border-4 border-white/20 flex items-center justify-center text-4xl font-black text-white overflow-hidden shadow-xl backdrop-blur-md relative">
              {userAvatar ? (
                <img src={userAvatar} alt="Avatar" className="w-full h-full object-cover" />
              ) : (
@@ -156,22 +156,22 @@ const Profile = () => {
           </div>
           <button 
             onClick={() => setIsEditingAvatar(!isEditingAvatar)}
-            className="absolute bottom-0 right-0 w-8 h-8 bg-secondary rounded-full flex items-center justify-center text-white border-2 border-primary shadow-md hover:scale-110 transition-transform"
+            className="absolute bottom-0 right-0 w-8 h-8 bg-secondary rounded-full flex items-center justify-center text-white border-2 border-[var(--bg-card)] shadow-md hover:scale-110 transition-transform"
           >
             <Edit3 size={14} />
           </button>
         </div>
 
         <div className="flex-1 text-center md:text-left z-10">
-           <h2 className="text-3xl font-heading font-bold mb-1">{user?.name || 'Warrior'}</h2>
-           <p className="text-primary-light mb-4">{user?.email}</p>
+           <h2 className="text-3xl font-heading font-bold mb-1 text-white">{user?.name || 'Warrior'}</h2>
+           <p className="text-white/60 mb-4 font-medium">{user?.email}</p>
            
            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-             <span className="px-3 py-1 bg-[rgba(255,255,255,0.1)] rounded-full text-xs font-bold border border-[rgba(255,255,255,0.2)] backdrop-blur-md">🎯 Goal: {user?.exam_goal || 'UPSC'}</span>
-             <span className={`px-3 py-1 font-bold rounded-full text-xs shadow-md ${user?.is_pro ? 'bg-accent-gold text-yellow-900' : 'bg-gray-200 text-gray-700'}`}>
+             <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold border border-white/20 backdrop-blur-md text-white">🎯 Goal: {user?.exam_goal || 'UPSC'}</span>
+             <span className={`px-3 py-1 font-bold rounded-full text-xs shadow-md ${user?.is_pro ? 'bg-accent-gold text-yellow-900' : 'bg-white/90 text-primary'}`}>
                {user?.is_pro ? '👑 Plan: PRO' : '🎓 Plan: Free'}
              </span>
-             <Link to="/kyc" className={`px-3 py-1 font-bold rounded-full text-xs shadow-md transition-all hover:scale-105 ${user?.kyc_verified || user?.is_verified ? 'bg-accent-green text-green-900' : 'bg-rose-100 text-rose-700 border border-rose-200'}`}>
+             <Link to="/kyc" className={`px-3 py-1 font-bold rounded-full text-xs shadow-md transition-all hover:scale-105 ${user?.kyc_verified || user?.is_verified ? 'bg-accent-green text-white' : 'bg-rose-500 text-white border border-rose-400'}`}>
                {user?.kyc_verified || user?.is_verified ? '✓ Verified Student' : '⚠ KYC Unverified'}
              </Link>
            </div>

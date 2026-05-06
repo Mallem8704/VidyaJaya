@@ -6,7 +6,7 @@
   "scripts": {
     "start": "concurrently \"npm run server\" \"npm run frontend\"",
     "dev": "npm start",
-    "server": "cd server && node index.js",
+    "server": "cd server && npx nodemon index.js",
     "frontend": "cd client && npm run dev -- --port 5173",
     "postinstall": "cd server && npm install",
     "build": "cd client && npm run build",
