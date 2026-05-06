@@ -6,12 +6,15 @@ const createTransporter = () => {
         host: 'smtp.gmail.com',
         port: 587,
         secure: false, // use STARTTLS
+        pool: true,    // Use pooled connections for faster subsequent sends
+        maxConnections: 5,
+        maxMessages: 100,
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
         },
         tls: {
-            rejectUnauthorized: false // Helps avoid certificate issues on some cloud hosts
+            rejectUnauthorized: false
         },
         timeout: 15000
     });

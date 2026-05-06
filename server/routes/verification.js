@@ -116,11 +116,17 @@ router.post('/send-email-otp', async (req, res) => {
         // Always store in memory
         storeOtpInMemory(email, otp);
 
-        // 2. Send Email
-        await sendEmailOTP(email, otp);
+        // 2. Send Email (IN THE BACKGROUND - don't 'await' it)
+        // This makes the API response instant for the user
+        sendEmailOTP(email, otp)
+            .then(() => console.log(`[OTP_SENT] Email OTP delivered to ${email}`))
+            .catch(err => console.error(`[OTP_BACKGROUND_ERROR] Failed to send to ${email}:`, err.message));
 
-        console.log(`[OTP_SENT] Email OTP sent to ${email}`);
-        return res.json({ message: 'Verification code sent to your email.', success: true });
+        return res.json({ 
+            message: 'Verification code sent to your email.', 
+            success: true,
+            note: 'Sending in background' 
+        });
 
     } catch (err) {
         console.error('[SEND_EMAIL_OTP_ERROR]', err);
