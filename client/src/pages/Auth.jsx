@@ -62,18 +62,9 @@ const Auth = ({ type }) => {
     if (resendCountdown > 0) return;
     
     try {
-      const response = await axios.post('/api/verification/send-mobile-otp', { phone: formData.phone });
+      const response = await axios.post('/api/verification/send-email-otp', { email: formData.email });
       setResendCountdown(60); // 60 seconds cooldown
-      
-      if (response.data?.bypass) {
-        toast('SMS unavailable. Use code: 123456 to continue.', {
-          icon: '⚠️',
-          duration: 6000,
-          style: { background: '#fff3cd', color: '#856404' }
-        });
-      } else {
-        toast.success(`OTP resent to ${formData.phone}!`);
-      }
+      toast.success(`OTP resent to ${formData.email}!`);
     } catch (err) {
       toast.error("Failed to resend OTP. Please try again later.");
     }
@@ -107,32 +98,15 @@ const Auth = ({ type }) => {
       } else if (type === 'Signup') {
         if (!isOtpSent) {
           try {
-            const response = await axios.post('/api/verification/send-mobile-otp', { phone: formData.phone });
+            await axios.post('/api/verification/send-email-otp', { email: formData.email });
             setIsOtpSent(true);
             setShowOtpField(true);
             setResendCountdown(60);
-
-            if (response.data?.bypass) {
-              // SMS failed (IP blocked etc.) — bypass mode
-              toast('SMS unavailable. Use code: 123456 to continue.', {
-                icon: '⚠️',
-                duration: 6000,
-                style: { background: '#fff3cd', color: '#856404' }
-              });
-            } else {
-              toast.success(`OTP sent to ${formData.phone}! Check your messages.`);
-            }
+            toast.success(`OTP sent to ${formData.email}! Check your inbox.`);
             return;
           } catch (err) {
-            // Even if the request fully fails, let the user try with bypass code
             console.error('[SIGNUP_OTP]', err?.response?.data || err.message);
-            setIsOtpSent(true);
-            setShowOtpField(true);
-            toast('Could not send SMS. Use code: 123456 to continue.', {
-              icon: '⚠️',
-              duration: 6000,
-              style: { background: '#fff3cd', color: '#856404' }
-            });
+            toast.error("Could not send verification email. Please check your email address.");
             return;
           }
         }
@@ -389,7 +363,7 @@ const Auth = ({ type }) => {
                         placeholder="000000" maxLength={6}
                       />
                       <div className="flex justify-between items-center mt-2">
-                        <p className="text-xs text-[var(--text-secondary)]">Enter the 6-digit code sent to {formData.phone}</p>
+                        <p className="text-xs text-[var(--text-secondary)]">Enter the 6-digit code sent to {formData.email}</p>
                         <button 
                           type="button"
                           onClick={handleResendOtp}

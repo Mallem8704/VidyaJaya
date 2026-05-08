@@ -25,6 +25,14 @@ const Practice = () => {
   const [aiHistory, setAiHistory] = useState([]);
 
   useEffect(() => {
+    document.title = "UPSC Practice Questions & Daily Current Affairs — VidyaJaya";
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute("content", "Practice UPSC Civil Services questions, daily current affairs, and subject-wise quizzes. Use our AI Drill mode to focus on your weak areas and crack competitive exams.");
+    }
+  }, []);
+
+  useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {

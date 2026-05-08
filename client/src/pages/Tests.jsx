@@ -18,6 +18,14 @@ const Tests = () => {
   const isUserPro = user?.is_pro || user?.role === 'admin';
 
   useEffect(() => {
+    document.title = "Free UPSC Mock Tests 2026 & SSC CGL Test Series — VidyaJaya";
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute("content", "Access free UPSC Civil Services mock tests, SSC CGL practice questions, and Banking exam test series. Get AI-powered results and detailed performance analysis on VidyaJaya.");
+    }
+  }, []);
+
+  useEffect(() => {
     const fetchTests = async () => {
       try {
         const res = await axios.get('/api/tests');

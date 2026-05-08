@@ -43,6 +43,7 @@ import HowVidyajayaHelps from './pages/articles/HowVidyajayaHelps';
 import WhyVidyajayaIsBest from './pages/articles/WhyVidyajayaIsBest';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
+import InfluencerDashboard from './pages/InfluencerDashboard';
 
 import ProRoute from './components/ProRoute';
 import AdminLayout from './components/AdminLayout';
@@ -192,6 +193,7 @@ function App() {
             <Route path="/kyc" element={<KYC />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/refer-and-earn" element={<ReferAndEarn />} />
+            <Route path="/influencer-dashboard" element={<InfluencerDashboard />} />
             <Route path="/ai-questions" element={<DailyAiQuestions />} />
             
             {/* PRO Specific Routes */}

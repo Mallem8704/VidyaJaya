@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAppStore } from '../store/appStore';
 import { 
@@ -22,10 +23,10 @@ export default function Landing() {
 
   // SEO hook
   useEffect(() => {
-    document.title = "Vidyajaya — India's #1 AI Exam Platform for UPSC, SSC & Banking";
+    document.title = "VidyaJaya — India's #1 AI Platform for UPSC 2026, SSC & Banking Mocks";
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
-      metaDescription.setAttribute("content", "Vidyajaya is India's leading student platform providing AI-powered study materials, daily mock tests, job updates, and career guidance for UPSC, SSC, Banking, and RRB exams.");
+      metaDescription.setAttribute("content", "VidyaJaya is the ultimate AI-powered practice platform for UPSC Civil Services, SSC CGL, Banking, and RRB. Get free mock tests, daily practice sets, and instant AI doubt solving.");
     }
   }, []);
 
@@ -85,6 +86,22 @@ export default function Landing() {
     return () => clearTimeout(timeout);
   }, []);
 
+  // Real-time Ticker Data hook
+  const [tickerData, setTickerData] = useState(null);
+  useEffect(() => {
+    const fetchTicker = async () => {
+      try {
+        const res = await axios.get('/api/public/ticker');
+        setTickerData(res.data);
+      } catch (err) {
+        console.error("Ticker fetch failed:", err);
+      }
+    };
+    fetchTicker();
+    const interval = setInterval(fetchTicker, 60000); // Update every minute
+    return () => clearInterval(interval);
+  }, []);
+
   const scrollToSection = (id) => {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setIsMobileMenuOpen(false);
@@ -94,23 +111,42 @@ export default function Landing() {
     navigate('/signup');
   };
 
+  const tickerItems = [
+    ...(tickerData?.recentScores?.map(s => ({
+      icon: <TrendingUp size={14} className="text-secondary" />,
+      text: <span><span>{s.profiles?.name || 'Student'}</span> scored {s.accuracy}% in {s.tests?.title || 'Mock Test'}</span>
+    })) || []),
+    ...(tickerData?.topStreaks?.map(s => ({
+      icon: <Trophy size={14} className="text-accent-gold" />,
+      text: <span><span>{s.name}</span> unlocked Gold Badge — {s.streak} day streak!</span>
+    })) || []),
+    ...(tickerData?.recentPayouts?.map(p => ({
+      icon: <Coins size={14} className="text-accent-gold" />,
+      text: <span><span>{p.profiles?.name || 'Student'}</span> earned ₹{p.amount} in weekly rewards</span>
+    })) || []),
+    {
+      icon: <Rocket size={14} className="text-primary" />,
+      text: <span><span>{(tickerData?.totalUsers || 12483).toLocaleString()} students</span> active on VidyaJaya now</span>
+    },
+    {
+      icon: <Target size={14} className="text-secondary" />,
+      text: <span><span>VidyaJaya AI</span> generated {tickerData?.questionsToday || 180} fresh questions today</span>
+    }
+  ];
+
+  // Repeat items to ensure smooth scrolling
+  const fullTickerItems = [...tickerItems, ...tickerItems];
+
   return (
     <div className="landing-page">
       {/* TICKER */}
       <div className="ticker">
         <div className="ticker-inner">
-          <span className="ticker-item"><TrendingUp size={14} className="text-secondary" /> <span>Priya from Delhi</span> scored 94% in UPSC Mock #47</span>
-          <span className="ticker-item"><Trophy size={14} className="text-accent-gold" /> <span>Rahul from Mumbai</span> unlocked Gold Badge — 30 day streak!</span>
-          <span className="ticker-item"><Coins size={14} className="text-accent-gold" /> <span>SSC student</span> earned ₹500 in weekly reward pool</span>
-          <span className="ticker-item"><Rocket size={14} className="text-primary" /> <span>12,483 students</span> active on VidyaJaya right now</span>
-          <span className="ticker-item"><Star size={14} className="text-accent-gold" fill="currentColor" /> <span>Sneha from Hyderabad</span> cleared SBI PO with 99 marks</span>
-          <span className="ticker-item"><Target size={14} className="text-secondary" /> <span>VidyaJaya AI</span> generated 180 fresh questions today</span>
-          <span className="ticker-item"><TrendingUp size={14} className="text-secondary" /> <span>Priya from Delhi</span> scored 94% in UPSC Mock #47</span>
-          <span className="ticker-item"><Trophy size={14} className="text-accent-gold" /> <span>Rahul from Mumbai</span> unlocked Gold Badge — 30 day streak!</span>
-          <span className="ticker-item"><Coins size={14} className="text-accent-gold" /> <span>SSC student</span> earned ₹500 in weekly reward pool</span>
-          <span className="ticker-item"><Rocket size={14} className="text-primary" /> <span>12,483 students</span> active on VidyaJaya right now</span>
-          <span className="ticker-item"><Star size={14} className="text-accent-gold" fill="currentColor" /> <span>Sneha from Hyderabad</span> cleared SBI PO with 99 marks</span>
-          <span className="ticker-item"><Target size={14} className="text-secondary" /> <span>VidyaJaya AI</span> generated 180 fresh questions today</span>
+          {fullTickerItems.map((item, idx) => (
+            <span key={idx} className="ticker-item">
+              {item.icon} {item.text}
+            </span>
+          ))}
         </div>
       </div>
 
@@ -194,8 +230,8 @@ export default function Landing() {
               <div className="hero-badge">India's #1 AI Exam Platform</div>
             </div>
             <h1 className="hero-title">
-              Turn Study Into<br />
-              Ranks & Rewards
+              Crack UPSC & SSC with<br />
+              AI Mock Tests & Rewards
             </h1>
             <p className="hero-sub">AI-powered daily mock tests, live leaderboards, and real cash rewards for UPSC, SSC, Banking and more. Every question fresh. Every day a new competition.</p>
             <p className="hero-mobile-text">Daily mock tests + real rewards</p>
@@ -512,7 +548,7 @@ export default function Landing() {
       <section className="exams-section">
         <div className="container text-center">
           <div className="section-tag reveal"><BookOpen size={14} className="inline mr-1" /> All Exams Covered</div>
-          <h2 className="section-title reveal reveal-delay-1">The best <span style={{ color: 'var(--orange)' }}>Vidyajaya app</span> for <br />every competitive exam in India</h2>
+          <h2 className="section-title reveal reveal-delay-1">The best <span style={{ color: 'var(--orange)' }}>UPSC & SSC Practice App</span> <br />for every aspirant in India</h2>
           <p className="section-sub reveal reveal-delay-2">Vidyajaya covers 6 major exam categories with AI-generated questions tailored to each exam's pattern and syllabus.</p>
           <div className="exam-grid">
             <div className="card exam-card reveal" style={{ '--ec-color': '#FF6B00' }}>
@@ -698,6 +734,24 @@ export default function Landing() {
             </div>
           </div>
         </div>
+
+        {/* Semantic SEO Section (Accessible to Screen Readers & Search Engines) */}
+        <section className="sr-only" style={{ position: 'absolute', width: '1px', height: '1px', padding: '0', margin: '-1px', overflow: 'hidden', clip: 'rect(0,0,0,0)', border: '0' }}>
+          <h2>Best AI Platform for UPSC, SSC CGL, and Banking Exams</h2>
+          <p>
+            Vidyajaya is the premier destination for students preparing for competitive exams in India. 
+            Our AI-powered mock tests cover UPSC Civil Services, SSC CGL, RRB NTPC, and IBPS Banking exams. 
+            Aspirants can practice with daily AI-generated questions, track their streaks, and earn rewards. 
+            Whether you are looking for UPSC current affairs, SSC reasoning practice, or Banking aptitude tests, 
+            Vidyajaya provides the most accurate AI study material and real-time job updates.
+          </p>
+          <ul>
+            <li>Free UPSC Mock Tests 2026</li>
+            <li>Daily SSC CGL Practice Questions</li>
+            <li>Banking Exam Preparation with Rewards</li>
+            <li>AI-Powered Career Guidance for Students</li>
+          </ul>
+        </section>
       </footer>
     </div>
   );

@@ -1,12 +1,22 @@
 const nodemailer = require('nodemailer');
 
 const createTransporter = () => {
+    // Port 587 with secure: false (STARTTLS) is more compatible with cloud hosts like Render
     return nodemailer.createTransport({
-        service: 'gmail', // Optimization for Gmail
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false, // use STARTTLS
+        pool: true,    // Use pooled connections for faster subsequent sends
+        maxConnections: 5,
+        maxMessages: 100,
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
-        }
+        },
+        tls: {
+            rejectUnauthorized: false
+        },
+        timeout: 15000
     });
 };
 
@@ -25,10 +35,14 @@ const sendEmail = async (options) => {
     };
 
     try {
-        await transporter.sendMail(message);
-        console.log(`[EMAIL] Sent to ${options.email}: ${options.subject}`);
+        console.log(`[EMAIL] Attempting to send to ${options.email}...`);
+        const info = await transporter.sendMail(message);
+        console.log(`[EMAIL] ✅ Sent successfully! MessageId: ${info.messageId}`);
+        return { success: true, messageId: info.messageId };
     } catch (err) {
-        console.error('[EMAIL_ERROR]', err);
+        console.error('[EMAIL_ERROR] ❌ Failed to send email:', err.message);
+        // Throw the error so the calling route knows it failed
+        throw err;
     }
 };
 
@@ -77,7 +91,41 @@ const emailTemplates = {
                 <p>Go to your dashboard to start your premium journey!</p>
             </div>
         `
+    }),
+    otp: (otp) => ({
+        subject: `${otp} is your VidyaJaya verification code 🛡️`,
+        html: `
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333; border: 1px solid #eee; border-radius: 10px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #FF6B00; margin-bottom: 0;">VidyaJaya</h1>
+                    <p style="color: #666; font-size: 14px; margin-top: 5px;">Security Verification</p>
+                </div>
+                <p>Namaste! 🙏</p>
+                <p>Use the following code to verify your email address on VidyaJaya. This code is valid for 10 minutes.</p>
+                
+                <div style="background-color: #f9f9f9; padding: 20px; text-align: center; border-radius: 8px; margin: 25px 0;">
+                    <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #1a1a1a;">${otp}</span>
+                </div>
+                
+                <p style="color: #666; font-size: 13px;">If you didn't request this code, please ignore this email or contact support if you have concerns.</p>
+                
+                <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #888;">
+                    © 2026 VidyaJaya Technologies Pvt Ltd. <br/>
+                    Made with ❤️ in Kadiri, AP, India.
+                </div>
+            </div>
+        `
     })
 };
 
-module.exports = { sendEmail, emailTemplates };
+/**
+ * Send OTP via Email
+ */
+const sendOTP = async (email, otp) => {
+    return await sendEmail({
+        email,
+        ...emailTemplates.otp(otp)
+    });
+};
+
+module.exports = { sendEmail, emailTemplates, sendOTP };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UploadCloud, FileType, CheckCircle, Smartphone, Camera, Loader, Send, History } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 
@@ -260,7 +260,7 @@ const Doubts = () => {
               </div>
             );
           }) : (
-            <div className="col-span-full py-10 text-center card bg-gray-50 dark:bg-[#151c27]">
+            <div className="col-span-full py-10 text-center card bg-[var(--bg-light)]">
               <p className="text-[var(--text-secondary)] font-medium">No doubt history yet.</p>
             </div>
           )}
