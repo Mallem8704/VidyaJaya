@@ -1,7 +1,7 @@
 -- Tables for VidyaJaya Supabase Migration
 
 -- 1. Tests Table
-CREATE TABLE tests (
+CREATE TABLE IF NOT EXISTS tests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   category TEXT,
@@ -16,7 +16,7 @@ CREATE TABLE tests (
 );
 
 -- 2. Questions Table
-CREATE TABLE questions (
+CREATE TABLE IF NOT EXISTS questions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   test_id UUID REFERENCES tests(id) ON DELETE CASCADE,
   text TEXT NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE questions (
 );
 
 -- 3. Profiles Table (Linked to Supabase Auth)
-CREATE TABLE profiles (
+CREATE TABLE IF NOT EXISTS profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT,
   email TEXT UNIQUE,
@@ -55,7 +55,7 @@ CREATE TABLE profiles (
 );
 
 -- 4. Submissions Table
-CREATE TABLE submissions (
+CREATE TABLE IF NOT EXISTS submissions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   test_id UUID REFERENCES tests(id) ON DELETE CASCADE,
@@ -73,7 +73,7 @@ CREATE TABLE submissions (
 );
 
 -- 5. Submission Answers (Normalization of nested Mongo array)
-CREATE TABLE submission_answers (
+CREATE TABLE IF NOT EXISTS submission_answers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   submission_id UUID REFERENCES submissions(id) ON DELETE CASCADE,
   question_id UUID REFERENCES questions(id),
@@ -83,7 +83,7 @@ CREATE TABLE submission_answers (
 );
 
 -- 6. Doubts Table
-CREATE TABLE doubts (
+CREATE TABLE IF NOT EXISTS doubts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   question_text TEXT,
@@ -93,7 +93,7 @@ CREATE TABLE doubts (
 );
 
 -- 7. Rewards Table
-CREATE TABLE rewards (
+CREATE TABLE IF NOT EXISTS rewards (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
   type TEXT,
