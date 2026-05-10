@@ -1,11 +1,11 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { 
-    LayoutDashboard, 
-    Users, 
-    CreditCard, 
-    History, 
-    ShieldCheck, 
+import {
+    LayoutDashboard,
+    Users,
+    CreditCard,
+    History,
+    ShieldCheck,
     LogOut,
     ChevronLeft,
     TrendingUp,
@@ -54,10 +54,9 @@ const AdminLayout = () => {
                             key={item.name}
                             to={item.path}
                             end={item.path === '/admin'}
-                            className={({ isActive }) => 
-                                `flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${
-                                    isActive 
-                                    ? 'bg-secondary text-white shadow-lg shadow-secondary/20' 
+                            className={({ isActive }) =>
+                                `flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${isActive
+                                    ? 'bg-secondary text-white shadow-lg shadow-secondary/20'
                                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                                 }`
                             }
@@ -69,14 +68,14 @@ const AdminLayout = () => {
                 </nav>
 
                 <div className="p-4 border-t border-white/10 space-y-4">
-                    <button 
+                    <button
                         onClick={() => navigate('/')}
                         className="flex items-center gap-3 w-full px-4 py-3 rounded-xl font-bold text-sm text-gray-400 hover:text-white hover:bg-white/5 transition-all"
                     >
                         <ChevronLeft size={20} />
                         Back to Site
                     </button>
-                    <button 
+                    <button
                         onClick={handleLogout}
                         className="flex items-center gap-3 w-full px-4 py-3 rounded-xl font-bold text-sm text-red-400 hover:bg-red-500/10 transition-all"
                     >
