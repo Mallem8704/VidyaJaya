@@ -98,6 +98,24 @@ def parse_mcqs_with_gemini_multimodal(images):
         print(f"Gemini API Error: {e}")
         return []
 
+def is_test_already_ingested(test_title):
+    """Checks if a test with the same title already exists in Supabase."""
+    try:
+        headers = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}"
+        }
+        res = requests.get(
+            f"{SUPABASE_URL}/rest/v1/tests?title=eq.{requests.utils.quote(test_title)}&select=id",
+            headers=headers
+        )
+        res.raise_for_status()
+        data = res.json()
+        return len(data) > 0
+    except Exception as e:
+        print(f"Error checking for existing test: {e}")
+        return False
+
 def save_to_supabase(test_title, category, questions_data):
     """Saves the extracted questions to the Supabase database."""
     if not questions_data:
@@ -199,6 +217,11 @@ def ingest_pdf(file_path, category_override=None, test_run=False):
     test_title = filename.replace(".pdf", "").replace("-", " ").replace("_", " ")
     if test_run:
         test_title = "[TEST RUN] " + test_title
+    
+    # 0. Check if already ingested
+    if not test_run and is_test_already_ingested(test_title):
+        print(f"Test '{test_title}' is already ingested. Skipping.")
+        return
         
     print(f"\n{'='*50}")
     print(f"Starting Multimodal Ingestion for: {test_title}")
