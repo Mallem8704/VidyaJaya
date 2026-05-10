@@ -44,18 +44,11 @@ const sendSMS = async (phone, message) => {
         }
     } catch (err) {
         const errData = err.response?.data;
-<<<<<<< HEAD
         const statusCode = errData?.status_code || err.response?.status;
-=======
-        const statusCode = err.response?.status;
->>>>>>> fa594ff377f4b18e06bb56239a0fb141340924af
         const errMsg = errData?.message || err.message;
         
         console.error(`[SMS] ❌ Fast2SMS HTTP Error [${statusCode}]:`, JSON.stringify(errData || errMsg));
         
-<<<<<<< HEAD
-        return { success: false, error: errMsg, code: statusCode };
-=======
         // Provide human-readable errors for common failures
         let friendlyError = errMsg;
         if (statusCode === 414 || errMsg.includes('414')) friendlyError = "Server IP is blocked by Fast2SMS. Try using a proxy or different server.";
@@ -63,7 +56,6 @@ const sendSMS = async (phone, message) => {
         if (statusCode === 406 || errMsg.includes('406')) friendlyError = "Insufficient Balance in your Fast2SMS wallet.";
         
         return { success: false, error: friendlyError, code: statusCode };
->>>>>>> fa594ff377f4b18e06bb56239a0fb141340924af
     }
 };
 
