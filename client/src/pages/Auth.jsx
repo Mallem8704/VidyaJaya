@@ -46,6 +46,7 @@ const Auth = ({ type }) => {
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(0);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
 
   // Resend Timer Logic
   React.useEffect(() => {
@@ -98,6 +99,7 @@ const Auth = ({ type }) => {
       } else if (type === 'Signup') {
         if (!isOtpSent) {
           try {
+            setIsSendingOtp(true);
             await axios.post('/api/verification/send-email-otp', { email: formData.email });
             setIsOtpSent(true);
             setShowOtpField(true);
@@ -108,6 +110,8 @@ const Auth = ({ type }) => {
             console.error('[SIGNUP_OTP]', err?.response?.data || err.message);
             toast.error("Could not send verification email. Please check your email address.");
             return;
+          } finally {
+            setIsSendingOtp(false);
           }
         }
 
@@ -490,11 +494,14 @@ const Auth = ({ type }) => {
 
               <button
                 type="submit"
-                disabled={isloading}
+                disabled={isloading || isSendingOtp}
                 className="w-full btn btn-primary flex justify-center items-center gap-2 py-3.5 text-lg truncate relative group"
               >
-                {isloading ? (
-                  <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></span>
+                {isloading || isSendingOtp ? (
+                  <>
+                    <span className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></span>
+                    {isSendingOtp && <span className="text-sm font-medium">Sending OTP...</span>}
+                  </>
                 ) : (
                   <>
                     {type === 'Login' ? 'Log In' :

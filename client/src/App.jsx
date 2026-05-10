@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { useAppStore } from './store/appStore';
 import { useAuthStore } from './store/authStore';
+import axios from 'axios';
 
 // Routes & Layouts
 import PrivateRoute from './components/PrivateRoute';
@@ -66,6 +67,9 @@ function App() {
   const { loadUser, token, setAuth, _hasHydrated, isAuthenticated, user } = useAuthStore();
 
   useEffect(() => {
+    // 🛡️ WAKE UP SERVER EARLY
+    axios.get('/health').catch(() => {});
+
     // 🔗 GLOBAL REFERRAL CAPTURE
     // This captures the 'ref' code from any URL (Landing, Signup, etc.) and saves it
     const urlParams = new URLSearchParams(window.location.search);
