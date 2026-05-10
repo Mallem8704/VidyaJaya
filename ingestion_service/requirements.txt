@@ -1,0 +1,6 @@
+google-generativeai
+PyMuPDF
+python-dotenv
+tqdm
+requests
+Pillow
