@@ -282,10 +282,13 @@ if __name__ == "__main__":
             print(f"File not found: {args.file}")
     elif args.dir:
         if os.path.exists(args.dir):
-            for filename in os.listdir(args.dir):
-                if filename.lower().endswith('.pdf'):
-                    file_path = os.path.join(args.dir, filename)
-                    ingest_pdf(file_path, test_run=args.test_run)
+            files = [f for f in os.listdir(args.dir) if f.lower().endswith('.pdf')]
+            # Sort files: Prioritize those starting with 'QP' (usually MCQs)
+            files.sort(key=lambda x: (not x.startswith('QP'), x))
+            
+            for filename in files:
+                file_path = os.path.join(args.dir, filename)
+                ingest_pdf(file_path, test_run=args.test_run)
         else:
             print(f"Directory not found: {args.dir}")
     else:

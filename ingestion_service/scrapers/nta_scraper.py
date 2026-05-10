@@ -52,10 +52,10 @@ def scrape_nta():
         
         # Navigate to NTA Downloads
         print(f"Navigating to {NTA_URL}...")
-        page.goto(NTA_URL)
+        page.goto(NTA_URL, wait_until="networkidle", timeout=60000)
         
         # Wait for the Year dropdown to be available
-        page.wait_for_selector("#drpYear")
+        page.wait_for_selector("#drpYear", timeout=60000)
         
         # Get all year options (excluding the placeholder "--Select--")
         year_options = page.locator("#drpYear option").all_text_contents()

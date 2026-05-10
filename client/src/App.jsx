@@ -37,6 +37,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import AdminUserManagement from './pages/AdminUserManagement';
 import AdminWithdrawals from './pages/AdminWithdrawals';
 import AdminTestCreation from './pages/AdminTestCreation';
+import CurrentAffairs from './pages/CurrentAffairs';
 
 // SEO Articles
 import WhatIsVidyajaya from './pages/articles/WhatIsVidyajaya';
@@ -158,6 +159,7 @@ function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Auth type="Login" />} />
         <Route path="/signup" element={<Auth type="Signup" />} />
+        <Route path="/current-affairs" element={<CurrentAffairs />} />
         <Route path="/forgot-password" element={<Auth type="Forgot Password" />} />
         <Route path="/reset-password/:token" element={<Auth type="Reset Password" />} />
         

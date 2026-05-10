@@ -164,6 +164,7 @@ export default function Landing() {
             <button className="nav-link" onClick={() => scrollToSection('features')}>Features</button>
             <button className="nav-link" onClick={() => scrollToSection('how')}>How It Works</button>
             <button className="nav-link" onClick={() => scrollToSection('pricing')}>Pricing</button>
+            <Link to="/current-affairs" className="nav-link">Current Affairs</Link>
             <button className="nav-link" onClick={() => scrollToSection('leaderboard-section')}>Leaderboard</button>
           </div>
 
@@ -195,6 +196,7 @@ export default function Landing() {
         <button className="mobile-link" onClick={() => scrollToSection('features')}>Features</button>
         <button className="mobile-link" onClick={() => scrollToSection('how')}>How It Works</button>
         <button className="mobile-link" onClick={() => scrollToSection('pricing')}>Pricing</button>
+        <Link to="/current-affairs" className="mobile-link">Current Affairs</Link>
         <button className="mobile-link" onClick={() => scrollToSection('leaderboard-section')}>Leaderboard</button>
         
         <div className="theme-toggle-row">
@@ -313,6 +315,7 @@ export default function Landing() {
               <div className="feat-icon" style={{ background: 'rgba(255,107,0,.12)', color: 'var(--orange)' }}><Bot size={32} /></div>
               <div className="feat-title">AI Daily Questions</div>
               <div className="feat-desc">GPT‑4o generates fresh questions every midnight across UPSC, SSC, Banking, RRB and more – mapped to real exam patterns and the latest current affairs. No recycled question bank.</div>
+              <Link to="/current-affairs" className="btn btn-ghost btn-sm" style={{ marginTop: '12px', color: 'var(--orange)', borderColor: 'rgba(255,107,0,.2)' }}>Read Daily News →</Link>
             </div>
             <div className="card feat-card feat-card-2 reveal reveal-delay-1">
               <div className="feat-icon" style={{ background: 'rgba(0,200,83,.12)', color: '#00C853' }}><Flame size={32} fill="currentColor" /></div>
