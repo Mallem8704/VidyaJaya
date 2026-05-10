@@ -166,14 +166,18 @@ const Dashboard = () => {
               ))}
             </div>
             
-            <button 
-              onClick={handleFreeze}
-              disabled={isFreezing}
-              className="flex items-center gap-2 btn bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] border border-[rgba(255,255,255,0.2)] text-white text-sm"
-            >
-              {isFreezing ? <div className="w-4 h-4 rounded-full border-2 border-t-transparent border-white animate-spin"></div> : <Snowflake size={16} className="text-blue-300" />}
-              {freezeCount > 0 ? `Freezes: ${freezeCount}` : 'Freeze Streak (50 💰)'}
-            </button>
+            <div className="flex flex-col items-end gap-1">
+              <button 
+                onClick={handleFreeze}
+                disabled={isFreezing || coinsAmount < 50 || freezeCount >= 2}
+                className={`flex items-center gap-2 btn text-sm transition-all ${coinsAmount >= 50 && freezeCount < 2 ? 'bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] border border-[rgba(255,255,255,0.2)] text-white' : 'bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.05)] text-white/40 cursor-not-allowed'}`}
+                title={coinsAmount < 50 ? "Not enough coins (Need 50)" : freezeCount >= 2 ? "Max freezes reached" : "Buy a streak freeze"}
+              >
+                {isFreezing ? <div className="w-4 h-4 rounded-full border-2 border-t-transparent border-white animate-spin"></div> : <Snowflake size={16} className={coinsAmount >= 50 && freezeCount < 2 ? "text-blue-300" : "text-white/30"} />}
+                {freezeCount >= 2 ? 'Max Freezes (2/2)' : `Buy Freeze (50 💰)`}
+              </button>
+              {freezeCount > 0 && <span className="text-[10px] text-blue-300 font-medium mr-1">You own {freezeCount} freeze{freezeCount > 1 && 's'}</span>}
+            </div>
           </div>
         </div>
       </motion.div>
