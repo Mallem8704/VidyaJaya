@@ -10,3 +10,6 @@ server/logs/
 .vscode/
 .idea/
 *.local
+ingestion_service/data/
+nta_downloads.html
+html/
