@@ -6,6 +6,8 @@ import {
   Globe, Landmark, BarChart3, FlaskConical, Trophy
 } from 'lucide-react';
 import { useAppStore } from '../store/appStore';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import './Landing.css'; // Reusing landing styles for consistency
 
 const MOCK_NEWS = [
@@ -60,11 +62,44 @@ const CATEGORIES = [
   { name: 'Sports', icon: <Trophy size={16} /> }
 ];
 
+const CATEGORY_ICONS = {
+  'National': <Landmark className="text-blue-500" />,
+  'International': <Globe className="text-green-500" />,
+  'Economy': <BarChart3 className="text-orange-500" />,
+  'Science & Tech': <FlaskConical className="text-purple-500" />,
+  'Sports': <Trophy className="text-red-500" />,
+  'Default': <Newspaper className="text-[var(--orange)]" />
+};
+
 export default function CurrentAffairs() {
   const navigate = useNavigate();
   const { theme } = useAppStore();
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [newsData, setNewsData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchNews = async () => {
+    try {
+      setLoading(true);
+      const { data } = await axios.get('/api/current-affairs', {
+        params: {
+          category: selectedCategory,
+          search: searchQuery
+        }
+      });
+      setNewsData(data);
+    } catch (err) {
+      console.error('Failed to fetch news:', err);
+      toast.error('Could not load current affairs. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNews();
+  }, [selectedCategory, searchQuery]);
 
   useEffect(() => {
     document.title = "Daily Current Affairs for UPSC, SSC & Banking — VidyaJaya";
@@ -77,12 +112,11 @@ export default function CurrentAffairs() {
     }
   }, []);
 
-  const filteredNews = MOCK_NEWS.filter(news => {
-    const matchesCategory = selectedCategory === 'All' || news.category === selectedCategory;
-    const matchesSearch = news.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                         news.summary.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+  const formatDate = (dateString) => {
+    if (!dateString) return 'May 10, 2026';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
   return (
     <div className="landing-page min-h-screen bg-[var(--bg)] pb-20">
@@ -132,66 +166,76 @@ export default function CurrentAffairs() {
           </div>
 
           {/* NEWS GRID */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {filteredNews.map((news, idx) => (
-              <div 
-                key={news.id} 
-                className={`card group hover:scale-[1.02] transition-all p-0 overflow-hidden reveal reveal-delay-${idx % 4}`}
-              >
-                <div className="p-8">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-[var(--bg)] flex items-center justify-center text-xl">
-                        {news.icon}
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[1, 2, 3, 4].map((n) => (
+                <div key={n} className="card animate-pulse bg-[var(--white)] h-64 rounded-3xl"></div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {newsData.map((news, idx) => (
+                <div 
+                  key={news.id} 
+                  className={`card group hover:scale-[1.02] transition-all p-0 overflow-hidden reveal reveal-delay-${idx % 4}`}
+                >
+                  <div className="p-8">
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-xl bg-[var(--bg)] flex items-center justify-center text-xl">
+                          {CATEGORY_ICONS[news.category] || CATEGORY_ICONS['Default']}
+                        </div>
+                        <div>
+                          <div className="text-[10px] font-black uppercase tracking-widest text-[var(--gray3)]">{news.category}</div>
+                          <div className="text-xs font-bold text-[var(--gray4)]">{formatDate(news.published_at)}</div>
+                        </div>
                       </div>
-                      <div>
-                        <div className="text-[10px] font-black uppercase tracking-widest text-[var(--gray3)]">{news.category}</div>
-                        <div className="text-xs font-bold text-[var(--gray4)]">{news.date}</div>
-                      </div>
+                      {news.is_trending && (
+                        <div className="flex items-center gap-1 text-[var(--orange)] font-bold text-[10px] bg-orange-500/10 px-2 py-1 rounded-md">
+                          <TrendingUp size={12} /> Trending
+                        </div>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1 text-[var(--orange)] font-bold text-[10px] bg-orange-500/10 px-2 py-1 rounded-md">
-                      <TrendingUp size={12} /> {news.trend}
+                    
+                    <h3 className="text-xl md:text-2xl font-black mb-4 leading-tight group-hover:text-[var(--orange)] transition-colors">
+                      {news.title}
+                    </h3>
+                    <p className="text-[var(--gray4)] text-sm mb-8 line-clamp-3">
+                      {news.summary}
+                    </p>
+                    
+                    <div className="flex items-center justify-between mt-auto">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1.5 text-xs text-[var(--gray3)]">
+                          <Calendar size={14} /> {news.read_time || '5 min read'}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[var(--bg)] text-[var(--gray3)] transition-colors">
+                          <Bookmark size={18} />
+                        </button>
+                        <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[var(--bg)] text-[var(--gray3)] transition-colors">
+                          <Share2 size={18} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                   
-                  <h3 className="text-xl md:text-2xl font-black mb-4 leading-tight group-hover:text-[var(--orange)] transition-colors">
-                    {news.title}
-                  </h3>
-                  <p className="text-[var(--gray4)] text-sm mb-8 line-clamp-3">
-                    {news.summary}
-                  </p>
-                  
-                  <div className="flex items-center justify-between mt-auto">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-1.5 text-xs text-[var(--gray3)]">
-                        <Calendar size={14} /> {news.readTime}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[var(--bg)] text-[var(--gray3)] transition-colors">
-                        <Bookmark size={18} />
-                      </button>
-                      <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-[var(--bg)] text-[var(--gray3)] transition-colors">
-                        <Share2 size={18} />
-                      </button>
-                    </div>
+                  <div className="bg-[var(--bg)] px-8 py-4 flex items-center justify-between border-t border-[var(--gray2)]">
+                    <div className="text-xs font-bold text-[var(--gray3)]">Ready to test your knowledge?</div>
+                    <button 
+                      onClick={() => navigate('/ai-questions')}
+                      className="flex items-center gap-2 text-[var(--orange)] font-black text-sm hover:gap-4 transition-all"
+                    >
+                      Take Quiz <ArrowRight size={16} />
+                    </button>
                   </div>
                 </div>
-                
-                <div className="bg-[var(--bg)] px-8 py-4 flex items-center justify-between border-t border-[var(--gray2)]">
-                  <div className="text-xs font-bold text-[var(--gray3)]">Ready to test your knowledge?</div>
-                  <button 
-                    onClick={() => navigate('/ai-questions')}
-                    className="flex items-center gap-2 text-[var(--orange)] font-black text-sm hover:gap-4 transition-all"
-                  >
-                    Take Quiz <ArrowRight size={16} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
-          {filteredNews.length === 0 && (
+          {!loading && newsData.length === 0 && (
             <div className="text-center py-20 bg-[var(--white)] rounded-3xl border border-dashed border-[var(--gray2)]">
               <div className="w-20 h-20 rounded-full bg-[var(--bg)] flex items-center justify-center mx-auto mb-6 text-3xl">
                 🔎
