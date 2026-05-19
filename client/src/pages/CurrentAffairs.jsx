@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   Newspaper, Calendar, Search, ArrowRight, 
   Share2, Bookmark, Flame, TrendingUp, 
@@ -212,9 +212,11 @@ export default function CurrentAffairs() {
                       )}
                     </div>
                     
+                    <Link to={`/current-affairs/${news.id}`} className="no-underline">
                     <h3 className="text-xl md:text-2xl font-black mb-4 leading-tight group-hover:text-[var(--orange)] transition-colors">
                       {news.title}
                     </h3>
+                    </Link>
                     <p className="text-[var(--gray4)] text-sm mb-8 line-clamp-3">
                       {news.summary}
                     </p>
@@ -237,13 +239,13 @@ export default function CurrentAffairs() {
                   </div>
                   
                   <div className="bg-[var(--bg)] px-8 py-4 flex items-center justify-between border-t border-[var(--gray2)]">
-                    <div className="text-xs font-bold text-[var(--gray3)]">Ready to test your knowledge?</div>
-                    <button 
-                      onClick={() => navigate('/ai-questions')}
+                    <div className="text-xs font-bold text-[var(--gray3)]">Read the full story</div>
+                    <Link 
+                      to={`/current-affairs/${news.id}`}
                       className="flex items-center gap-2 text-[var(--orange)] font-black text-sm hover:gap-4 transition-all"
                     >
-                      Take Quiz <ArrowRight size={16} />
-                    </button>
+                      Read More <ArrowRight size={16} />
+                    </Link>
                   </div>
                 </div>
               ))}
