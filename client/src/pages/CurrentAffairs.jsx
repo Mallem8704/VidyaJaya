@@ -112,6 +112,21 @@ export default function CurrentAffairs() {
     }
   }, []);
 
+  // Intersection Observer for scroll animations
+  useEffect(() => {
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          revealObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+    
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+    return () => revealObs.disconnect();
+  }, [newsData, loading]); // Re-run when news data loads to catch new cards
+
   const formatDate = (dateString) => {
     if (!dateString) return 'May 10, 2026';
     const date = new Date(dateString);

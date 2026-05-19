@@ -80,11 +80,15 @@ const questionRoutes = require('./routes/questions');
 const startStreakResetJob = require('./jobs/streakReset');
 const startLeaderboardUpdateJob = require('./jobs/leaderboardUpdate');
 const startDailyContentJob = require('./jobs/dailyContent');
+const { startInstagramJob } = require('./jobs/instagramJob');
+const { startNewsIngestionJob } = require('./jobs/newsIngestionJob');
 
 // Start Cron Jobs
 startStreakResetJob();
 startLeaderboardUpdateJob(io);
 startDailyContentJob();
+startInstagramJob();
+startNewsIngestionJob();
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
@@ -108,6 +112,8 @@ app.use('/api/current-affairs', require('./routes/currentAffairs'));
 console.log('[SERVER] Current Affairs route mounted ✓');
 app.use('/api/public', require('./routes/public'));
 app.use('/api/influencer', require('./routes/influencer'));
+app.use('/api/admin/instagram', require('./routes/instagram'));
+console.log('[SERVER] Instagram admin route mounted ✓');
 console.log('[SERVER] Public route mounted ✓');
 console.log('[SERVER] Referrals route mounted ✓');
 
